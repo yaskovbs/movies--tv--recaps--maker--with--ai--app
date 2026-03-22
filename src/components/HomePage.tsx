@@ -139,6 +139,10 @@ const HomePage = ({ apiKey }: HomePageProps) => {
       alert('אנא הכנס כותרת לסרט/סדרה');
       return;
     }
+    if (!selectedFile.buffer) {
+      alert('הקובץ לא נקרא בהצלחה. אנא הסר את הקובץ ובחר אותו שנית.');
+      return;
+    }
 
     setRecapOutput(null);
     setProcessingStatus({ stage: 'loading_engine', progress: 0, message: 'מתכונן לעיבוד...'});
@@ -165,11 +169,13 @@ const HomePage = ({ apiKey }: HomePageProps) => {
         progress: 0,
         message: 'כותב קובץ למערכת...'
       });
-      // Use pre-read buffer from VideoUploader (read eagerly at selection time
-      // to avoid NotReadableError when the browser revokes File permission).
-      // Fall back to re-reading only if buffer is somehow missing.
-      const fileBytes = selectedFile.buffer ?? new Uint8Array(await selectedFile.file.arrayBuffer());
-      await ffmpeg.writeFile(selectedFile.name, fileBytes);
+      // Use the pre-buffered bytes captured at file-selection time.
+      // Never read from the stale File object here — the browser may have
+      // revoked read permission after user interactions (NotReadableError).
+      if (!selectedFile.buffer) {
+        throw new Error('הקובץ לא נקרא בהצלחה. אנא הסר את הקובץ ובחר אותו שנית.');
+      }
+      await ffmpeg.writeFile(selectedFile.name, selectedFile.buffer);
 
       ffmpeg.on('progress', ({ progress }) => {
         if (progress >= 0 && progress <= 1) {
