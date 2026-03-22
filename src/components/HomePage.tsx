@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Play, Users, Zap, Shield, Cpu } from 'lucide-react'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
-import { fetchFile, toBlobURL } from '@ffmpeg/util'
+import { toBlobURL } from '@ffmpeg/util'
 import VideoUploader from './VideoUploader'
 import RecapSettings from './RecapSettings'
 import ProcessingStatus from './ProcessingStatus'
@@ -165,7 +165,9 @@ const HomePage = ({ apiKey }: HomePageProps) => {
         progress: 0,
         message: 'כותב קובץ למערכת...'
       });
-      await ffmpeg.writeFile(selectedFile.name, await fetchFile(selectedFile.file));
+      // Read file as ArrayBuffer to avoid stale File reference errors
+      const fileData = await selectedFile.file.arrayBuffer();
+      await ffmpeg.writeFile(selectedFile.name, new Uint8Array(fileData));
 
       ffmpeg.on('progress', ({ progress }) => {
         if (progress >= 0 && progress <= 1) {
