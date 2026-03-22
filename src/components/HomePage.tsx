@@ -165,9 +165,11 @@ const HomePage = ({ apiKey }: HomePageProps) => {
         progress: 0,
         message: 'כותב קובץ למערכת...'
       });
-      // Read file as ArrayBuffer to avoid stale File reference errors
-      const fileData = await selectedFile.file.arrayBuffer();
-      await ffmpeg.writeFile(selectedFile.name, new Uint8Array(fileData));
+      // Use pre-read buffer from VideoUploader (read eagerly at selection time
+      // to avoid NotReadableError when the browser revokes File permission).
+      // Fall back to re-reading only if buffer is somehow missing.
+      const fileBytes = selectedFile.buffer ?? new Uint8Array(await selectedFile.file.arrayBuffer());
+      await ffmpeg.writeFile(selectedFile.name, fileBytes);
 
       ffmpeg.on('progress', ({ progress }) => {
         if (progress >= 0 && progress <= 1) {

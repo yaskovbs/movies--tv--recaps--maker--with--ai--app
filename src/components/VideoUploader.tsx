@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Upload, X, File } from 'lucide-react'
+import { Upload, X, File, Loader2 } from 'lucide-react'
 import type { VideoFile } from '../types'
 
 interface VideoUploaderProps {
@@ -15,10 +15,11 @@ const VideoUploader = ({
   onRemoveFile 
 }: VideoUploaderProps) => {
   const [dragActive, setDragActive] = useState(false)
+  const [reading, setReading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const supportedFormats = ['MP4', 'AVI', 'MOV', 'MKV']
-  const maxSize = 3 * 1024 * 1024 * 1024 // 3GB בבייטים
+  const maxSize = 3 * 1024 * 1024 * 1024 // 3GB
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault()
@@ -34,36 +35,49 @@ const VideoUploader = ({
     e.preventDefault()
     e.stopPropagation()
     setDragActive(false)
-    
     const files = e.dataTransfer.files
     if (files && files.length > 0) {
       handleFileSelection(files[0])
     }
   }
 
-  const handleFileSelection = (file: File) => {
-    // בדיקת סוג קובץ
+  // Read the file bytes eagerly as soon as the user selects a file.
+  // Keeping only a raw File reference causes NotReadableError after
+  // re-renders or user interactions that revoke the browser's implicit
+  // file-read permission.
+  const handleFileSelection = async (file: File) => {
     const fileExtension = file.name.split('.').pop()?.toUpperCase()
     if (!fileExtension || !supportedFormats.includes(fileExtension)) {
       alert(`סוג קובץ לא נתמך. קבצים נתמכים: ${supportedFormats.join(', ')}`)
       return
     }
 
-    // בדיקת גודל קובץ
     if (file.size > maxSize) {
       alert('הקובץ גדול מדי. גודל מקסימלי: 3GB')
       return
     }
 
-    const videoFile: VideoFile = {
-      id: Date.now().toString(),
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      file: file
-    }
+    setReading(true)
+    try {
+      const arrayBuffer = await file.arrayBuffer()
+      const buffer = new Uint8Array(arrayBuffer)
 
-    onFileSelect(videoFile)
+      const videoFile: VideoFile = {
+        id: Date.now().toString(),
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        file,
+        buffer,
+      }
+
+      onFileSelect(videoFile)
+    } catch (err) {
+      console.error('Failed to read file:', err)
+      alert('לא ניתן לקרוא את הקובץ. אנא נסה שוב.')
+    } finally {
+      setReading(false)
+    }
   }
 
   const formatFileSize = (bytes: number): string => {
@@ -75,7 +89,22 @@ const VideoUploader = ({
   }
 
   const openFileDialog = () => {
-    inputRef.current?.click()
+    if (!reading) inputRef.current?.click()
+  }
+
+  // Reading state — show spinner while buffering
+  if (reading) {
+    return (
+      <motion.div
+        className="bg-gray-800 rounded-lg p-8 border-2 border-blue-500 text-center"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+      >
+        <Loader2 className="h-10 w-10 text-blue-400 animate-spin mx-auto mb-3" />
+        <p className="text-white font-medium">קורא את הקובץ...</p>
+        <p className="text-gray-400 text-sm mt-1">אנא המתן</p>
+      </motion.div>
+    )
   }
 
   if (selectedFile) {
@@ -91,6 +120,9 @@ const VideoUploader = ({
             <div>
               <h3 className="text-white font-medium">{selectedFile.name}</h3>
               <p className="text-gray-400 text-sm">{formatFileSize(selectedFile.size)}</p>
+              {selectedFile.buffer && (
+                <p className="text-green-500 text-xs mt-0.5">✓ נקרא בהצלחה</p>
+              )}
             </div>
           </div>
           <button
@@ -126,6 +158,8 @@ const VideoUploader = ({
         onChange={(e) => {
           const file = e.target.files?.[0]
           if (file) handleFileSelection(file)
+          // Reset input so same file can be re-selected
+          e.target.value = ''
         }}
         className="hidden"
       />
