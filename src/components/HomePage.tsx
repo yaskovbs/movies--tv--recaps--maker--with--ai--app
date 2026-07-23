@@ -182,11 +182,20 @@ const HomePage = ({ apiKey }: HomePageProps) => {
         message: 'טוען את מנוע הווידאו...'
       });
 
+      // The multi-threaded core needs SharedArrayBuffer, which browsers only expose
+      // on cross-origin-isolated pages (see public/_headers / vite.config.ts).
+      // Falls back to the single-threaded core everywhere else.
+      const multiThreaded = typeof SharedArrayBuffer !== 'undefined' && self.crossOriginIsolated === true;
+
       if (!ffmpeg.loaded) {
-        const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
+        const baseURL = multiThreaded
+          ? 'https://unpkg.com/@ffmpeg/core-mt@0.12.6/dist/esm'
+          : 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
+
         await ffmpeg.load({
           coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
           wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+          ...(multiThreaded ? { workerURL: await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, 'text/javascript') } : {}),
         });
       }
 
@@ -208,6 +217,9 @@ const HomePage = ({ apiKey }: HomePageProps) => {
       // Cap resolution and use a fast x264 preset - recap clips don't need full
       // source resolution or the default "medium" preset's quality, and both cuts
       // are large speed wins for a software encoder running in-browser.
+      // When multi-threaded, only use ~22% of the device's cores so encoding
+      // doesn't hog the whole machine while it runs in the background tab.
+      const threadCount = multiThreaded ? Math.max(1, Math.round((navigator.hardwareConcurrency || 4) * 0.22)) : 1;
       await ffmpeg.exec([
         '-i', selectedFile.name,
         '-vf', `${selectFilter},scale='min(1280,iw)':-2`,
@@ -216,6 +228,7 @@ const HomePage = ({ apiKey }: HomePageProps) => {
         '-preset', 'veryfast',
         '-crf', '26',
         '-movflags', '+faststart',
+        '-threads', `${threadCount}`,
         '-t', `${settings.duration}`,
         '-y',
         outputFileName
