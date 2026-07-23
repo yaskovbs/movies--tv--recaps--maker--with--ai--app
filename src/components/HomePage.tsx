@@ -377,7 +377,7 @@ const HomePage = ({ apiKey }: HomePageProps) => {
               onFileSelect={setSelectedFile}
               onRemoveFile={() => setSelectedFile(null)}
             />
-            <RecapSettings settings={settings} onSettingsChange={setSettings} />
+            <RecapSettings settings={settings} onSettingsChange={setSettings} videoDuration={selectedFile?.duration} />
             <motion.button
               onClick={handleCreateRecap}
               disabled={!canSubmit}

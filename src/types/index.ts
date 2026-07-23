@@ -5,6 +5,7 @@ export interface VideoFile {
   type: string
   file: File
   buffer?: Uint8Array // pre-read bytes to avoid stale File reference errors
+  duration?: number // משך הסרטון בשניות, נקרא ממטא-דאטה של הדפדפן
 }
 
 export interface RecapSettings {

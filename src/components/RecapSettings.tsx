@@ -1,10 +1,12 @@
 import { motion } from 'framer-motion'
 import { Settings, Clock, Scissors, FileVideo, Film, Youtube, Globe } from 'lucide-react'
 import type { RecapSettings } from '../types'
+import { formatVideoLength } from '../lib/utils'
 
 interface RecapSettingsProps {
   settings: RecapSettings;
   onSettingsChange: (settings: RecapSettings) => void;
+  videoDuration?: number; // משך הסרטון שהועלה, בשניות
 }
 
 const formatDuration = (totalSeconds: number): string => {
@@ -22,9 +24,10 @@ const formatDuration = (totalSeconds: number): string => {
   return `00:${paddedMinutes}:${paddedSeconds}`;
 };
 
-const RecapSettingsComponent = ({ 
-  settings, 
-  onSettingsChange 
+const RecapSettingsComponent = ({
+  settings,
+  onSettingsChange,
+  videoDuration
 }: RecapSettingsProps) => {
   const handleChange = <K extends keyof RecapSettings>(field: K, value: RecapSettings[K]) => {
     onSettingsChange({
@@ -194,6 +197,11 @@ const RecapSettingsComponent = ({
             <Scissors className="h-4 w-4 ml-2" />
             חתוך כל (דקות : שניות)
           </label>
+          {videoDuration !== undefined && (
+            <p className="text-xs text-blue-300 mb-2">
+              משך הסרטון שהעליתם: {formatVideoLength(videoDuration)} ({Math.round(videoDuration)} שניות)
+            </p>
+          )}
           <div className="flex items-center space-x-2 space-x-reverse">
             <input
               type="number"
@@ -218,6 +226,11 @@ const RecapSettingsComponent = ({
           <p className="text-xs text-gray-400 mt-1">
             כל {intervalMinutes > 0 ? `${intervalMinutes} דקות ו-` : ''}{intervalRemainingSeconds} שניות ייחתך קטע של שנייה אחת.
           </p>
+          {videoDuration !== undefined && settings.intervalSeconds >= videoDuration && (
+            <p className="text-xs text-amber-400 mt-1">
+              ⚠ הערך גדול מאורך הסרטון עצמו ({formatVideoLength(videoDuration)}) - יתקבל קטע אחד בלבד. בחרו ערך קטן יותר.
+            </p>
+          )}
         </div>
 
         {/* תיאור נוסף */}

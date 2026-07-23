@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Upload, X, File, Loader2 } from 'lucide-react'
+import { Upload, X, File, Loader2, Clock } from 'lucide-react'
 import type { VideoFile } from '../types'
+import { formatVideoLength } from '../lib/utils'
 
 interface VideoUploaderProps {
   onFileSelect: (file: VideoFile) => void
@@ -43,6 +44,27 @@ const VideoUploader = ({
     }
   }
 
+  // Reads the video's duration from the browser's own metadata parsing -
+  // fast and doesn't require loading FFmpeg. Resolves to undefined rather
+  // than rejecting if the browser can't determine it, since duration is
+  // shown as a helper and shouldn't block file selection.
+  const getVideoDuration = (file: File): Promise<number | undefined> => {
+    return new Promise((resolve) => {
+      const video = document.createElement('video')
+      video.preload = 'metadata'
+      const objectUrl = URL.createObjectURL(file)
+      video.onloadedmetadata = () => {
+        URL.revokeObjectURL(objectUrl)
+        resolve(Number.isFinite(video.duration) ? video.duration : undefined)
+      }
+      video.onerror = () => {
+        URL.revokeObjectURL(objectUrl)
+        resolve(undefined)
+      }
+      video.src = objectUrl
+    })
+  }
+
   // Read the file bytes eagerly as soon as the user selects a file.
   // Keeping only a raw File reference causes NotReadableError after
   // re-renders or user interactions that revoke the browser's implicit
@@ -61,7 +83,10 @@ const VideoUploader = ({
 
     setReading(true)
     try {
-      const arrayBuffer = await file.arrayBuffer()
+      const [arrayBuffer, duration] = await Promise.all([
+        file.arrayBuffer(),
+        getVideoDuration(file),
+      ])
       const buffer = new Uint8Array(arrayBuffer)
 
       const videoFile: VideoFile = {
@@ -71,6 +96,7 @@ const VideoUploader = ({
         type: file.type,
         file,
         buffer,
+        duration,
       }
 
       onFileSelect(videoFile)
@@ -121,7 +147,15 @@ const VideoUploader = ({
             <File className="h-8 w-8 text-green-400" />
             <div>
               <h3 className="text-white font-medium">{selectedFile.name}</h3>
-              <p className="text-gray-400 text-sm">{formatFileSize(selectedFile.size)}</p>
+              <p className="text-gray-400 text-sm flex items-center gap-3">
+                <span>{formatFileSize(selectedFile.size)}</span>
+                {selectedFile.duration !== undefined && (
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3.5 w-3.5" />
+                    משך: {formatVideoLength(selectedFile.duration)}
+                  </span>
+                )}
+              </p>
               {selectedFile.buffer && (
                 <p className="text-green-500 text-xs mt-0.5">✓ נקרא בהצלחה</p>
               )}
