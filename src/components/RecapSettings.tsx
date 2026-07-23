@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Settings, Clock, Scissors, FileVideo, Film, Youtube, Globe } from 'lucide-react'
 import type { RecapSettings } from '../types'
@@ -35,6 +36,24 @@ const RecapSettingsComponent = ({
       [field]: value
     })
   }
+
+  // Keep the cut interval in sync with the video's real length and the chosen
+  // recap duration, so spreading captures evenly across the whole video actually
+  // adds up to the requested recap length (interval = video length / recap length,
+  // scaled by how many seconds each cut captures).
+  useEffect(() => {
+    if (videoDuration === undefined || videoDuration <= 0 || settings.duration <= 0) return
+    const idealInterval = Math.max(
+      settings.captureSeconds,
+      Math.round((videoDuration * settings.captureSeconds) / settings.duration)
+    )
+    if (idealInterval !== settings.intervalSeconds) {
+      handleChange('intervalSeconds', idealInterval)
+    }
+    // Only recompute when the video or the desired recap duration change -
+    // not on every render, and not when the user is mid-edit of the interval itself.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [videoDuration, settings.duration, settings.captureSeconds])
 
   const handleDurationChange = (part: 'hours' | 'minutes' | 'seconds', value: string) => {
     const numValue = parseInt(value, 10);
@@ -199,7 +218,7 @@ const RecapSettingsComponent = ({
           </label>
           {videoDuration !== undefined && (
             <p className="text-xs text-blue-300 mb-2">
-              משך הסרטון שהעליתם: {formatVideoLength(videoDuration)} ({Math.round(videoDuration)} שניות)
+              משך הסרטון שהעליתם: {formatVideoLength(videoDuration)} ({Math.round(videoDuration)} שניות) - הערך מחושב אוטומטית לפי אורך הסיכום שבחרתם, ואפשר לשנות אותו ידנית
             </p>
           )}
           <div className="flex items-center space-x-2 space-x-reverse">
