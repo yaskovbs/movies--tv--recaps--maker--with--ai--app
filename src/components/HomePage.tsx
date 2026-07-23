@@ -28,24 +28,30 @@ async function generateScriptWithGemini(
   }
   
   const genreText = settings.genre ? ` (ז'אנר: ${settings.genre})` : '';
-  const additionalDesc = settings.description ? `\n\nמידע נוסף: ${settings.description}` : '';
-  const youtubeContext = settings.youtubeLink 
+  const youtubeContext = settings.youtubeLink
     ? `\n\nהסגנון צריך להיות דומה לסיכומי ${settings.linkType === 'channel' ? 'ערוץ' : 'סרטון'} זה: ${settings.youtubeLink}`
     : '';
-  
+
   const prompt = `
     You are a professional video scriptwriter creating voice-over scripts for movie/TV show recaps in Hebrew.
-    
-    Title: ${settings.title}${genreText}${additionalDesc}${youtubeContext}${contextInfo}
-    
+
+    Title: ${settings.title}${genreText}${youtubeContext}${contextInfo}
+
+    User-provided description (this is the primary source of truth - base the script mainly on it):
+    """
+    ${settings.description}
+    """
+
     Create an engaging, cinematic voice-over script in Hebrew for a video recap.
     The script should be:
+    - Based primarily and accurately on the user-provided description above - do not invent plot points, characters, or events that contradict it
+    - Use the description as the main source; only rely on general knowledge to fill small gaps not covered by it
     - Exciting and dramatic
     - Concise (3-4 sentences, matching the video duration of ${settings.duration} seconds)
     - In natural, fluent Hebrew
-    - Capture the essence and key moments
+    - Capture the essence and key moments described above
     ${settings.youtubeLink ? '- Match the style and tone of the reference YouTube content' : ''}
-    
+
     Return ONLY the Hebrew script text, no additional commentary.
   `;
 
@@ -136,6 +142,10 @@ const HomePage = ({ apiKey }: HomePageProps) => {
     }
     if (!settings.title.trim()) {
       alert('אנא הכנס כותרת לסרט/סדרה');
+      return;
+    }
+    if (!settings.description.trim()) {
+      alert('אנא הכנס תיאור נוסף - הסיכום ייווצר על סמך הטקסט הזה');
       return;
     }
     if (!selectedFile.buffer) {

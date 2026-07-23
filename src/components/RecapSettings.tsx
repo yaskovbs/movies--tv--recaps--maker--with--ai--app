@@ -224,15 +224,18 @@ const RecapSettingsComponent = ({
         <div>
           <label className="flex items-center text-sm font-medium text-gray-300 mb-2">
             <FileVideo className="h-4 w-4 ml-2" />
-            תיאור נוסף (אופציונלי)
+            תיאור נוסף *
           </label>
           <textarea
             value={settings.description}
             onChange={(e) => handleChange('description', e.target.value)}
-            placeholder="הוסף פרטים נוספים שיעזרו ל-AI..."
+            placeholder="תארו את עלילת הסרט/הסדרה, הדמויות והאירועים המרכזיים - הסיכום ייווצר בעיקר על סמך הטקסט הזה..."
             className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             rows={3}
           />
+          <p className="text-xs text-gray-400 mt-1">
+            ככל שהתיאור מפורט ומדויק יותר, כך הסיכום שנוצר יהיה נאמן יותר לטקסט שהזנתם.
+          </p>
         </div>
 
         {/* YouTube Data API v3 Key */}
