@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Play, Users, Zap, Shield, Cpu } from 'lucide-react'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
@@ -132,6 +132,23 @@ const HomePage = ({ apiKey }: HomePageProps) => {
   const [recapOutput, setRecapOutput] = useState<RecapOutput | null>(null)
   const ffmpegRef = useRef(new FFmpeg())
 
+  // Attach ffmpeg listeners once - registering them inside handleCreateRecap
+  // would stack a new duplicate listener on every recap created in the same session.
+  useEffect(() => {
+    const ffmpeg = ffmpegRef.current
+    ffmpeg.on('log', ({ message }) => { console.log(message) })
+    ffmpeg.on('progress', ({ progress }) => {
+      if (progress >= 0 && progress <= 1) {
+        setProcessingStatus(prev => prev ? {
+          ...prev,
+          stage: 'cutting_video',
+          progress: Math.round(progress * 100),
+          message: `חותך קטעים מהווידאו... ${Math.round(progress * 100)}%`
+        } : prev)
+      }
+    })
+  }, [])
+
   const handleCreateRecap = async () => {
     if (!selectedFile) {
       alert('אנא בחר קובץ וידאו');
@@ -157,7 +174,6 @@ const HomePage = ({ apiKey }: HomePageProps) => {
     setRecapOutput(null);
     setProcessingStatus({ stage: 'loading_engine', progress: 0, message: 'מתכונן לעיבוד...'});
     const ffmpeg = ffmpegRef.current;
-    ffmpeg.on('log', ({ message }) => { console.log(message) });
 
     try {
       setProcessingStatus({
@@ -187,23 +203,19 @@ const HomePage = ({ apiKey }: HomePageProps) => {
       }
       await ffmpeg.writeFile(selectedFile.name, selectedFile.buffer);
 
-      ffmpeg.on('progress', ({ progress }) => {
-        if (progress >= 0 && progress <= 1) {
-          setProcessingStatus(prev => ({
-            ...prev!,
-            stage: 'cutting_video',
-            progress: Math.round(progress * 100),
-            message: `חותך קטעים מהווידאו... ${Math.round(progress * 100)}%`
-          }));
-        }
-      });
-
       const outputFileName = 'recap.mp4';
       const selectFilter = `select='lt(mod(t,${settings.intervalSeconds}),${settings.captureSeconds})',setpts=N/FRAME_RATE/TB`;
+      // Cap resolution and use a fast x264 preset - recap clips don't need full
+      // source resolution or the default "medium" preset's quality, and both cuts
+      // are large speed wins for a software encoder running in-browser.
       await ffmpeg.exec([
         '-i', selectedFile.name,
-        '-vf', selectFilter,
+        '-vf', `${selectFilter},scale='min(1280,iw)':-2`,
         '-an',
+        '-c:v', 'libx264',
+        '-preset', 'veryfast',
+        '-crf', '26',
+        '-movflags', '+faststart',
         '-t', `${settings.duration}`,
         '-y',
         outputFileName
