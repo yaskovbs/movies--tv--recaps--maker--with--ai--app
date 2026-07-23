@@ -37,15 +37,16 @@ async function generateScriptWithGemini(
 
     Title: ${settings.title}${genreText}${youtubeContext}${contextInfo}
 
-    User-provided description (this is the primary source of truth - base the script mainly on it):
+    User-provided description (this is the primary and most important source - rely on it much more heavily than you normally would as a scriptwriter):
     """
     ${settings.description}
     """
 
     Create an engaging, cinematic voice-over script in Hebrew for a video recap.
     The script should be:
-    - Based primarily and accurately on the user-provided description above - do not invent plot points, characters, or events that contradict it
-    - Use the description as the main source; only rely on general knowledge to fill small gaps not covered by it
+    - Grounded almost entirely in the user-provided description above - stick closely to its wording, facts, and details, and rely on it far more than on general or prior knowledge about the title
+    - Do not invent plot points, characters, or events that are not in the description and do not contradict it
+    - Only use general knowledge to fill in minor gaps the description does not cover, and keep that to a minimum
     - Exciting and dramatic
     - Concise (3-4 sentences, matching the video duration of ${settings.duration} seconds)
     - In natural, fluent Hebrew
@@ -296,6 +297,7 @@ const HomePage = ({ apiKey }: HomePageProps) => {
   ]
 
   const isProcessing = !!(processingStatus && processingStatus.stage !== 'completed' && processingStatus.stage !== 'error');
+  const canSubmit = !!selectedFile && !!apiKey && !!settings.title.trim() && !!settings.description.trim() && !isProcessing;
 
   const renderRightPanel = () => {
     if (processingStatus && processingStatus.stage === 'error') {
@@ -366,14 +368,14 @@ const HomePage = ({ apiKey }: HomePageProps) => {
             <RecapSettings settings={settings} onSettingsChange={setSettings} />
             <motion.button
               onClick={handleCreateRecap}
-              disabled={!selectedFile || !apiKey || isProcessing}
+              disabled={!canSubmit}
               className={`w-full py-4 px-6 rounded-lg font-semibold text-lg transition-all ${
-                selectedFile && apiKey && !isProcessing
+                canSubmit
                   ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white'
                   : 'bg-gray-700 text-gray-400 cursor-not-allowed'
               }`}
-              whileHover={{ scale: (selectedFile && apiKey && !isProcessing) ? 1.02 : 1 }}
-              whileTap={{ scale: (selectedFile && apiKey && !isProcessing) ? 0.98 : 1 }}
+              whileHover={{ scale: canSubmit ? 1.02 : 1 }}
+              whileTap={{ scale: canSubmit ? 0.98 : 1 }}
             >
               <Play className="inline-block h-5 w-5 ml-2" />
               {isProcessing ? 'מעבד...' : 'צור סיכום וידאו'}
