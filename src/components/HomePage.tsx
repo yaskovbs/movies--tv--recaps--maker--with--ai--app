@@ -20,7 +20,7 @@ async function generateScriptWithGemini(
   apiKey: string, 
   webSearchResults?: string
 ): Promise<string> {
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`;
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
   
   let contextInfo = '';
   if (webSearchResults) {
@@ -85,7 +85,7 @@ async function generateScriptWithGemini(
 
 async function searchWebForMovieInfo(title: string, genre: string, apiKey: string): Promise<string> {
   try {
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`;
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
     
     const prompt = `Search and provide a brief summary about the movie/TV show: "${title}" ${genre ? `(Genre: ${genre})` : ''}. 
     Include: plot overview, key characters, main themes, and interesting facts. Keep it concise (2-3 paragraphs max).`;

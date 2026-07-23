@@ -82,7 +82,7 @@ npm run deploy
 - **Frontend:** React 19, TypeScript, Vite
 - **UI:** Tailwind CSS, Framer Motion
 - **Video Processing:** FFmpeg (WebAssembly)
-- **AI:** Google Gemini 2.5 Pro
+- **AI:** Google Gemini 3.6 Flash
 - **Storage:** Local Storage (Browser)
 - **Icons:** Lucide React
 
