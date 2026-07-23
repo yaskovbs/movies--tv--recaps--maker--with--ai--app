@@ -4,7 +4,7 @@ import { FileText } from 'lucide-react';
 
 const TermsOfServicePage = () => {
   return (
-    <div className="min-h-screen bg-gray-900 text-white py-20">
+    <div className="min-h-screen text-white py-20">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           className="text-center mb-12"
@@ -24,7 +24,7 @@ const TermsOfServicePage = () => {
         </motion.div>
 
         <motion.div
-          className="prose prose-invert prose-lg max-w-none bg-gray-800 rounded-lg p-8 border border-gray-700"
+          className="prose prose-invert prose-lg max-w-none glass rounded-lg p-8"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}

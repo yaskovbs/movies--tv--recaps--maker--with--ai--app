@@ -60,7 +60,7 @@ export default function HistoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 p-4 md:p-8">
+    <div className="min-h-screen p-4 md:p-8">
       <div className="max-w-5xl mx-auto">
         <h1 className="text-3xl md:text-4xl font-bold text-white mb-8">Recap History</h1>
         
@@ -71,7 +71,7 @@ export default function HistoryPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search recaps..."
-              className="pl-10 bg-gray-800 border-gray-700 text-white"
+              className="pl-10 glass-input text-white"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -79,7 +79,7 @@ export default function HistoryPage() {
             <select 
               value={genreFilter}
               onChange={(e) => setGenreFilter(e.target.value)}
-              className="bg-gray-800 border-gray-700 text-white rounded-md px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+              className="glass-input text-white rounded-md px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
             >
               {uniqueGenres.map(genre => (
                 <option key={genre} value={genre}>{genre === 'all' ? 'All Genres' : genre}</option>
@@ -89,7 +89,7 @@ export default function HistoryPage() {
         </div>
 
         {filteredRecaps.length === 0 ? (
-          <div className="text-center text-gray-400 py-12 bg-gray-800/50 rounded-xl border border-gray-700">
+          <div className="text-center text-gray-400 py-12 glass rounded-xl">
             <p className="text-lg">No recaps found</p>
             <Button variant="link" onClick={() => window.location.href = '/'} className="text-blue-400">
               Create your first recap
@@ -98,7 +98,7 @@ export default function HistoryPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {filteredRecaps.map((recap) => (
-              <Card key={recap.id} className="bg-gray-800 border-gray-700 overflow-hidden flex flex-col">
+              <Card key={recap.id} className="glass overflow-hidden flex flex-col">
                 <div className="p-6 flex-1">
                   <div className="flex justify-between items-start mb-4">
                     <div>
@@ -120,12 +120,12 @@ export default function HistoryPage() {
                     <p className="text-sm text-gray-400 mb-4 line-clamp-2">{recap.description}</p>
                   )}
 
-                  <div className="bg-gray-900/50 rounded-lg p-4 mb-4 border border-gray-700/50">
+                  <div className="bg-black/20 backdrop-blur-sm rounded-lg p-4 mb-4 border border-white/10">
                     <p className="text-sm text-gray-300 line-clamp-3 italic">"{recap.scriptText}"</p>
                   </div>
                 </div>
 
-                <div className="px-6 py-4 bg-gray-900/30 border-t border-gray-700 flex gap-2 justify-between items-center">
+                <div className="px-6 py-4 bg-black/10 border-t border-white/10 flex gap-2 justify-between items-center">
                   <div className="flex gap-2">
                     {recap.audioUrl && (
                       <>

@@ -65,7 +65,7 @@ const ContactPage = () => {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white py-20">
+    <div className="min-h-screen text-white py-20">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           className="text-center mb-16"
@@ -93,7 +93,7 @@ const ContactPage = () => {
               {contactInfo.map((info, index) => (
                 <motion.div
                   key={index}
-                  className="bg-gray-800 rounded-lg p-6 border border-gray-700"
+                  className="glass rounded-lg p-6"
                   whileHover={{ scale: 1.02, borderColor: '#3B82F6' }}
                   transition={{ duration: 0.2 }}
                 >
@@ -112,7 +112,7 @@ const ContactPage = () => {
             </div>
 
             <motion.div
-              className="bg-gray-800 rounded-lg p-6 border border-gray-700"
+              className="glass rounded-lg p-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
@@ -142,7 +142,7 @@ const ContactPage = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <div className="bg-gray-800 rounded-lg p-8 border border-gray-700">
+            <div className="glass rounded-lg p-8">
               <h2 className="text-2xl font-bold text-white mb-6">שלחו לנו הודעה</h2>
               
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -158,7 +158,7 @@ const ContactPage = () => {
                       onChange={handleChange}
                       required
                       disabled={isSubmitting}
-                      className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+                      className="w-full px-4 py-3 glass-input rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
                       placeholder="הכניסו את שמכם המלא"
                     />
                   </div>
@@ -174,7 +174,7 @@ const ContactPage = () => {
                       onChange={handleChange}
                       required
                       disabled={isSubmitting}
-                      className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+                      className="w-full px-4 py-3 glass-input rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
                       placeholder="your@email.com"
                       dir="ltr"
                     />
@@ -192,7 +192,7 @@ const ContactPage = () => {
                     onChange={handleChange}
                     required
                     disabled={isSubmitting}
-                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+                    className="w-full px-4 py-3 glass-input rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
                     placeholder="נושא ההודעה"
                   />
                 </div>
@@ -208,7 +208,7 @@ const ContactPage = () => {
                     required
                     disabled={isSubmitting}
                     rows={6}
-                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none disabled:opacity-50"
+                    className="w-full px-4 py-3 glass-input rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none disabled:opacity-50"
                     placeholder="כתבו כאן את ההודעה שלכם..."
                   />
                 </div>

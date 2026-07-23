@@ -92,7 +92,7 @@ const RecapSettingsComponent = ({
 
   return (
     <motion.div 
-      className="bg-gray-800 rounded-lg p-6"
+      className="glass rounded-lg p-6"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
@@ -114,7 +114,7 @@ const RecapSettingsComponent = ({
             value={settings.title}
             onChange={(e) => handleChange('title', e.target.value)}
             placeholder="לדוגמה: אינספשן, ברייקינג באד..."
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 glass-input rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -127,7 +127,7 @@ const RecapSettingsComponent = ({
           <select
             value={settings.genre}
             onChange={(e) => handleChange('genre', e.target.value)}
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 glass-input rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">בחר ז'אנר...</option>
             <option value="action">אקשן</option>
@@ -157,7 +157,7 @@ const RecapSettingsComponent = ({
                 max="3"
                 value={String(durationHours).padStart(2, '0')}
                 onChange={(e) => handleDurationChange('hours', e.target.value)}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 glass-input rounded-md text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <p className="text-xs text-gray-400 text-center mt-1">שעות</p>
             </div>
@@ -169,7 +169,7 @@ const RecapSettingsComponent = ({
                 max="59"
                 value={String(durationMinutes).padStart(2, '0')}
                 onChange={(e) => handleDurationChange('minutes', e.target.value)}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 glass-input rounded-md text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <p className="text-xs text-gray-400 text-center mt-1">דקות</p>
             </div>
@@ -181,7 +181,7 @@ const RecapSettingsComponent = ({
                 max="59"
                 value={String(durationSeconds).padStart(2, '0')}
                 onChange={(e) => handleDurationChange('seconds', e.target.value)}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 glass-input rounded-md text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <p className="text-xs text-gray-400 text-center mt-1">שניות</p>
             </div>
@@ -201,7 +201,7 @@ const RecapSettingsComponent = ({
               max="59"
               value={intervalMinutes}
               onChange={(e) => handleIntervalChange('minutes', e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 glass-input rounded-md text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="00"
             />
             <span className="text-xl font-bold text-gray-400">:</span>
@@ -211,7 +211,7 @@ const RecapSettingsComponent = ({
               max="59"
               value={intervalRemainingSeconds}
               onChange={(e) => handleIntervalChange('seconds', e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 glass-input rounded-md text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="08"
             />
           </div>
@@ -230,7 +230,7 @@ const RecapSettingsComponent = ({
             value={settings.description}
             onChange={(e) => handleChange('description', e.target.value)}
             placeholder="תארו את עלילת הסרט/הסדרה, הדמויות והאירועים המרכזיים - הסיכום ייווצר בעיקר על סמך הטקסט הזה..."
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            className="w-full px-3 py-2 glass-input rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             rows={3}
           />
           <p className="text-xs text-gray-400 mt-1">
@@ -249,7 +249,7 @@ const RecapSettingsComponent = ({
             value={settings.youtubeApiKey}
             onChange={(e) => handleChange('youtubeApiKey', e.target.value)}
             placeholder="הזן מפתח YouTube Data API v3 לטעינת סרטוני ערוץ..."
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 glass-input rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <a 
             href="https://developers.google.com/youtube/v3/getting-started" 
@@ -273,7 +273,7 @@ const RecapSettingsComponent = ({
               className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                 settings.linkType === 'single'
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
               }`}
             >
               סרטון יחיד
@@ -283,7 +283,7 @@ const RecapSettingsComponent = ({
               className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                 settings.linkType === 'channel'
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
               }`}
             >
               ערוץ שלם
@@ -294,7 +294,7 @@ const RecapSettingsComponent = ({
             value={settings.youtubeLink}
             onChange={(e) => handleChange('youtubeLink', e.target.value)}
             placeholder="הכנס קישור ליוטיוב כדי שה-AI ילמד מסגנון הסיכום..."
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 glass-input rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <p className="text-xs text-gray-400 mt-1">
             ה-AI ילמד מסגנון הסיכום בסרטון כדי לשפר את איכות הסיכומים שלו
@@ -302,13 +302,13 @@ const RecapSettingsComponent = ({
         </div>
 
         {/* חיפוש באינטרנט */}
-        <div className="bg-gray-700 rounded-lg p-4">
+        <div className="glass-subtle rounded-lg p-4">
           <label className="flex items-center cursor-pointer">
             <input
               type="checkbox"
               checked={settings.webSearch}
               onChange={(e) => handleChange('webSearch', e.target.checked)}
-              className="w-5 h-5 rounded bg-gray-600 border-gray-500 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 ml-3"
+              className="w-5 h-5 rounded bg-white/10 border-white/20 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 ml-3"
             />
             <div className="flex items-center flex-1">
               <Globe className="h-4 w-4 ml-2 text-blue-400" />
@@ -323,7 +323,7 @@ const RecapSettingsComponent = ({
         </div>
 
         {/* סיכום הגדרות */}
-        <div className="bg-gray-700 rounded-lg p-4">
+        <div className="glass-subtle rounded-lg p-4">
           <h3 className="text-sm font-medium text-gray-300 mb-2">סיכום הגדרות:</h3>
           <div className="text-sm text-gray-400 space-y-1">
             <p>• אורך סיכום: {formatDuration(settings.duration)}</p>

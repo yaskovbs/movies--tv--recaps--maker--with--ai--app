@@ -23,7 +23,7 @@ const Header = ({ apiKey, onApiKeyChange }: HeaderProps) => {
   ]
 
   return (
-    <header className="bg-gray-900 text-white border-b border-gray-800 sticky top-0 z-50">
+    <header className="glass-header text-white sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           {/* לוגו */}
@@ -50,7 +50,7 @@ const Header = ({ apiKey, onApiKeyChange }: HeaderProps) => {
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   location.pathname === item.path
                     ? 'bg-blue-600 text-white'
-                    : 'text-gray-300 hover:text-white hover:bg-gray-700'
+                    : 'text-gray-300 hover:text-white hover:bg-white/10'
                 }`}
               >
                 {item.label}
@@ -88,7 +88,7 @@ const Header = ({ apiKey, onApiKeyChange }: HeaderProps) => {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
           >
-            <div className="bg-gray-800 rounded-lg p-4">
+            <div className="glass rounded-lg p-4">
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 מפתח Gemini AI API
               </label>
@@ -97,7 +97,7 @@ const Header = ({ apiKey, onApiKeyChange }: HeaderProps) => {
                 value={apiKey}
                 onChange={(e) => onApiKeyChange(e.target.value)}
                 placeholder="הכנס את מפתח ה-API שלך..."
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 glass-input rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 dir="ltr"
               />
               <p className="text-xs text-gray-400 mt-1">
@@ -115,7 +115,7 @@ const Header = ({ apiKey, onApiKeyChange }: HeaderProps) => {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
           >
-            <div className="bg-gray-800 rounded-lg p-4">
+            <div className="glass rounded-lg p-4">
               {menuItems.map((item) => (
                 <Link
                   key={item.path}
@@ -124,7 +124,7 @@ const Header = ({ apiKey, onApiKeyChange }: HeaderProps) => {
                   className={`block w-full text-right px-3 py-2 rounded-md text-sm font-medium transition-colors mb-2 ${
                     location.pathname === item.path
                       ? 'bg-blue-600 text-white'
-                      : 'text-gray-300 hover:text-white hover:bg-gray-700'
+                      : 'text-gray-300 hover:text-white hover:bg-white/10'
                   }`}
                 >
                   {item.label}

@@ -73,7 +73,7 @@ export function RecapSaver({ script, open, onClose }: RecapSaverProps) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="bg-gray-800 border-gray-700 text-white">
+      <DialogContent className="glass-strong border-white/15 text-white">
         <DialogHeader>
           <DialogTitle>שמור סיכום</DialogTitle>
         </DialogHeader>
@@ -92,7 +92,7 @@ export function RecapSaver({ script, open, onClose }: RecapSaverProps) {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="למשל: The Matrix - Recap"
-              className="bg-gray-700 border-gray-600 text-white"
+              className="glass-input text-white"
             />
           </div>
 
@@ -102,7 +102,7 @@ export function RecapSaver({ script, open, onClose }: RecapSaverProps) {
               value={genre}
               onChange={(e) => setGenre(e.target.value)}
               placeholder="למשל: Sci-Fi"
-              className="bg-gray-700 border-gray-600 text-white"
+              className="glass-input text-white"
             />
           </div>
 
@@ -112,7 +112,7 @@ export function RecapSaver({ script, open, onClose }: RecapSaverProps) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="תיאור קצר של הסיכום"
-              className="bg-gray-700 border-gray-600 text-white"
+              className="glass-input text-white"
             />
           </div>
 

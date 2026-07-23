@@ -96,7 +96,7 @@ const VideoUploader = ({
   if (reading) {
     return (
       <motion.div
-        className="bg-gray-800 rounded-lg p-8 border-2 border-blue-500 text-center"
+        className="glass-bg rounded-lg p-8 border-2 border-blue-500/60 text-center"
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
       >
@@ -110,7 +110,7 @@ const VideoUploader = ({
   if (selectedFile) {
     return (
       <motion.div 
-        className="bg-gray-800 rounded-lg p-6 border-2 border-green-500"
+        className="glass-bg rounded-lg p-6 border-2 border-green-500/60"
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
       >
@@ -139,9 +139,9 @@ const VideoUploader = ({
   return (
     <motion.div
       className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
-        dragActive 
-          ? 'border-blue-400 bg-blue-400/10' 
-          : 'border-gray-600 bg-gray-800/50'
+        dragActive
+          ? 'border-blue-400 bg-blue-400/10'
+          : 'border-white/20 glass-bg'
       }`}
       onDragEnter={handleDrag}
       onDragLeave={handleDrag}

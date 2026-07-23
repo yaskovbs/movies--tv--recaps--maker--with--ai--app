@@ -51,7 +51,7 @@ const FAQPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white py-20">
+    <div className="min-h-screen text-white py-20">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
@@ -76,15 +76,15 @@ const FAQPage = () => {
           {faqs.map((faq, index) => (
             <motion.div
               key={index}
-              className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden"
+              className="glass rounded-lg overflow-hidden"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
             >
               <motion.button
-                className="w-full px-6 py-4 text-right flex items-center justify-between hover:bg-gray-750 transition-colors"
+                className="w-full px-6 py-4 text-right flex items-center justify-between transition-colors"
                 onClick={() => toggleItem(index)}
-                whileHover={{ backgroundColor: 'rgba(55, 65, 81, 0.8)' }}
+                whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.06)' }}
               >
                 <ChevronDown 
                   className={`h-5 w-5 text-blue-400 transition-transform duration-200 ${
@@ -105,7 +105,7 @@ const FAQPage = () => {
                     transition={{ duration: 0.3, ease: 'easeInOut' }}
                     className="overflow-hidden"
                   >
-                    <div className="px-6 pb-4 border-t border-gray-700">
+                    <div className="px-6 pb-4 border-t border-white/10">
                       <p className="text-gray-300 leading-relaxed pt-4">
                         {faq.answer}
                       </p>

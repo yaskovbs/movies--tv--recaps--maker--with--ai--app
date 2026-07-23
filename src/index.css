@@ -1,3 +1,52 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 6%;
+    --foreground: 0 0% 98%;
+    --card: 222 39% 10%;
+    --card-foreground: 0 0% 98%;
+    --popover: 222 39% 10%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 217 19% 20%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 217 19% 20%;
+    --muted-foreground: 218 11% 65%;
+    --accent: 217 19% 24%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 217 19% 27%;
+    --input: 217 19% 22%;
+    --ring: 217 91% 60%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer utilities {
+  .glass-bg {
+    @apply bg-white/[0.06] backdrop-blur-xl backdrop-saturate-150 shadow-[0_8px_32px_0_rgba(0,0,0,0.45)];
+  }
+  .glass {
+    @apply bg-white/[0.06] backdrop-blur-xl backdrop-saturate-150 border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.45)];
+  }
+  .glass-strong {
+    @apply bg-white/[0.09] backdrop-blur-2xl backdrop-saturate-150 border border-white/15 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)];
+  }
+  .glass-subtle {
+    @apply bg-white/[0.03] backdrop-blur-md border border-white/10;
+  }
+  .glass-header {
+    @apply bg-gray-950/50 backdrop-blur-xl backdrop-saturate-150 border-b border-white/10;
+  }
+  .glass-footer {
+    @apply bg-gray-950/50 backdrop-blur-xl backdrop-saturate-150 border-t border-white/10;
+  }
+  .glass-input {
+    @apply bg-white/[0.05] backdrop-blur-sm border border-white/10 transition-colors focus:bg-white/[0.08] focus:border-white/20;
+  }
+}

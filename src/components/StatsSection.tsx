@@ -88,7 +88,7 @@ const StatsSection = () => {
 
   if (loading) {
     return (
-      <section className="bg-gray-800 py-16">
+      <section className="glass py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Loader2 className="h-12 w-12 text-blue-400 animate-spin mx-auto" />
           <p className="text-white mt-4">טוען נתונים...</p>
@@ -98,7 +98,7 @@ const StatsSection = () => {
   }
 
   return (
-    <section className="bg-gray-800 py-16">
+    <section className="glass py-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           className="text-center mb-12"
@@ -119,7 +119,7 @@ const StatsSection = () => {
           {statItems.map((item, index) => (
             <motion.div
               key={index}
-              className="bg-gray-900 rounded-lg p-6 text-center border border-gray-700"
+              className="glass rounded-lg p-6 text-center"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -144,7 +144,7 @@ const StatsSection = () => {
         {/* Rating Section */}
         {!hasRated && (
           <motion.div
-            className="mt-12 bg-gray-700 rounded-lg p-8 text-center"
+            className="mt-12 glass-strong rounded-lg p-8 text-center"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -181,7 +181,7 @@ const StatsSection = () => {
 
         {hasRated && (
           <motion.div
-            className="mt-12 bg-green-600/10 border border-green-600/20 rounded-lg p-6 text-center"
+            className="mt-12 bg-green-600/10 backdrop-blur-md border border-green-600/20 rounded-lg p-6 text-center"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
           >

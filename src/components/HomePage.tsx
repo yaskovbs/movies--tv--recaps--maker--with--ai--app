@@ -313,7 +313,7 @@ const HomePage = ({ apiKey }: HomePageProps) => {
     // Default welcome message
     return (
       <motion.div 
-        className="bg-gray-800 rounded-lg p-8 text-center border border-gray-700" 
+        className="glass rounded-lg p-8 text-center"
         initial={{ opacity: 0 }} 
         animate={{ opacity: 1 }}
       >
@@ -345,7 +345,7 @@ const HomePage = ({ apiKey }: HomePageProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen text-white">
       <section className="py-20 text-center">
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
           <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
@@ -372,7 +372,7 @@ const HomePage = ({ apiKey }: HomePageProps) => {
               className={`w-full py-4 px-6 rounded-lg font-semibold text-lg transition-all ${
                 canSubmit
                   ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white'
-                  : 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                  : 'bg-white/5 text-gray-400 cursor-not-allowed'
               }`}
               whileHover={{ scale: canSubmit ? 1.02 : 1 }}
               whileTap={{ scale: canSubmit ? 0.98 : 1 }}
@@ -389,7 +389,7 @@ const HomePage = ({ apiKey }: HomePageProps) => {
               {features.map((feature, index) => (
                 <motion.div
                   key={index}
-                  className="bg-gray-800 rounded-lg p-4 text-center border border-gray-700"
+                  className="glass rounded-lg p-4 text-center"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}

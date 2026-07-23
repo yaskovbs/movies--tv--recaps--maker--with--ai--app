@@ -129,7 +129,7 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
         animate={{ opacity: 1, y: 0 }}
       >
       {/* 1. Video Recap */}
-      <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+      <div className="glass rounded-lg p-6">
         <h3 className="text-xl font-semibold text-white mb-4">סיכום וידאו (ללא קול)</h3>
         
         <div className="relative w-full rounded-lg overflow-hidden group mb-4">
@@ -182,12 +182,12 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
       </div>
 
       {/* 2. Generated Script */}
-      <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+      <div className="glass rounded-lg p-6">
         <h3 className="text-xl font-semibold text-white mb-4">תסריט שנוצר</h3>
         <textarea
           readOnly
           value={output.script}
-          className="w-full h-48 bg-gray-900 text-gray-300 p-3 rounded-lg border border-gray-600 resize-none"
+          className="w-full h-48 glass-bg text-gray-300 p-3 rounded-lg border border-white/10 resize-none"
         />
         <button
           onClick={handleCopy}
@@ -199,7 +199,7 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
       </div>
 
       {/* 3. Audio Voice-over */}
-      <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+      <div className="glass rounded-lg p-6">
         <h3 className="text-xl font-semibold text-white mb-4">קריינות אודיו</h3>
         
         <div className="space-y-4">
@@ -208,7 +208,7 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
             <select 
                 value={selectedLanguage}
                 onChange={(e) => setSelectedLanguage(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 glass-input rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
                 {languages.map(lang => (
                     <option key={lang} value={lang}>{getDisplayLanguage(lang)}</option>
@@ -222,7 +222,7 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
                 value={selectedVoice?.name || ''}
                 onChange={(e) => setSelectedVoice(allVoices.find(v => v.name === e.target.value) || null)}
                 disabled={filteredVoices.length === 0}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-600 disabled:cursor-not-allowed"
+                className="w-full px-3 py-2 glass-input rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 {filteredVoices.map(voice => (
                     <option key={voice.name} value={voice.name}>{voice.name}</option>

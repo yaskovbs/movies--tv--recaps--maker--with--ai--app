@@ -58,7 +58,7 @@ const ProcessingStatusComponent = ({ status }: ProcessingStatusProps) => {
 
   return (
     <motion.div 
-      className="bg-gray-800 rounded-lg p-6 border border-gray-700"
+      className="glass rounded-lg p-6"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
     >
@@ -71,7 +71,7 @@ const ProcessingStatusComponent = ({ status }: ProcessingStatusProps) => {
       </div>
 
       {/* Progress Bar */}
-      <div className="w-full bg-gray-700 rounded-full h-3 mb-2">
+      <div className="w-full bg-white/10 rounded-full h-3 mb-2">
         <motion.div 
           className={`h-3 rounded-full ${getProgressBarColor()}`}
           initial={{ width: 0 }}
