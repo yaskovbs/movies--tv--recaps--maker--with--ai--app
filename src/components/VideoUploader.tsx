@@ -19,7 +19,9 @@ const VideoUploader = ({
   const inputRef = useRef<HTMLInputElement>(null)
 
   const supportedFormats = ['MP4', 'AVI', 'MOV', 'MKV']
-  const maxSize = 3 * 1024 * 1024 * 1024 // 3GB
+  // Capped below WebAssembly's hard 4GB linear-memory limit - FFmpeg.wasm needs
+  // room for the file bytes plus its own decode/encode buffers within that ceiling.
+  const maxSize = 3.5 * 1024 * 1024 * 1024 // 3.5GB
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault()
@@ -53,7 +55,7 @@ const VideoUploader = ({
     }
 
     if (file.size > maxSize) {
-      alert('הקובץ גדול מדי. גודל מקסימלי: 3GB')
+      alert('הקובץ גדול מדי. גודל מקסימלי: 3.5GB')
       return
     }
 
@@ -181,7 +183,7 @@ const VideoUploader = ({
             <span className="font-semibold">קבצים נתמכים:</span> {supportedFormats.join(', ')}
           </p>
           <p className="text-gray-300 mt-1">
-            <span className="font-semibold">גודל מקסימלי:</span> 3GB
+            <span className="font-semibold">גודל מקסימלי:</span> 3.5GB
           </p>
         </div>
       </motion.div>
