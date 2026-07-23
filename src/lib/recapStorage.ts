@@ -1,5 +1,7 @@
 import { blink, RecapRecord } from './blink'
 
+const recapsTable = blink.db.table<RecapRecord>('recaps')
+
 export class RecapStorageService {
   /**
    * Save a recap to the database
@@ -24,7 +26,7 @@ export class RecapStorageService {
         createdAt: new Date().toISOString()
       }
 
-      const savedRecap = await blink.db.recaps.create(recapData)
+      const savedRecap = await recapsTable.create(recapData)
       return savedRecap as RecapRecord
     } catch (error) {
       console.error('Failed to save recap:', error)
@@ -42,7 +44,7 @@ export class RecapStorageService {
         throw new Error('User not authenticated')
       }
 
-      const recaps = await blink.db.recaps.list({
+      const recaps = await recapsTable.list({
         where: { userId: user.id },
         orderBy: { createdAt: 'desc' }
       })
@@ -59,7 +61,7 @@ export class RecapStorageService {
    */
   async deleteRecap(recapId: string): Promise<void> {
     try {
-      await blink.db.recaps.delete(recapId)
+      await recapsTable.delete(recapId)
     } catch (error) {
       console.error('Failed to delete recap:', error)
       throw error

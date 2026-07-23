@@ -85,7 +85,6 @@ async function generateScriptWithGemini(
 
 async function searchWebForMovieInfo(title: string, genre: string, apiKey: string): Promise<string> {
   try {
-    const searchQuery = `${title} ${genre ? genre + ' movie' : 'movie'} plot summary review`;
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`;
     
     const prompt = `Search and provide a brief summary about the movie/TV show: "${title}" ${genre ? `(Genre: ${genre})` : ''}. 

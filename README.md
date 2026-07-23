@@ -48,6 +48,29 @@
 5. **פתח את הדפדפן:**
    נווט אל `http://localhost:5173`
 
+## ☁️ פריסה ל-Cloudflare Pages
+
+הפרויקט מוכן לפריסה כאתר סטטי ב-Cloudflare Pages:
+
+- **Build command:** `npm run build`
+- **Build output directory:** `dist`
+- **Node version:** 20 (מוגדר ב-`.node-version`)
+
+משתני הסביבה הנדרשים (ניתן להגדיר בלוח הבקרה של Cloudflare Pages, תחת Settings → Environment variables):
+
+```env
+VITE_BLINK_PROJECT_ID=...
+VITE_BLINK_PUBLISHABLE_KEY=...
+```
+
+לפריסה דרך שורת הפקודה, לאחר `npm install`:
+
+```bash
+npm run deploy
+```
+
+הפקודה בונה את הפרויקט ומריצה `wrangler pages deploy dist` (מוגדר גם ב-`wrangler.toml`). קובץ `public/_redirects` כבר כולל את חוקי ה-SPA fallback הנדרשים.
+
 ## 📖 איך להשתמש
 
 1. **העלאת וידאו** - גרור קובץ וידאו או בחר מהמחשב

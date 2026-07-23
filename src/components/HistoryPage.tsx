@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { blink, RecapRecord } from '../lib/blink'
+import { RecapRecord } from '../lib/blink'
+import { recapStorageService } from '../lib/recapStorage'
 import { Button } from './ui/button'
 import { Card } from './ui/card'
 import { Trash2, Download, Play, Search, Filter } from 'lucide-react'
@@ -14,14 +15,8 @@ export default function HistoryPage() {
   useEffect(() => {
     const fetchRecaps = async () => {
       try {
-        const user = await blink.auth.me()
-        if (user?.id) {
-          const list = await blink.db.recaps.list({
-            where: { userId: user.id },
-            orderBy: { createdAt: 'desc' }
-          })
-          setRecaps(list as RecapRecord[])
-        }
+        const list = await recapStorageService.getRecaps()
+        setRecaps(list)
       } catch (error) {
         console.error('Failed to load recaps:', error)
       } finally {
@@ -35,7 +30,7 @@ export default function HistoryPage() {
   const handleDelete = async (recapId: string) => {
     if (!confirm('Are you sure you want to delete this recap?')) return
     try {
-      await blink.db.recaps.delete(recapId)
+      await recapStorageService.deleteRecap(recapId)
       setRecaps(recaps.filter(r => r.id !== recapId))
     } catch (error) {
       console.error('Failed to delete recap:', error)
