@@ -122,7 +122,7 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
 
   return (
     <>
-      <RecapSaver script={output.script} open={showSaver} onClose={() => setShowSaver(false)} />
+      <RecapSaver script={output.script} videoUrl={output.videoUrl} open={showSaver} onClose={() => setShowSaver(false)} />
       <motion.div
         className="space-y-6"
         initial={{ opacity: 0, y: 20 }}

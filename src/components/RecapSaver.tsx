@@ -9,17 +9,18 @@ import { AlertCircle, Loader2 } from 'lucide-react'
 
 interface RecapSaverProps {
   script: string
+  videoUrl: string
   open: boolean
   onClose: () => void
 }
 
-export function RecapSaver({ script, open, onClose }: RecapSaverProps) {
+export function RecapSaver({ script, videoUrl, open, onClose }: RecapSaverProps) {
   const [title, setTitle] = useState('')
   const [genre, setGenre] = useState('')
   const [description, setDescription] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [generating, setGenerating] = useState(false)
+  const [stage, setStage] = useState<'video' | 'audio' | 'saving' | null>(null)
 
   const handleSave = async () => {
     if (!title.trim()) {
@@ -31,8 +32,17 @@ export function RecapSaver({ script, open, onClose }: RecapSaverProps) {
     setError('')
 
     try {
-      // Generate audio using Blink AI
-      setGenerating(true)
+      // Upload the generated video (a local blob: URL, only valid in this tab)
+      // to persistent storage so it can actually be saved and reopened later.
+      setStage('video')
+      const videoBlob = await (await fetch(videoUrl)).blob()
+      const { publicUrl: savedVideoUrl } = await blink.storage.upload(
+        videoBlob,
+        `recaps/${Date.now()}-${title.trim().replace(/[^\w\-א-ת]+/g, '_')}.mp4`
+      )
+
+      // Generate audio using Blink AI - non-fatal if it fails.
+      setStage('audio')
       let audioUrl = ''
       try {
         const { url } = await blink.ai.generateSpeech({
@@ -44,9 +54,8 @@ export function RecapSaver({ script, open, onClose }: RecapSaverProps) {
         console.warn('TTS generation failed, saving without audio', e)
       }
 
-      setGenerating(false)
-
       // Save recap to database
+      setStage('saving')
       await recapStorageService.saveRecap({
         userId: (await blink.auth.me())?.id || 'anonymous',
         title,
@@ -54,12 +63,13 @@ export function RecapSaver({ script, open, onClose }: RecapSaverProps) {
         description: description || '',
         scriptText: script,
         audioUrl,
+        videoUrl: savedVideoUrl,
         duration: Math.round(script.split(' ').length / 2.5),
         cutInterval: 0,
-        videoUrl: ''
       })
 
       setLoading(false)
+      setStage(null)
       setTitle('')
       setGenre('')
       setDescription('')
@@ -67,7 +77,7 @@ export function RecapSaver({ script, open, onClose }: RecapSaverProps) {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'שגיאה בשמירת הסיכום')
       setLoading(false)
-      setGenerating(false)
+      setStage(null)
     }
   }
 
@@ -126,10 +136,13 @@ export function RecapSaver({ script, open, onClose }: RecapSaverProps) {
             </Button>
             <Button
               onClick={handleSave}
-              disabled={loading || generating}
+              disabled={loading}
             >
-              {(loading || generating) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {generating ? 'יוצר אודיו...' : loading ? 'שומר...' : 'שמור סיכום'}
+              {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {stage === 'video' ? 'שומר את הסרטון...'
+                : stage === 'audio' ? 'יוצר אודיו...'
+                : stage === 'saving' ? 'שומר...'
+                : 'שמור סיכום'}
             </Button>
           </div>
         </div>

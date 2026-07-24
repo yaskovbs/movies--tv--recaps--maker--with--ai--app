@@ -3,7 +3,7 @@ import { RecapRecord } from '../lib/blink'
 import { recapStorageService } from '../lib/recapStorage'
 import { Button } from './ui/button'
 import { Card } from './ui/card'
-import { Trash2, Download, Play, Search, Filter } from 'lucide-react'
+import { Trash2, Download, Play, Search, Filter, Film } from 'lucide-react'
 import { Input } from './ui/input'
 
 export default function HistoryPage() {
@@ -42,6 +42,15 @@ export default function HistoryPage() {
     const a = document.createElement('a')
     a.href = audioUrl
     a.download = `${title}.mp3`
+    a.target = '_blank'
+    a.click()
+  }
+
+  const handleDownloadVideo = (videoUrl: string | undefined, title: string) => {
+    if (!videoUrl) return
+    const a = document.createElement('a')
+    a.href = videoUrl
+    a.download = `${title}.mp4`
     a.target = '_blank'
     a.click()
   }
@@ -99,6 +108,13 @@ export default function HistoryPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {filteredRecaps.map((recap) => (
               <Card key={recap.id} className="glass overflow-hidden flex flex-col">
+                {recap.videoUrl && (
+                  <video
+                    src={recap.videoUrl}
+                    controls
+                    className="w-full aspect-video bg-black"
+                  />
+                )}
                 <div className="p-6 flex-1">
                   <div className="flex justify-between items-start mb-4">
                     <div>
@@ -127,6 +143,17 @@ export default function HistoryPage() {
 
                 <div className="px-6 py-4 bg-black/10 border-t border-white/10 flex gap-2 justify-between items-center">
                   <div className="flex gap-2">
+                    {recap.videoUrl && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => handleDownloadVideo(recap.videoUrl, recap.title)}
+                        title="Download Video"
+                        className="text-purple-400 hover:text-purple-300 hover:bg-purple-900/20"
+                      >
+                        <Film className="w-4 h-4" />
+                      </Button>
+                    )}
                     {recap.audioUrl && (
                       <>
                         <Button
