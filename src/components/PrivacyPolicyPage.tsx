@@ -1,7 +1,12 @@
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { Shield } from 'lucide-react';
 
 const PrivacyPolicyPage = () => {
+  const { t, i18n } = useTranslation();
+  const anonStatsList = t('privacyPage.anonStatsList', { returnObjects: true }) as unknown as string[];
+  const howWeUseList = t('privacyPage.howWeUseList', { returnObjects: true }) as unknown as string[];
+
   return (
     <div className="min-h-screen text-white py-20">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -14,11 +19,11 @@ const PrivacyPolicyPage = () => {
           <div className="flex items-center justify-center mb-6">
             <Shield className="h-12 w-12 text-blue-400 ml-4" />
             <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
-              מדיניות פרטיות
+              {t('privacyPage.title')}
             </h1>
           </div>
           <p className="text-lg text-gray-400">
-            עדכון אחרון: {new Date().toLocaleDateString('he-IL')}
+            {t('privacyPage.lastUpdated', { date: new Date().toLocaleDateString(i18n.resolvedLanguage) })}
           </p>
         </motion.div>
 
@@ -28,52 +33,43 @@ const PrivacyPolicyPage = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          <h2>1. מבוא</h2>
-          <p>
-            אנו ב-Movies & TV Recaps Maker Hub ("השירות") מחויבים להגן על פרטיותכם. מדיניות זו מסבירה איזה מידע אנו אוספים וכיצד אנו משתמשים בו.
-          </p>
+          <h2>{t('privacyPage.sections.0.heading')}</h2>
+          <p>{t('privacyPage.sections.0.body')}</p>
 
-          <h2>2. איזה מידע אנו אוספים?</h2>
+          <h2>{t('privacyPage.whatWeCollectHeading')}</h2>
           <ul>
             <li>
-              <strong>קבצי וידאו</strong>: קבצי הווידאו שאתם מעלים מעובדים ישירות בדפדפן שלכם באמצעות FFmpeg.wasm. הם אינם נשמרים על השרתים שלנו ונמחקים מהזיכרון של הדפדפן עם סיום העיבוד או רענון הדף.
+              <strong>{t('privacyPage.videoFilesTitle')}</strong>: {t('privacyPage.videoFilesBody')}
             </li>
             <li>
-              <strong>מפתח API של Gemini</strong>: מפתח ה-API שלכם נשלח ישירות מן הדפדפן שלכם לשירותי Google Gemini. הוא אינו נשמר על השרתים שלנו בשום שלב.
+              <strong>{t('privacyPage.apiKeyTitle')}</strong>: {t('privacyPage.apiKeyBody')}
             </li>
             <li>
-              <strong>נתונים סטטיסטיים אנונימיים</strong>: אנו אוספים נתונים אנונימיים לחלוטין לצורך שיפור השירות, באמצעות Supabase. נתונים אלה כוללים:
+              <strong>{t('privacyPage.anonStatsTitle')}</strong>: {t('privacyPage.anonStatsBody')}
               <ul>
-                <li>ספירת סיכומים שנוצרו.</li>
-                <li>ספירת דירוגים וסכום הדירוגים.</li>
-                <li>ספירת מבקרים ייחודיים (באמצעות מזהה אקראי ואנונימי השמור בדפדפן שלכם בלבד).</li>
+                {anonStatsList.map((item, index) => (
+                  <li key={index}>{item}</li>
+                ))}
               </ul>
             </li>
           </ul>
 
-          <h2>3. כיצד אנו משתמשים במידע?</h2>
-          <p>
-            המידע שנאסף משמש אך ורק למטרות הבאות:
-          </p>
+          <h2>{t('privacyPage.howWeUseHeading')}</h2>
+          <p>{t('privacyPage.howWeUseIntro')}</p>
           <ul>
-            <li>כדי לספק לכם את פונקציונליות השירות (עיבוד וידאו ויצירת תסריט).</li>
-            <li>כדי לשפר את השירות ולנתח את השימוש בו באופן אנונימי.</li>
+            {howWeUseList.map((item, index) => (
+              <li key={index}>{item}</li>
+            ))}
           </ul>
 
-          <h2>4. אבטחת מידע</h2>
-          <p>
-            אנו נוקטים באמצעי אבטחה סבירים כדי להגן על המידע שלכם. עם זאת, חשוב לזכור כי שום מערכת אינה מאובטחת ב-100%. האחריות על שמירת מפתח ה-API שלכם חלה עליכם.
-          </p>
+          <h2>{t('privacyPage.securityHeading')}</h2>
+          <p>{t('privacyPage.securityBody')}</p>
 
-          <h2>5. שירותי צד שלישי</h2>
-          <p>
-            השירות משתמש בשירותים של צדדים שלישיים, כולל Google Gemini ו-Supabase. אנו ממליצים לעיין במדיניות הפרטיות שלהם כדי להבין כיצד הם מטפלים במידע.
-          </p>
+          <h2>{t('privacyPage.thirdPartyHeading')}</h2>
+          <p>{t('privacyPage.thirdPartyBody')}</p>
 
-          <h2>6. שינויים במדיניות</h2>
-          <p>
-            אנו עשויים לעדכן מדיניות פרטיות זו מעת לעת. אנו נפרסם כל שינוי בעמוד זה.
-          </p>
+          <h2>{t('privacyPage.changesHeading')}</h2>
+          <p>{t('privacyPage.changesBody')}</p>
         </motion.div>
       </div>
     </div>

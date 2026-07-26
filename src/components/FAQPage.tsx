@@ -1,49 +1,18 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { ChevronDown, HelpCircle } from 'lucide-react'
 import type { FAQ } from '../types'
 
 const FAQPage = () => {
+  const { t } = useTranslation()
   const [openItems, setOpenItems] = useState<number[]>([])
 
-  const faqs: FAQ[] = [
-    {
-      question: 'איך אני מקבל מפתח API של Gemini?',
-      answer: 'עליך להירשם לשירות Google AI Studio ולקבל מפתח API בחינם. המפתח מאפשר לך להשתמש בשירותי הבינה המלאכותית של Google. פשוט עבור לאתר Google AI Studio, צור חשבון והפק מפתח API חדש.'
-    },
-    {
-      question: 'מה הגודל המקסימלי של קובץ שאני יכול להעלות?',
-      answer: 'כרגע אנחנו תומכים בקבצים עד 4GB ובאורך של עד 3 שעות. אם יש לך קובץ גדול יותר, תוכל לדחוס אותו באמצעות תוכנות דחיסת וידאו או לפנות אלינו לפתרון מותאם. אנו עובדים על הגדלת מגבלות אלו בעתיד.'
-    },
-    {
-      question: 'כמה זמן לוקח ליצור סיכום?',
-      answer: 'זמן העיבוד תלוי באורך הווידאו המקורי ובאורך הסיכום המבוקש. בדרך כלל התהליך לוקח בין 2-15 דקות. וידאו באורך של שעה יעובד תוך כ-8 דקות בממוצע, ווידאו של שעתיים יכול לקחת עד 15 דקות.'
-    },
-    {
-      question: 'האם המידע שלי מאובטח?',
-      answer: 'כן, אנחנו משתמשים בהצפנה מתקדמת ולא שומרים את מפתחות ה-API שלכם. כל הקבצים נמחקים אוטומטית לאחר העיבוד. אנו מקפידים על פרטיות המשתמשים ועל אבטחת המידע לפי סטנדרטים בינלאומיים.'
-    },
-    {
-      question: 'אילו פורמטים של וידאו נתמכים?',
-      answer: 'אנו תומכים בפורמטים הנפוצים ביותר: MP4, AVI, MOV, ו-MKV. אלו פורמטים שמכסים את רוב הווידאו המיוצרים כיום. אם יש לכם קובץ בפורמט אחר, אתם יכולים להמיר אותו באמצעות כלים מקוונים בחינם.'
-    },
-    {
-      question: 'האם אני יכול לערוך את הסיכום אחרי היצירה?',
-      answer: 'כרגע הסיכום מיוצר אוטומטית על בסיס ההגדרות שבחרתם. אנו עובדים על תכונות עריכה מתקדמות שיאפשרו התאמה אישית של הסיכום, כולל החלפת קטעים וכוונון הטקסט.'
-    },
-    {
-      question: 'מה קורה אם יש בעיה בעיבוד הווידאו?',
-      answer: 'במקרה של שגיאה, המערכת תיידע אתכם מיד ותציע פתרונות. השגיאות הנפוצות קשורות לגודל קובץ או לפורמט לא נתמך. הצוות שלנו זמין לסיוע טכני בכל בעיה.'
-    },
-    {
-      question: 'האם השירות בחינם?',
-      answer: 'השירות הבסיסי זמין בחינם עם מגבלות מסוימות. אתם משתמשים במפתח ה-API שלכם עצמכם, כך שהעלויות תלויות בשימוש שלכם ב-Google Gemini. יש לנו גם תוכניות מתקדמות למשתמשים מקצועיים.'
-    }
-  ]
+  const faqs = t('faqPage.questions', { returnObjects: true }) as unknown as FAQ[]
 
   const toggleItem = (index: number) => {
-    setOpenItems(prev => 
+    setOpenItems(prev =>
       prev.includes(index)
         ? prev.filter(i => i !== index)
         : [...prev, index]
@@ -63,11 +32,11 @@ const FAQPage = () => {
           <div className="flex items-center justify-center mb-6">
             <HelpCircle className="h-12 w-12 text-blue-400 ml-4" />
             <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
-              שאלות נפוצות
+              {t('faqPage.title')}
             </h1>
           </div>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            מצאו תשובות לשאלות הנפוצות ביותר על השירות שלנו
+            {t('faqPage.subtitle')}
           </p>
         </motion.div>
 
@@ -86,16 +55,16 @@ const FAQPage = () => {
                 onClick={() => toggleItem(index)}
                 whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.06)' }}
               >
-                <ChevronDown 
+                <ChevronDown
                   className={`h-5 w-5 text-blue-400 transition-transform duration-200 ${
                     openItems.includes(index) ? 'transform rotate-180' : ''
-                  }`} 
+                  }`}
                 />
                 <h3 className="text-lg font-semibold text-white flex-1 ml-4">
                   {faq.question}
                 </h3>
               </motion.button>
-              
+
               <AnimatePresence>
                 {openItems.includes(index) && (
                   <motion.div
@@ -126,10 +95,10 @@ const FAQPage = () => {
         >
           <div className="text-center">
             <h2 className="text-2xl font-bold text-white mb-4">
-              לא מצאתם את התשובה שחיפשתם?
+              {t('faqPage.notFoundTitle')}
             </h2>
             <p className="text-gray-300 mb-6">
-              הצוות שלנו כאן כדי לעזור! צרו קשר איתנו ונחזור אליכם במהירות
+              {t('faqPage.notFoundSubtitle')}
             </p>
             <Link to="/contact">
               <motion.button
@@ -137,7 +106,7 @@ const FAQPage = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                צרו קשר איתנו
+                {t('faqPage.contactUs')}
               </motion.button>
             </Link>
           </div>

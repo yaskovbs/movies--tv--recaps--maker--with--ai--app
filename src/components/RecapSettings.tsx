@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { Settings, Clock, Scissors, FileVideo, Film, Youtube, Globe } from 'lucide-react'
 import type { RecapSettings } from '../types'
 import { formatVideoLength } from '../lib/utils'
@@ -30,6 +31,8 @@ const RecapSettingsComponent = ({
   onSettingsChange,
   videoDuration
 }: RecapSettingsProps) => {
+  const { t } = useTranslation()
+
   const handleChange = <K extends keyof RecapSettings>(field: K, value: RecapSettings[K]) => {
     onSettingsChange({
       ...settings,
@@ -102,9 +105,9 @@ const RecapSettingsComponent = ({
     } else { // 'seconds'
         newSeconds = numValue;
     }
-    
+
     let newTotalSeconds = (newMinutes * 60) + newSeconds;
-    
+
     if (newTotalSeconds < 1) {
         newTotalSeconds = 1;
     }
@@ -112,8 +115,21 @@ const RecapSettingsComponent = ({
     handleChange('intervalSeconds', newTotalSeconds);
   };
 
+  const genreOptions: Array<{ value: string; labelKey: string }> = [
+    { value: 'action', labelKey: 'recapSettings.genres.action' },
+    { value: 'comedy', labelKey: 'recapSettings.genres.comedy' },
+    { value: 'drama', labelKey: 'recapSettings.genres.drama' },
+    { value: 'thriller', labelKey: 'recapSettings.genres.thriller' },
+    { value: 'horror', labelKey: 'recapSettings.genres.horror' },
+    { value: 'sci-fi', labelKey: 'recapSettings.genres.sciFi' },
+    { value: 'fantasy', labelKey: 'recapSettings.genres.fantasy' },
+    { value: 'romance', labelKey: 'recapSettings.genres.romance' },
+    { value: 'documentary', labelKey: 'recapSettings.genres.documentary' },
+    { value: 'animation', labelKey: 'recapSettings.genres.animation' },
+  ]
+
   return (
-    <motion.div 
+    <motion.div
       className="glass rounded-lg p-6"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -121,7 +137,7 @@ const RecapSettingsComponent = ({
     >
       <div className="flex items-center mb-6">
         <Settings className="h-6 w-6 text-blue-400 ml-3" />
-        <h2 className="text-xl font-semibold text-white">הגדרות סיכום</h2>
+        <h2 className="text-xl font-semibold text-white">{t('recapSettings.title')}</h2>
       </div>
 
       <div className="space-y-6">
@@ -129,13 +145,13 @@ const RecapSettingsComponent = ({
         <div>
           <label className="flex items-center text-sm font-medium text-gray-300 mb-2">
             <Film className="h-4 w-4 ml-2" />
-            כותרת הסרט/סדרה *
+            {t('recapSettings.movieTitleLabel')}
           </label>
           <input
             type="text"
             value={settings.title}
             onChange={(e) => handleChange('title', e.target.value)}
-            placeholder="לדוגמה: אינספשן, ברייקינג באד..."
+            placeholder={t('recapSettings.movieTitlePlaceholder')}
             className="w-full px-3 py-2 glass-input rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -144,24 +160,17 @@ const RecapSettingsComponent = ({
         <div>
           <label className="flex items-center text-sm font-medium text-gray-300 mb-2">
             <Film className="h-4 w-4 ml-2" />
-            ז'אנר
+            {t('recapSettings.genreLabel')}
           </label>
           <select
             value={settings.genre}
             onChange={(e) => handleChange('genre', e.target.value)}
             className="w-full px-3 py-2 glass-input rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">בחר ז'אנר...</option>
-            <option value="action">אקשן</option>
-            <option value="comedy">קומדיה</option>
-            <option value="drama">דרמה</option>
-            <option value="thriller">מתח</option>
-            <option value="horror">אימה</option>
-            <option value="sci-fi">מדע בדיוני</option>
-            <option value="fantasy">פנטזיה</option>
-            <option value="romance">רומנטי</option>
-            <option value="documentary">דוקומנטרי</option>
-            <option value="animation">אנימציה</option>
+            <option value="">{t('recapSettings.genrePlaceholder')}</option>
+            {genreOptions.map((genre) => (
+              <option key={genre.value} value={genre.value}>{t(genre.labelKey)}</option>
+            ))}
           </select>
         </div>
 
@@ -169,7 +178,7 @@ const RecapSettingsComponent = ({
         <div>
           <label className="flex items-center text-sm font-medium text-gray-300 mb-2">
             <Clock className="h-4 w-4 ml-2" />
-            אורך הסיכום (עד 3 שעות)
+            {t('recapSettings.durationLabel')}
           </label>
           <div className="flex items-start space-x-2 space-x-reverse">
             <div className="flex-1">
@@ -181,7 +190,7 @@ const RecapSettingsComponent = ({
                 onChange={(e) => handleDurationChange('hours', e.target.value)}
                 className="w-full px-3 py-2 glass-input rounded-md text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <p className="text-xs text-gray-400 text-center mt-1">שעות</p>
+              <p className="text-xs text-gray-400 text-center mt-1">{t('recapSettings.hours')}</p>
             </div>
             <span className="text-xl font-bold text-gray-400 pt-2">:</span>
             <div className="flex-1">
@@ -193,7 +202,7 @@ const RecapSettingsComponent = ({
                 onChange={(e) => handleDurationChange('minutes', e.target.value)}
                 className="w-full px-3 py-2 glass-input rounded-md text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <p className="text-xs text-gray-400 text-center mt-1">דקות</p>
+              <p className="text-xs text-gray-400 text-center mt-1">{t('recapSettings.minutes')}</p>
             </div>
             <span className="text-xl font-bold text-gray-400 pt-2">:</span>
             <div className="flex-1">
@@ -205,7 +214,7 @@ const RecapSettingsComponent = ({
                 onChange={(e) => handleDurationChange('seconds', e.target.value)}
                 className="w-full px-3 py-2 glass-input rounded-md text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <p className="text-xs text-gray-400 text-center mt-1">שניות</p>
+              <p className="text-xs text-gray-400 text-center mt-1">{t('recapSettings.seconds')}</p>
             </div>
           </div>
         </div>
@@ -214,11 +223,14 @@ const RecapSettingsComponent = ({
         <div>
           <label className="flex items-center text-sm font-medium text-gray-300 mb-2">
             <Scissors className="h-4 w-4 ml-2" />
-            חתוך כל (דקות : שניות)
+            {t('recapSettings.intervalLabel')}
           </label>
           {videoDuration !== undefined && (
             <p className="text-xs text-blue-300 mb-2">
-              משך הסרטון שהעליתם: {formatVideoLength(videoDuration)} ({Math.round(videoDuration)} שניות) - הערך מחושב אוטומטית לפי אורך הסיכום שבחרתם, ואפשר לשנות אותו ידנית
+              {t('recapSettings.videoLengthInfo', {
+                length: formatVideoLength(videoDuration),
+                seconds: Math.round(videoDuration),
+              })}
             </p>
           )}
           <div className="flex items-center space-x-2 space-x-reverse">
@@ -243,11 +255,11 @@ const RecapSettingsComponent = ({
             />
           </div>
           <p className="text-xs text-gray-400 mt-1">
-            כל {intervalMinutes > 0 ? `${intervalMinutes} דקות ו-` : ''}{intervalRemainingSeconds} שניות ייחתך קטע של שנייה אחת.
+            {t('recapSettings.intervalHint', { minutes: intervalMinutes, seconds: intervalRemainingSeconds })}
           </p>
           {videoDuration !== undefined && settings.intervalSeconds >= videoDuration && (
             <p className="text-xs text-amber-400 mt-1">
-              ⚠ הערך גדול מאורך הסרטון עצמו ({formatVideoLength(videoDuration)}) - יתקבל קטע אחד בלבד. בחרו ערך קטן יותר.
+              {t('recapSettings.intervalWarning', { length: formatVideoLength(videoDuration) })}
             </p>
           )}
         </div>
@@ -256,17 +268,17 @@ const RecapSettingsComponent = ({
         <div>
           <label className="flex items-center text-sm font-medium text-gray-300 mb-2">
             <FileVideo className="h-4 w-4 ml-2" />
-            תיאור נוסף *
+            {t('recapSettings.descriptionLabel')}
           </label>
           <textarea
             value={settings.description}
             onChange={(e) => handleChange('description', e.target.value)}
-            placeholder="תארו את עלילת הסרט/הסדרה, הדמויות והאירועים המרכזיים - הסיכום ייווצר בעיקר על סמך הטקסט הזה..."
+            placeholder={t('recapSettings.descriptionPlaceholder')}
             className="w-full px-3 py-2 glass-input rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             rows={3}
           />
           <p className="text-xs text-gray-400 mt-1">
-            ככל שהתיאור מפורט ומדויק יותר, כך הסיכום שנוצר יהיה נאמן יותר לטקסט שהזנתם.
+            {t('recapSettings.descriptionHint')}
           </p>
         </div>
 
@@ -274,22 +286,22 @@ const RecapSettingsComponent = ({
         <div>
           <label className="flex items-center text-sm font-medium text-gray-300 mb-2">
             <Youtube className="h-4 w-4 ml-2" />
-            YouTube Data API v3 Key (אופציונלי)
+            {t('recapSettings.youtubeApiKeyLabel')}
           </label>
           <input
             type="text"
             value={settings.youtubeApiKey}
             onChange={(e) => handleChange('youtubeApiKey', e.target.value)}
-            placeholder="הזן מפתח YouTube Data API v3 לטעינת סרטוני ערוץ..."
+            placeholder={t('recapSettings.youtubeApiKeyPlaceholder')}
             className="w-full px-3 py-2 glass-input rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <a 
-            href="https://developers.google.com/youtube/v3/getting-started" 
-            target="_blank" 
+          <a
+            href="https://developers.google.com/youtube/v3/getting-started"
+            target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-blue-400 hover:text-blue-300 mt-1 inline-block"
           >
-            איך להשיג מפתח YouTube Data API
+            {t('recapSettings.youtubeApiKeyHelp')}
           </a>
         </div>
 
@@ -297,7 +309,7 @@ const RecapSettingsComponent = ({
         <div>
           <label className="flex items-center text-sm font-medium text-gray-300 mb-2">
             <Youtube className="h-4 w-4 ml-2" />
-            קישור יוטיוב ללמידה (אופציונלי)
+            {t('recapSettings.youtubeLinkLabel')}
           </label>
           <div className="flex space-x-2 space-x-reverse mb-2">
             <button
@@ -308,7 +320,7 @@ const RecapSettingsComponent = ({
                   : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
               }`}
             >
-              סרטון יחיד
+              {t('recapSettings.youtubeLinkSingle')}
             </button>
             <button
               onClick={() => handleChange('linkType', 'channel')}
@@ -318,18 +330,18 @@ const RecapSettingsComponent = ({
                   : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
               }`}
             >
-              ערוץ שלם
+              {t('recapSettings.youtubeLinkChannel')}
             </button>
           </div>
           <input
             type="text"
             value={settings.youtubeLink}
             onChange={(e) => handleChange('youtubeLink', e.target.value)}
-            placeholder="הכנס קישור ליוטיוב כדי שה-AI ילמד מסגנון הסיכום..."
+            placeholder={t('recapSettings.youtubeLinkPlaceholder')}
             className="w-full px-3 py-2 glass-input rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <p className="text-xs text-gray-400 mt-1">
-            ה-AI ילמד מסגנון הסיכום בסרטון כדי לשפר את איכות הסיכומים שלו
+            {t('recapSettings.youtubeLinkHint')}
           </p>
         </div>
 
@@ -345,9 +357,9 @@ const RecapSettingsComponent = ({
             <div className="flex items-center flex-1">
               <Globe className="h-4 w-4 ml-2 text-blue-400" />
               <div>
-                <span className="text-sm font-medium text-white">חיפוש באינטרנט לסיכום מדויק יותר</span>
+                <span className="text-sm font-medium text-white">{t('recapSettings.webSearchLabel')}</span>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  כשמופעל, המערכת תחפש מידע אמיתי על הסרט/סדרה באינטרנט ותשתמש בו ליצירת סיכום מדויק ואיכותי יותר
+                  {t('recapSettings.webSearchHint')}
                 </p>
               </div>
             </div>
@@ -356,11 +368,11 @@ const RecapSettingsComponent = ({
 
         {/* סיכום הגדרות */}
         <div className="glass-subtle rounded-lg p-4">
-          <h3 className="text-sm font-medium text-gray-300 mb-2">סיכום הגדרות:</h3>
+          <h3 className="text-sm font-medium text-gray-300 mb-2">{t('recapSettings.summaryTitle')}</h3>
           <div className="text-sm text-gray-400 space-y-1">
-            <p>• אורך סיכום: {formatDuration(settings.duration)}</p>
-            <p>• חיתוך כל: {formatDuration(settings.intervalSeconds)}</p>
-            <p>• קטעים כוללים: ~{settings.intervalSeconds > 0 ? Math.floor(settings.duration / settings.intervalSeconds) : 0} קטעים</p>
+            <p>• {t('recapSettings.summaryLength', { length: formatDuration(settings.duration) })}</p>
+            <p>• {t('recapSettings.summaryInterval', { interval: formatDuration(settings.intervalSeconds) })}</p>
+            <p>• {t('recapSettings.summarySegments', { count: settings.intervalSeconds > 0 ? Math.floor(settings.duration / settings.intervalSeconds) : 0 })}</p>
           </div>
         </div>
       </div>

@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { Film, Key, Menu, X, FileText, Shield, HelpCircle } from 'lucide-react'
+import LanguageSwitcher from './LanguageSwitcher'
 
 interface HeaderProps {
   apiKey: string
@@ -9,17 +11,18 @@ interface HeaderProps {
 }
 
 const Header = ({ apiKey, onApiKeyChange }: HeaderProps) => {
+  const { t } = useTranslation()
   const [showApiInput, setShowApiInput] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const location = useLocation();
 
   const menuItems = [
-    { path: '/', label: 'בית', icon: Film },
-    { path: '/history', label: 'היסטוריה', icon: null },
-    { path: '/faq', label: 'שאלות נפוצות', icon: HelpCircle },
-    { path: '/contact', label: 'צור קשר', icon: null },
-    { path: '/terms', label: 'תנאי שימוש', icon: FileText },
-    { path: '/privacy', label: 'מדיניות פרטיות', icon: Shield }
+    { path: '/', label: t('header.nav.home'), icon: Film },
+    { path: '/history', label: t('header.nav.history'), icon: null },
+    { path: '/faq', label: t('header.nav.faq'), icon: HelpCircle },
+    { path: '/contact', label: t('header.nav.contact'), icon: null },
+    { path: '/terms', label: t('header.nav.terms'), icon: FileText },
+    { path: '/privacy', label: t('header.nav.privacy'), icon: Shield }
   ]
 
   return (
@@ -28,15 +31,15 @@ const Header = ({ apiKey, onApiKeyChange }: HeaderProps) => {
         <div className="flex justify-between items-center py-4">
           {/* לוגו */}
           <Link to="/">
-            <motion.div 
+            <motion.div
               className="flex items-center cursor-pointer"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <Film className="h-8 w-8 text-blue-400 ml-3" />
               <div className="text-right">
-                <h1 className="text-xl font-bold">Movies & TV Recaps</h1>
-                <p className="text-sm text-gray-400">יוצר סיכומי סרטים וסדרות</p>
+                <h1 className="text-xl font-bold">{t('common.appName')}</h1>
+                <p className="text-sm text-gray-400">{t('common.appTagline')}</p>
               </div>
             </motion.div>
           </Link>
@@ -58,8 +61,9 @@ const Header = ({ apiKey, onApiKeyChange }: HeaderProps) => {
             ))}
           </nav>
 
-          {/* כפתור API Key */}
+          {/* כפתור API Key + שפה */}
           <div className="flex items-center space-x-2 space-x-reverse">
+            <LanguageSwitcher />
             <motion.button
               onClick={() => setShowApiInput(!showApiInput)}
               className="flex items-center px-3 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
@@ -67,7 +71,7 @@ const Header = ({ apiKey, onApiKeyChange }: HeaderProps) => {
               whileTap={{ scale: 0.95 }}
             >
               <Key className="h-4 w-4 ml-2" />
-              <span className="text-sm">API Key</span>
+              <span className="text-sm">{t('header.apiKeyButton')}</span>
             </motion.button>
 
             {/* תפריט מובייל */}
@@ -82,7 +86,7 @@ const Header = ({ apiKey, onApiKeyChange }: HeaderProps) => {
 
         {/* קלט API Key */}
         {showApiInput && (
-          <motion.div 
+          <motion.div
             className="pb-4"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
@@ -90,18 +94,18 @@ const Header = ({ apiKey, onApiKeyChange }: HeaderProps) => {
           >
             <div className="glass rounded-lg p-4">
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                מפתח Gemini AI API
+                {t('header.apiKeyLabel')}
               </label>
               <input
                 type="password"
                 value={apiKey}
                 onChange={(e) => onApiKeyChange(e.target.value)}
-                placeholder="הכנס את מפתח ה-API שלך..."
+                placeholder={t('header.apiKeyPlaceholder')}
                 className="w-full px-3 py-2 glass-input rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 dir="ltr"
               />
               <p className="text-xs text-gray-400 mt-1">
-                קבל מפתח API בחינם מ-Google AI Studio
+                {t('header.apiKeyHint')}
               </p>
             </div>
           </motion.div>
@@ -109,7 +113,7 @@ const Header = ({ apiKey, onApiKeyChange }: HeaderProps) => {
 
         {/* תפריט מובייל */}
         {mobileMenuOpen && (
-          <motion.div 
+          <motion.div
             className="md:hidden pb-4"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}

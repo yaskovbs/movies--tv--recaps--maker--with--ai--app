@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { Play, Users, Zap, Shield, Cpu } from 'lucide-react'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { toBlobURL } from '@ffmpeg/util'
@@ -15,25 +16,35 @@ interface HomePageProps {
   apiKey: string
 }
 
+// Human-readable name sent to Gemini so the generated script/search results
+// come back in the same language the UI is currently showing.
+const scriptLanguageNames: Record<string, string> = {
+  en: 'English',
+  he: 'Hebrew',
+  es: 'Spanish',
+  fr: 'French',
+}
+
 async function generateScriptWithGemini(
-  settings: RecapSettingsType, 
-  apiKey: string, 
+  settings: RecapSettingsType,
+  apiKey: string,
+  scriptLanguage: string,
   webSearchResults?: string
 ): Promise<string> {
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
-  
+
   let contextInfo = '';
   if (webSearchResults) {
     contextInfo += `\n\nWeb Search Results:\n${webSearchResults}`;
   }
-  
-  const genreText = settings.genre ? ` (ז'אנר: ${settings.genre})` : '';
+
+  const genreText = settings.genre ? ` (Genre: ${settings.genre})` : '';
   const youtubeContext = settings.youtubeLink
-    ? `\n\nהסגנון צריך להיות דומה לסיכומי ${settings.linkType === 'channel' ? 'ערוץ' : 'סרטון'} זה: ${settings.youtubeLink}`
+    ? `\n\nThe style should be similar to this ${settings.linkType === 'channel' ? 'channel' : 'video'}'s recaps: ${settings.youtubeLink}`
     : '';
 
   const prompt = `
-    You are a professional video scriptwriter creating voice-over scripts for movie/TV show recaps in Hebrew.
+    You are a professional video scriptwriter creating voice-over scripts for movie/TV show recaps in ${scriptLanguage}.
 
     Title: ${settings.title}${genreText}${youtubeContext}${contextInfo}
 
@@ -42,18 +53,18 @@ async function generateScriptWithGemini(
     ${settings.description}
     """
 
-    Create an engaging, cinematic voice-over script in Hebrew for a video recap.
+    Create an engaging, cinematic voice-over script in ${scriptLanguage} for a video recap.
     The script should be:
     - Grounded almost entirely in the user-provided description above - stick closely to its wording, facts, and details, and rely on it far more than on general or prior knowledge about the title
     - Do not invent plot points, characters, or events that are not in the description and do not contradict it
     - Only use general knowledge to fill in minor gaps the description does not cover, and keep that to a minimum
     - Exciting and dramatic
     - Concise (3-4 sentences, matching the video duration of ${settings.duration} seconds)
-    - In natural, fluent Hebrew
+    - In natural, fluent ${scriptLanguage}
     - Capture the essence and key moments described above
     ${settings.youtubeLink ? '- Match the style and tone of the reference YouTube content' : ''}
 
-    Return ONLY the Hebrew script text, no additional commentary.
+    Return ONLY the ${scriptLanguage} script text, no additional commentary.
   `;
 
   const maxRetries = 3;
@@ -66,7 +77,7 @@ async function generateScriptWithGemini(
 
     if (response.status === 503) {
       if (attempt === maxRetries) {
-        break; 
+        break;
       }
       const delay = Math.pow(2, attempt) * 1000;
       console.warn(`Gemini API overloaded. Retrying in ${delay / 1000}s (Attempt ${attempt}/${maxRetries})`);
@@ -93,10 +104,10 @@ async function generateScriptWithGemini(
 async function searchWebForMovieInfo(title: string, genre: string, apiKey: string): Promise<string> {
   try {
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
-    
-    const prompt = `Search and provide a brief summary about the movie/TV show: "${title}" ${genre ? `(Genre: ${genre})` : ''}. 
+
+    const prompt = `Search and provide a brief summary about the movie/TV show: "${title}" ${genre ? `(Genre: ${genre})` : ''}.
     Include: plot overview, key characters, main themes, and interesting facts. Keep it concise (2-3 paragraphs max).`;
-    
+
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -104,7 +115,7 @@ async function searchWebForMovieInfo(title: string, genre: string, apiKey: strin
     });
 
     if (!response.ok) return '';
-    
+
     const data = await response.json();
     return data.candidates[0]?.content?.parts[0]?.text || '';
   } catch (error) {
@@ -114,6 +125,7 @@ async function searchWebForMovieInfo(title: string, genre: string, apiKey: strin
 }
 
 const HomePage = ({ apiKey }: HomePageProps) => {
+  const { t, i18n } = useTranslation()
   const [selectedFile, setSelectedFile] = useState<VideoFile | null>(null)
   const [settings, setSettings] = useState<RecapSettingsType>({
     duration: 30,
@@ -143,43 +155,44 @@ const HomePage = ({ apiKey }: HomePageProps) => {
           ...prev,
           stage: 'cutting_video',
           progress: Math.round(progress * 100),
-          message: `חותך קטעים מהווידאו... ${Math.round(progress * 100)}%`
+          message: t('home.status.cutting', { percent: Math.round(progress * 100) })
         } : prev)
       }
     })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleCreateRecap = async () => {
     if (!selectedFile) {
-      alert('אנא בחר קובץ וידאו');
+      alert(t('home.alerts.selectFile'));
       return;
     }
     if (!apiKey) {
-      alert('אנא הכנס מפתח Gemini AI API');
+      alert(t('home.alerts.enterApiKey'));
       return;
     }
     if (!settings.title.trim()) {
-      alert('אנא הכנס כותרת לסרט/סדרה');
+      alert(t('home.alerts.enterTitle'));
       return;
     }
     if (!settings.description.trim()) {
-      alert('אנא הכנס תיאור נוסף - הסיכום ייווצר על סמך הטקסט הזה');
+      alert(t('home.alerts.enterDescription'));
       return;
     }
     if (!selectedFile.buffer) {
-      alert('הקובץ לא נקרא בהצלחה. אנא הסר את הקובץ ובחר אותו שנית.');
+      alert(t('home.alerts.fileNotRead'));
       return;
     }
 
     setRecapOutput(null);
-    setProcessingStatus({ stage: 'loading_engine', progress: 0, message: 'מתכונן לעיבוד...'});
+    setProcessingStatus({ stage: 'loading_engine', progress: 0, message: t('home.status.preparing') });
     const ffmpeg = ffmpegRef.current;
 
     try {
       setProcessingStatus({
         stage: 'loading_engine',
         progress: 0,
-        message: 'טוען את מנוע הווידאו...'
+        message: t('home.status.loadingEngine')
       });
 
       if (!ffmpeg.loaded) {
@@ -193,13 +206,13 @@ const HomePage = ({ apiKey }: HomePageProps) => {
       setProcessingStatus({
         stage: 'cutting_video',
         progress: 0,
-        message: 'כותב קובץ למערכת...'
+        message: t('home.status.writingFile')
       });
       // Use the pre-buffered bytes captured at file-selection time.
       // Never read from the stale File object here — the browser may have
       // revoked read permission after user interactions (NotReadableError).
       if (!selectedFile.buffer) {
-        throw new Error('הקובץ לא נקרא בהצלחה. אנא הסר את הקובץ ובחר אותו שנית.');
+        throw new Error(t('home.alerts.fileNotRead'));
       }
       await ffmpeg.writeFile(selectedFile.name, selectedFile.buffer);
 
@@ -227,45 +240,46 @@ const HomePage = ({ apiKey }: HomePageProps) => {
       setProcessingStatus({
         stage: 'generating_script',
         progress: 0,
-        message: 'יוצר תסריט עם Gemini AI...'
+        message: t('home.status.generatingScript')
       });
-      
+
       // Perform web search if enabled
       let webSearchResults = '';
       if (settings.webSearch) {
         setProcessingStatus({
           stage: 'generating_script',
           progress: 30,
-          message: 'מחפש מידע באינטרנט על הסרט/סדרה...'
+          message: t('home.status.searchingWeb')
         });
         webSearchResults = await searchWebForMovieInfo(settings.title, settings.genre, apiKey);
       }
-      
+
       setProcessingStatus({
         stage: 'generating_script',
         progress: settings.webSearch ? 60 : 50,
-        message: 'יוצר תסריט מותאם אישית...'
+        message: t('home.status.generatingCustomScript')
       });
-      const generatedScript = await generateScriptWithGemini(settings, apiKey, webSearchResults);
-      
+      const scriptLanguage = scriptLanguageNames[i18n.resolvedLanguage || 'en'] || 'English';
+      const generatedScript = await generateScriptWithGemini(settings, apiKey, scriptLanguage, webSearchResults);
+
       setProcessingStatus({
         stage: 'generating_script',
         progress: 100,
-        message: 'התסריט נוצר בהצלחה.'
+        message: t('home.status.scriptDone')
       });
       await new Promise(resolve => setTimeout(resolve, 500));
 
       setProcessingStatus({
         stage: 'generating_audio',
         progress: 50,
-        message: 'מכין קריינות אודיו...'
+        message: t('home.status.preparingAudio')
       });
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       setProcessingStatus({
         stage: 'completed',
         progress: 100,
-        message: 'הסיכום נוצר בהצלחה!'
+        message: t('home.status.completed')
       });
 
       setRecapOutput({
@@ -281,14 +295,14 @@ const HomePage = ({ apiKey }: HomePageProps) => {
 
     } catch (error: unknown) {
       console.error("An error occurred during recap creation:", error);
-      let userMessage = 'שגיאה לא ידועה התרחשה. אנא נסה שוב.';
+      let userMessage = t('home.errors.unknown');
       if (error instanceof Error) {
         if (error.message.includes('overloaded')) {
-          userMessage = 'שרתי ה-AI עמוסים כרגע. אנא נסה שוב בעוד מספר דקות.';
+          userMessage = t('home.errors.overloaded');
         } else if (error.message.includes('API key')) {
-          userMessage = 'מפתח ה-API אינו תקין. אנא בדוק את המפתח ונסה שוב.';
+          userMessage = t('home.errors.invalidKey');
         } else if (error.message.includes('FFmpeg')) {
-          userMessage = 'שגיאה בעיבוד הווידאו. אנא ודא שהקובץ תקין ונסה שוב.';
+          userMessage = t('home.errors.ffmpeg');
         } else if (error.message) {
           userMessage = error.message;
         }
@@ -302,10 +316,10 @@ const HomePage = ({ apiKey }: HomePageProps) => {
   }
 
   const features = [
-    { icon: Zap, title: 'עיבוד מהיר', description: 'טכנולוגיית AI מתקדמת לעיבוד מהיר ויעיל' },
-    { icon: Cpu, title: 'מנוע FFmpeg', description: 'עיבוד וידאו מתקדם ישירות בדפדפן' },
-    { icon: Shield, title: 'בטוח ומאובטח', description: 'הקבצים שלכם מוגנים והמפתחות לא נשמרים' },
-    { icon: Users, title: 'קל לשימוש', description: 'ממשק פשוט ונוח לכל הגילאים' }
+    { icon: Zap, title: t('home.features.fastTitle'), description: t('home.features.fastDesc') },
+    { icon: Cpu, title: t('home.features.ffmpegTitle'), description: t('home.features.ffmpegDesc') },
+    { icon: Shield, title: t('home.features.secureTitle'), description: t('home.features.secureDesc') },
+    { icon: Users, title: t('home.features.easyTitle'), description: t('home.features.easyDesc') }
   ]
 
   const isProcessing = !!(processingStatus && processingStatus.stage !== 'completed' && processingStatus.stage !== 'error');
@@ -321,34 +335,34 @@ const HomePage = ({ apiKey }: HomePageProps) => {
     if (isProcessing && processingStatus) {
       return <ProcessingStatus status={processingStatus} />;
     }
-    
+
     // Default welcome message
     return (
-      <motion.div 
+      <motion.div
         className="glass rounded-lg p-8 text-center"
-        initial={{ opacity: 0 }} 
+        initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
         <h3 className="text-2xl font-bold text-white mb-6">
-          ברוכים הבאים! ב-3 צעדים פשוטים תיצרו סיכום וידאו מדהים:
+          {t('home.welcome.title')}
         </h3>
         <ol className="text-right text-gray-300 space-y-4 max-w-md mx-auto">
           <li className="flex items-start">
             <span className="bg-blue-600 text-white rounded-full h-8 w-8 flex items-center justify-center ml-4 flex-shrink-0 text-lg font-bold">1</span>
             <div>
-              <span className="font-semibold text-white">העלאת וידאו:</span> גררו קובץ או בחרו מהמחשב.
+              <span className="font-semibold text-white">{t('home.welcome.step1Title')}</span> {t('home.welcome.step1Desc')}
             </div>
           </li>
           <li className="flex items-start">
             <span className="bg-blue-600 text-white rounded-full h-8 w-8 flex items-center justify-center ml-4 flex-shrink-0 text-lg font-bold">2</span>
             <div>
-              <span className="font-semibold text-white">הגדרות סיכום:</span> קבעו את אורך הסיכום ותארו את הווידאו ל-AI.
+              <span className="font-semibold text-white">{t('home.welcome.step2Title')}</span> {t('home.welcome.step2Desc')}
             </div>
           </li>
           <li className="flex items-start">
             <span className="bg-blue-600 text-white rounded-full h-8 w-8 flex items-center justify-center ml-4 flex-shrink-0 text-lg font-bold">3</span>
             <div>
-              <span className="font-semibold text-white">יצירת סיכום:</span> לחצו על הכפתור ותנו לקסם לקרות!
+              <span className="font-semibold text-white">{t('home.welcome.step3Title')}</span> {t('home.welcome.step3Desc')}
             </div>
           </li>
         </ol>
@@ -361,10 +375,10 @@ const HomePage = ({ apiKey }: HomePageProps) => {
       <section className="py-20 text-center">
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
           <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
-            יוצר סיכומי וידאו
+            {t('home.title')}
           </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-            הפלטפורמה המתקדמת ביותר ליצירת סיכומי וידאו מקצועיים לסרטים וסדרות באמצעות בינה מלאכותית של Google Gemini
+            {t('home.subtitle')}
           </p>
         </motion.div>
       </section>
@@ -390,7 +404,7 @@ const HomePage = ({ apiKey }: HomePageProps) => {
               whileTap={{ scale: canSubmit ? 0.98 : 1 }}
             >
               <Play className="inline-block h-5 w-5 ml-2" />
-              {isProcessing ? 'מעבד...' : 'צור סיכום וידאו'}
+              {isProcessing ? t('home.processingButton') : t('home.createButton')}
             </motion.button>
           </div>
 

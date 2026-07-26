@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { BarChart3, Users, Zap, Star, Loader2 } from 'lucide-react'
 import { localStorageService } from '../lib/localStorage'
 
@@ -11,6 +12,7 @@ interface AppStats {
 }
 
 const StatsSection = () => {
+  const { t } = useTranslation();
   const [stats, setStats] = useState<AppStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [userRating, setUserRating] = useState<number>(0);
@@ -50,7 +52,7 @@ const StatsSection = () => {
       fetchStats();
     } catch (error) {
       console.error('Failed to submit rating:', error);
-      alert('שגיאה בשליחת הדירוג. אנא נסה שוב.');
+      alert(t('statsSection.ratingFailed'));
     }
     setIsRating(false);
   };
@@ -63,25 +65,25 @@ const StatsSection = () => {
     {
       icon: BarChart3,
       value: stats ? stats.recaps_created.toLocaleString() : '0',
-      label: 'סיכומים נוצרו',
+      label: t('statsSection.recapsCreated'),
       color: 'text-blue-400'
     },
     {
       icon: Users,
       value: stats ? stats.active_users.toLocaleString() : '0',
-      label: 'משתמשים פעילים',
+      label: t('statsSection.activeUsers'),
       color: 'text-green-400'
     },
     {
       icon: Zap,
       value: `99.9%`,
-      label: 'זמינות השירות',
+      label: t('statsSection.uptime'),
       color: 'text-yellow-400'
     },
     {
       icon: Star,
       value: `${calculatedRating}/5`,
-      label: 'דירוג משתמשים',
+      label: t('statsSection.userRating'),
       color: 'text-purple-400'
     }
   ];
@@ -91,7 +93,7 @@ const StatsSection = () => {
       <section className="glass py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Loader2 className="h-12 w-12 text-blue-400 animate-spin mx-auto" />
-          <p className="text-white mt-4">טוען נתונים...</p>
+          <p className="text-white mt-4">{t('statsSection.loading')}</p>
         </div>
       </section>
     );
@@ -108,10 +110,10 @@ const StatsSection = () => {
           transition={{ duration: 0.6 }}
         >
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            המספרים מדברים בעד עצמם
+            {t('statsSection.heading')}
           </h2>
           <p className="text-gray-400 text-lg">
-            ההישגים שלנו עד היום
+            {t('statsSection.subheading')}
           </p>
         </motion.div>
 
@@ -151,10 +153,10 @@ const StatsSection = () => {
             transition={{ duration: 0.6, delay: 0.5 }}
           >
             <h3 className="text-2xl font-bold text-white mb-4">
-              מה דעתכם על השירות שלנו?
+              {t('statsSection.rateTitle')}
             </h3>
             <p className="text-gray-300 mb-6">
-              הדירוג שלכם יעזור לנו להשתפר
+              {t('statsSection.rateSubtitle')}
             </p>
             
             <div className="flex justify-center space-x-2 space-x-reverse mb-4">
@@ -198,10 +200,10 @@ const StatsSection = () => {
               ))}
             </div>
             <p className="text-green-400 font-semibold">
-              תודה רבה על הדירוג!
+              {t('statsSection.thankYouTitle')}
             </p>
             <p className="text-gray-300 text-sm mt-1">
-              הדירוג שלכם עוזר לנו לשפר את השירות
+              {t('statsSection.thankYouSubtitle')}
             </p>
           </motion.div>
         )}

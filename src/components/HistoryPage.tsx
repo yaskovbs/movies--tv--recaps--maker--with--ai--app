@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { RecapRecord } from '../lib/blink'
 import { recapStorageService } from '../lib/recapStorage'
 import { Button } from './ui/button'
@@ -7,6 +8,7 @@ import { Trash2, Download, Play, Search, Filter, Film } from 'lucide-react'
 import { Input } from './ui/input'
 
 export default function HistoryPage() {
+  const { t } = useTranslation()
   const [recaps, setRecaps] = useState<RecapRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -28,7 +30,7 @@ export default function HistoryPage() {
   }, [])
 
   const handleDelete = async (recapId: string) => {
-    if (!confirm('Are you sure you want to delete this recap?')) return
+    if (!confirm(t('historyPage.confirmDelete'))) return
     try {
       await recapStorageService.deleteRecap(recapId)
       setRecaps(recaps.filter(r => r.id !== recapId))
@@ -65,13 +67,13 @@ export default function HistoryPage() {
   const uniqueGenres = ['all', ...new Set(recaps.map(r => r.genre).filter(Boolean))]
 
   if (loading) {
-    return <div className="p-8 text-center text-white">Loading your history...</div>
+    return <div className="p-8 text-center text-white">{t('historyPage.loading')}</div>
   }
 
   return (
     <div className="min-h-screen p-4 md:p-8">
       <div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl md:text-4xl font-bold text-white mb-8">Recap History</h1>
+        <h1 className="text-3xl md:text-4xl font-bold text-white mb-8">{t('historyPage.title')}</h1>
         
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="relative flex-1">
@@ -79,7 +81,7 @@ export default function HistoryPage() {
             <Input 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search recaps..."
+              placeholder={t('historyPage.searchPlaceholder')}
               className="pl-10 glass-input text-white"
             />
           </div>
@@ -91,7 +93,7 @@ export default function HistoryPage() {
               className="glass-input text-white rounded-md px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
             >
               {uniqueGenres.map(genre => (
-                <option key={genre} value={genre}>{genre === 'all' ? 'All Genres' : genre}</option>
+                <option key={genre} value={genre}>{genre === 'all' ? t('historyPage.allGenres') : genre}</option>
               ))}
             </select>
           </div>
@@ -99,9 +101,9 @@ export default function HistoryPage() {
 
         {filteredRecaps.length === 0 ? (
           <div className="text-center text-gray-400 py-12 glass rounded-xl">
-            <p className="text-lg">No recaps found</p>
+            <p className="text-lg">{t('historyPage.noRecapsFound')}</p>
             <Button variant="link" onClick={() => window.location.href = '/'} className="text-blue-400">
-              Create your first recap
+              {t('historyPage.createFirst')}
             </Button>
           </div>
         ) : (
@@ -148,7 +150,7 @@ export default function HistoryPage() {
                         size="icon"
                         variant="ghost"
                         onClick={() => handleDownloadVideo(recap.videoUrl, recap.title)}
-                        title="Download Video"
+                        title={t('historyPage.downloadVideo')}
                         className="text-purple-400 hover:text-purple-300 hover:bg-purple-900/20"
                       >
                         <Film className="w-4 h-4" />
@@ -163,7 +165,7 @@ export default function HistoryPage() {
                             const audio = new Audio(recap.audioUrl)
                             audio.play()
                           }}
-                          title="Play Audio"
+                          title={t('historyPage.playAudio')}
                           className="text-blue-400 hover:text-blue-300 hover:bg-blue-900/20"
                         >
                           <Play className="w-4 h-4 fill-current" />
@@ -172,7 +174,7 @@ export default function HistoryPage() {
                           size="icon"
                           variant="ghost"
                           onClick={() => handleDownloadAudio(recap.audioUrl, recap.title)}
-                          title="Download Audio"
+                          title={t('historyPage.downloadAudio')}
                           className="text-green-400 hover:text-green-300 hover:bg-green-900/20"
                         >
                           <Download className="w-4 h-4" />
@@ -184,7 +186,7 @@ export default function HistoryPage() {
                     size="icon"
                     variant="ghost"
                     onClick={() => handleDelete(recap.id)}
-                    title="Delete"
+                    title={t('historyPage.delete')}
                     className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
                   >
                     <Trash2 className="w-4 h-4" />

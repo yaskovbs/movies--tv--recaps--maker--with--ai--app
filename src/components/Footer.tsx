@@ -1,16 +1,19 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Film } from 'lucide-react';
 
 const Footer = () => {
+  const { t } = useTranslation();
+
   const navLinks = [
-    { path: '/', label: 'בית' },
-    { path: '/contact', label: 'צור קשר' },
-    { path: '/faq', label: 'שאלות נפוצות' },
+    { path: '/', label: t('header.nav.home') },
+    { path: '/contact', label: t('header.nav.contact') },
+    { path: '/faq', label: t('header.nav.faq') },
   ];
 
   const legalLinks = [
-    { path: '/terms', label: 'תנאי שימוש' },
-    { path: '/privacy', label: 'מדיניות פרטיות' },
+    { path: '/terms', label: t('header.nav.terms') },
+    { path: '/privacy', label: t('header.nav.privacy') },
   ];
 
   return (
@@ -20,25 +23,25 @@ const Footer = () => {
           {/* Logo and About */}
           <div className="space-y-4">
             <Link to="/">
-              <div 
+              <div
                 className="flex items-center cursor-pointer"
               >
                 <Film className="h-8 w-8 text-blue-400 ml-3" />
                 <div className="text-right">
-                  <h1 className="text-xl font-bold">Movies & TV Recaps</h1>
-                  <p className="text-sm text-gray-400">יוצר סיכומי סרטים וסדרות</p>
+                  <h1 className="text-xl font-bold">{t('common.appName')}</h1>
+                  <p className="text-sm text-gray-400">{t('common.appTagline')}</p>
                 </div>
               </div>
             </Link>
             <p className="text-gray-400 text-sm max-w-xs">
-              הפלטפורמה המובילה ליצירת סיכומי וידאו חכמים באמצעות טכנולוגיית AI מתקדמת.
+              {t('footer.description')}
             </p>
           </div>
 
           {/* Links */}
           <div className="md:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-8">
             <div>
-              <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">ניווט</h3>
+              <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">{t('footer.navHeading')}</h3>
               <ul className="mt-4 space-y-2">
                 {navLinks.map(link => (
                   <li key={link.path}>
@@ -53,7 +56,7 @@ const Footer = () => {
               </ul>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">משפטי</h3>
+              <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">{t('footer.legalHeading')}</h3>
               <ul className="mt-4 space-y-2">
                 {legalLinks.map(link => (
                   <li key={link.path}>
@@ -68,7 +71,7 @@ const Footer = () => {
               </ul>
             </div>
              <div>
-              <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">צור קשר</h3>
+              <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">{t('footer.contactHeading')}</h3>
               <ul className="mt-4 space-y-2 text-base text-gray-300">
                 <li>yaskovbs2502@gmail.com</li>
                 <li>050-818-1948</li>
@@ -77,7 +80,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="mt-12 border-t border-white/10 pt-8 text-center">
-          <p className="text-base text-gray-400">&copy; {new Date().getFullYear()} Movies & TV Recaps Maker Hub. כל הזכויות שמורות.</p>
+          <p className="text-base text-gray-400">{t('footer.copyright', { year: new Date().getFullYear() })}</p>
         </div>
       </div>
     </footer>

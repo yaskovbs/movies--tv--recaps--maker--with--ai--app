@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { blink } from '../lib/blink'
 import { recapStorageService } from '../lib/recapStorage'
 import { Button } from './ui/button'
@@ -15,6 +16,7 @@ interface RecapSaverProps {
 }
 
 export function RecapSaver({ script, videoUrl, open, onClose }: RecapSaverProps) {
+  const { t } = useTranslation()
   const [title, setTitle] = useState('')
   const [genre, setGenre] = useState('')
   const [description, setDescription] = useState('')
@@ -24,7 +26,7 @@ export function RecapSaver({ script, videoUrl, open, onClose }: RecapSaverProps)
 
   const handleSave = async () => {
     if (!title.trim()) {
-      setError('נא להזין כותרת')
+      setError(t('recapSaver.titleRequired'))
       return
     }
 
@@ -75,7 +77,7 @@ export function RecapSaver({ script, videoUrl, open, onClose }: RecapSaverProps)
       setDescription('')
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'שגיאה בשמירת הסיכום')
+      setError(err instanceof Error ? err.message : t('recapSaver.saveError'))
       setLoading(false)
       setStage(null)
     }
@@ -85,7 +87,7 @@ export function RecapSaver({ script, videoUrl, open, onClose }: RecapSaverProps)
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="glass-strong border-white/15 text-white">
         <DialogHeader>
-          <DialogTitle>שמור סיכום</DialogTitle>
+          <DialogTitle>{t('recapSaver.dialogTitle')}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -97,31 +99,31 @@ export function RecapSaver({ script, videoUrl, open, onClose }: RecapSaverProps)
           )}
 
           <div>
-            <label className="block text-sm font-medium mb-2">כותרת *</label>
+            <label className="block text-sm font-medium mb-2">{t('recapSaver.titleLabel')}</label>
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="למשל: The Matrix - Recap"
+              placeholder={t('recapSaver.titlePlaceholder')}
               className="glass-input text-white"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">ז'אנר</label>
+            <label className="block text-sm font-medium mb-2">{t('recapSaver.genreLabel')}</label>
             <Input
               value={genre}
               onChange={(e) => setGenre(e.target.value)}
-              placeholder="למשל: Sci-Fi"
+              placeholder={t('recapSaver.genrePlaceholder')}
               className="glass-input text-white"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">תיאור</label>
+            <label className="block text-sm font-medium mb-2">{t('recapSaver.descriptionLabel')}</label>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="תיאור קצר של הסיכום"
+              placeholder={t('recapSaver.descriptionPlaceholder')}
               className="glass-input text-white"
             />
           </div>
@@ -132,17 +134,17 @@ export function RecapSaver({ script, videoUrl, open, onClose }: RecapSaverProps)
               onClick={onClose}
               disabled={loading}
             >
-              ביטול
+              {t('recapSaver.cancel')}
             </Button>
             <Button
               onClick={handleSave}
               disabled={loading}
             >
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {stage === 'video' ? 'שומר את הסרטון...'
-                : stage === 'audio' ? 'יוצר אודיו...'
-                : stage === 'saving' ? 'שומר...'
-                : 'שמור סיכום'}
+              {stage === 'video' ? t('recapSaver.savingVideo')
+                : stage === 'audio' ? t('recapSaver.generatingAudio')
+                : stage === 'saving' ? t('recapSaver.saving')
+                : t('recapSaver.save')}
             </Button>
           </div>
         </div>

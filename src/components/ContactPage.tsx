@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { Mail, Phone, MapPin, Clock, Send, Loader2 } from 'lucide-react'
 
 const ContactPage = () => {
+  const { t } = useTranslation()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -23,7 +25,7 @@ const ContactPage = () => {
     setIsSubmitting(false)
 
     // For local usage, always show success
-    setSubmitStatus({ type: 'success', message: 'ההודעה נשלחה בהצלחה! נחזור אליך תוך 24 שעות.' })
+    setSubmitStatus({ type: 'success', message: t('contactPage.successMessage') })
     setFormData({ name: '', email: '', subject: '', message: '' })
 
     // In a real implementation, you could store messages locally or send via email
@@ -40,28 +42,28 @@ const ContactPage = () => {
   const contactInfo = [
     {
       icon: Mail,
-      title: 'אימייל',
+      title: t('contactPage.email'),
       content: 'yaskovbs2502@gmail.com',
-      description: 'שלחו לנו אימייל ונחזור אליכם תוך 24 שעות'
+      description: t('contactPage.emailDesc')
     },
     {
       icon: Phone,
-      title: 'טלפון',
+      title: t('contactPage.phone'),
       content: '050-818-1948',
-      description: 'זמינים בימי א-ה, 9:00-18:00'
+      description: t('contactPage.phoneDesc')
     },
     {
       icon: MapPin,
-      title: 'כתובת',
+      title: t('contactPage.address'),
       content: 'רחוב רש\'י, אופקים',
-      description: 'המשרדים שלנו'
+      description: t('contactPage.addressDesc')
     }
   ]
 
   const workingHours = [
-    { day: 'ימי א-ה', hours: '9:00-18:00' },
-    { day: 'שישי', hours: '9:00-14:00' },
-    { day: 'שבת', hours: 'סגור' }
+    { day: t('contactPage.days.sunThu'), hours: '9:00-18:00' },
+    { day: t('contactPage.days.fri'), hours: '9:00-14:00' },
+    { day: t('contactPage.days.sat'), hours: t('contactPage.closed') }
   ]
 
   return (
@@ -74,10 +76,10 @@ const ContactPage = () => {
           transition={{ duration: 0.6 }}
         >
           <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
-            פרטי קשר
+            {t('contactPage.title')}
           </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            נשמח לעמוד לרשותכם ולענות על כל שאלה. צרו קשר איתנו והצוות שלנו יחזור אליכם במהירות
+            {t('contactPage.subtitle')}
           </p>
         </motion.div>
 
@@ -87,8 +89,8 @@ const ContactPage = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            <h2 className="text-2xl font-bold text-white mb-8">צרו קשר איתנו</h2>
-            
+            <h2 className="text-2xl font-bold text-white mb-8">{t('contactPage.getInTouch')}</h2>
+
             <div className="space-y-6 mb-8">
               {contactInfo.map((info, index) => (
                 <motion.div
@@ -119,7 +121,7 @@ const ContactPage = () => {
             >
               <div className="flex items-center mb-4">
                 <Clock className="h-6 w-6 text-blue-400 ml-3" />
-                <h3 className="text-xl font-semibold text-white">שעות תמיכה</h3>
+                <h3 className="text-xl font-semibold text-white">{t('contactPage.supportHoursTitle')}</h3>
               </div>
               <div className="space-y-2">
                 {workingHours.map((time, index) => (
@@ -131,7 +133,7 @@ const ContactPage = () => {
               </div>
               <div className="mt-4 p-3 bg-blue-600/10 rounded-lg border border-blue-600/20">
                 <p className="text-blue-400 text-sm font-medium">
-                  זמן תגובה ממוצע: פחות מ-2 שעות בימי עבודה
+                  {t('contactPage.avgResponseTime')}
                 </p>
               </div>
             </motion.div>
@@ -143,13 +145,13 @@ const ContactPage = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <div className="glass rounded-lg p-8">
-              <h2 className="text-2xl font-bold text-white mb-6">שלחו לנו הודעה</h2>
-              
+              <h2 className="text-2xl font-bold text-white mb-6">{t('contactPage.formTitle')}</h2>
+
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
-                      שם מלא *
+                      {t('contactPage.nameLabel')}
                     </label>
                     <input
                       type="text"
@@ -159,13 +161,13 @@ const ContactPage = () => {
                       required
                       disabled={isSubmitting}
                       className="w-full px-4 py-3 glass-input rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
-                      placeholder="הכניסו את שמכם המלא"
+                      placeholder={t('contactPage.namePlaceholder')}
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
-                      אימייל *
+                      {t('contactPage.emailLabel')}
                     </label>
                     <input
                       type="email"
@@ -183,7 +185,7 @@ const ContactPage = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    נושא *
+                    {t('contactPage.subjectLabel')}
                   </label>
                   <input
                     type="text"
@@ -193,13 +195,13 @@ const ContactPage = () => {
                     required
                     disabled={isSubmitting}
                     className="w-full px-4 py-3 glass-input rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
-                    placeholder="נושא ההודעה"
+                    placeholder={t('contactPage.subjectPlaceholder')}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    הודעה *
+                    {t('contactPage.messageLabel')}
                   </label>
                   <textarea
                     name="message"
@@ -209,7 +211,7 @@ const ContactPage = () => {
                     disabled={isSubmitting}
                     rows={6}
                     className="w-full px-4 py-3 glass-input rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none disabled:opacity-50"
-                    placeholder="כתבו כאן את ההודעה שלכם..."
+                    placeholder={t('contactPage.messagePlaceholder')}
                   />
                 </div>
 
@@ -233,7 +235,7 @@ const ContactPage = () => {
                   ) : (
                     <Send className="h-5 w-5 ml-2" />
                   )}
-                  {isSubmitting ? 'שולח...' : 'שלח הודעה'}
+                  {isSubmitting ? t('contactPage.sending') : t('contactPage.sendButton')}
                 </motion.button>
               </form>
             </div>

@@ -1,0 +1,334 @@
+{
+  "common": {
+    "appName": "Movies & TV Recaps",
+    "appTagline": "Créateur de résumés de films et séries"
+  },
+  "header": {
+    "nav": {
+      "home": "Accueil",
+      "history": "Historique",
+      "faq": "FAQ",
+      "contact": "Contact",
+      "terms": "Conditions d'utilisation",
+      "privacy": "Politique de confidentialité"
+    },
+    "apiKeyButton": "Clé API",
+    "apiKeyLabel": "Clé API Gemini AI",
+    "apiKeyPlaceholder": "Entrez votre clé API...",
+    "apiKeyHint": "Obtenez une clé API gratuite sur Google AI Studio",
+    "language": "Langue"
+  },
+  "footer": {
+    "description": "La plateforme leader pour créer des résumés vidéo intelligents grâce à une technologie d'IA avancée.",
+    "navHeading": "Navigation",
+    "legalHeading": "Mentions légales",
+    "contactHeading": "Contact",
+    "copyright": "© {{year}} Movies & TV Recaps Maker Hub. Tous droits réservés."
+  },
+  "home": {
+    "title": "Créateur de résumés vidéo",
+    "subtitle": "La plateforme la plus avancée pour créer des résumés vidéo professionnels de films et séries grâce à l'intelligence artificielle de Google Gemini",
+    "welcome": {
+      "title": "Bienvenue ! Créez un résumé vidéo incroyable en 3 étapes simples :",
+      "step1Title": "Téléchargez la vidéo :",
+      "step1Desc": "Glissez un fichier ou sélectionnez-le depuis votre ordinateur.",
+      "step2Title": "Paramètres du résumé :",
+      "step2Desc": "Définissez la durée du résumé et décrivez la vidéo à l'IA.",
+      "step3Title": "Créez le résumé :",
+      "step3Desc": "Cliquez sur le bouton et laissez la magie opérer !"
+    },
+    "features": {
+      "fastTitle": "Traitement rapide",
+      "fastDesc": "Technologie d'IA avancée pour un traitement rapide et efficace",
+      "ffmpegTitle": "Moteur FFmpeg",
+      "ffmpegDesc": "Traitement vidéo avancé directement dans le navigateur",
+      "easyTitle": "Facile à utiliser",
+      "easyDesc": "Une interface simple et agréable pour tous les âges",
+      "secureTitle": "Sûr et sécurisé",
+      "secureDesc": "Vos fichiers sont protégés et vos clés ne sont jamais stockées"
+    },
+    "createButton": "Créer le résumé vidéo",
+    "processingButton": "Traitement en cours...",
+    "alerts": {
+      "selectFile": "Veuillez sélectionner un fichier vidéo",
+      "enterApiKey": "Veuillez entrer votre clé API Gemini AI",
+      "enterTitle": "Veuillez entrer un titre pour le film/la série",
+      "enterDescription": "Veuillez entrer une description supplémentaire - le résumé sera basé sur ce texte",
+      "fileNotRead": "Le fichier n'a pas été lu correctement. Veuillez le supprimer et le sélectionner à nouveau."
+    },
+    "status": {
+      "preparing": "Préparation du traitement...",
+      "loadingEngine": "Chargement du moteur vidéo...",
+      "writingFile": "Écriture du fichier dans le système...",
+      "cutting": "Découpage des segments de la vidéo... {{percent}}%",
+      "generatingScript": "Création du script avec Gemini AI...",
+      "searchingWeb": "Recherche d'informations sur internet à propos du film/de la série...",
+      "generatingCustomScript": "Création d'un script personnalisé...",
+      "scriptDone": "Le script a été créé avec succès.",
+      "preparingAudio": "Préparation de la narration audio...",
+      "completed": "Le résumé a été créé avec succès !"
+    },
+    "errors": {
+      "unknown": "Une erreur inconnue s'est produite. Veuillez réessayer.",
+      "overloaded": "Les serveurs d'IA sont actuellement surchargés. Veuillez réessayer dans quelques minutes.",
+      "invalidKey": "La clé API n'est pas valide. Veuillez la vérifier et réessayer.",
+      "ffmpeg": "Une erreur s'est produite lors du traitement de la vidéo. Assurez-vous que le fichier est valide et réessayez."
+    }
+  },
+  "videoUploader": {
+    "title": "Téléchargez un fichier vidéo",
+    "subtitle": "Glissez-déposez un fichier, ou cliquez pour le sélectionner",
+    "supportedFormats": "Fichiers pris en charge :",
+    "maxSize": "Taille maximale :",
+    "readingTitle": "Lecture du fichier...",
+    "readingSubtitle": "Veuillez patienter",
+    "unsupportedFormat": "Type de fichier non pris en charge. Fichiers pris en charge : {{formats}}",
+    "fileTooLarge": "Le fichier est trop volumineux. Taille maximale : 3,5 Go",
+    "readError": "Impossible de lire le fichier. Veuillez réessayer.",
+    "readSuccess": "Lu avec succès",
+    "duration": "Durée :"
+  },
+  "recapSettings": {
+    "title": "Paramètres du résumé",
+    "movieTitleLabel": "Titre du film/de la série *",
+    "movieTitlePlaceholder": "Par exemple : Inception, Breaking Bad...",
+    "genreLabel": "Genre",
+    "genrePlaceholder": "Choisissez un genre...",
+    "genres": {
+      "action": "Action",
+      "comedy": "Comédie",
+      "drama": "Drame",
+      "thriller": "Thriller",
+      "horror": "Horreur",
+      "sciFi": "Science-fiction",
+      "fantasy": "Fantastique",
+      "romance": "Romance",
+      "documentary": "Documentaire",
+      "animation": "Animation"
+    },
+    "durationLabel": "Durée du résumé (jusqu'à 3 heures)",
+    "hours": "Heures",
+    "minutes": "Minutes",
+    "seconds": "Secondes",
+    "intervalLabel": "Découper toutes les (minutes : secondes)",
+    "videoLengthInfo": "Durée de la vidéo téléchargée : {{length}} ({{seconds}} secondes) - cette valeur est calculée automatiquement en fonction de la durée du résumé choisie, et peut être modifiée manuellement",
+    "intervalHint": "Toutes les {{minutes}} minutes et {{seconds}} secondes, un segment de 1 seconde sera découpé.",
+    "intervalWarning": "⚠ Cette valeur est supérieure à la durée de la vidéo elle-même ({{length}}) - un seul segment sera obtenu. Choisissez une valeur plus petite.",
+    "descriptionLabel": "Description supplémentaire *",
+    "descriptionPlaceholder": "Décrivez l'intrigue, les personnages et les événements clés du film/de la série - le résumé sera principalement basé sur ce texte...",
+    "descriptionHint": "Plus la description est détaillée et précise, plus le résumé généré sera fidèle au texte que vous avez saisi.",
+    "youtubeApiKeyLabel": "Clé YouTube Data API v3 (optionnel)",
+    "youtubeApiKeyPlaceholder": "Entrez une clé YouTube Data API v3 pour charger les vidéos de la chaîne...",
+    "youtubeApiKeyHelp": "Comment obtenir une clé YouTube Data API",
+    "youtubeLinkLabel": "Lien YouTube de référence (optionnel)",
+    "youtubeLinkSingle": "Vidéo unique",
+    "youtubeLinkChannel": "Chaîne entière",
+    "youtubeLinkPlaceholder": "Entrez un lien YouTube pour que l'IA apprenne son style de résumé...",
+    "youtubeLinkHint": "L'IA apprendra du style de résumé de la vidéo pour améliorer la qualité de ses propres résumés",
+    "webSearchLabel": "Rechercher sur internet pour un résumé plus précis",
+    "webSearchHint": "Lorsque activé, le système recherchera des informations réelles sur le film/la série sur internet et les utilisera pour créer un résumé plus précis et de meilleure qualité",
+    "summaryTitle": "Résumé des paramètres :",
+    "summaryLength": "Durée du résumé : {{length}}",
+    "summaryInterval": "Découper toutes les : {{interval}}",
+    "summarySegments": "Segments totaux : ~{{count}} segments"
+  },
+  "processingStatus": {
+    "loadingEngine": "Chargement du moteur vidéo...",
+    "cuttingVideo": "Traitement de la vidéo...",
+    "generatingScript": "Création du script avec l'IA...",
+    "generatingAudio": "Création de la narration...",
+    "completed": "Terminé avec succès !",
+    "error": "Erreur de traitement",
+    "starting": "Démarrage du traitement...",
+    "percentDone": "{{percent}}% terminé",
+    "ready": "Prêt",
+    "pleaseWait": "Veuillez patienter..."
+  },
+  "resultsSection": {
+    "videoTitle": "Résumé vidéo (sans audio)",
+    "playVideo": "Lire la vidéo",
+    "pauseVideo": "Pause",
+    "downloadVideo": "Télécharger la vidéo",
+    "saveRecap": "Enregistrer le résumé",
+    "scriptTitle": "Script généré",
+    "copyScript": "Copier le script",
+    "copied": "Copié !",
+    "audioTitle": "Narration audio",
+    "selectLanguage": "Choisir la langue :",
+    "selectVoice": "Choisir la voix :",
+    "audioDownloadUnsupported": "Le téléchargement du fichier audio n'est pas pris en charge actuellement."
+  },
+  "statsSection": {
+    "loading": "Chargement des données...",
+    "heading": "Les chiffres parlent d'eux-mêmes",
+    "subheading": "Nos réalisations à ce jour",
+    "recapsCreated": "Résumés créés",
+    "activeUsers": "Utilisateurs actifs",
+    "uptime": "Disponibilité du service",
+    "userRating": "Note des utilisateurs",
+    "rateTitle": "Que pensez-vous de notre service ?",
+    "rateSubtitle": "Votre note nous aidera à nous améliorer",
+    "ratingFailed": "Échec de l'envoi de la note. Veuillez réessayer.",
+    "thankYouTitle": "Merci beaucoup pour votre note !",
+    "thankYouSubtitle": "Votre note nous aide à améliorer le service"
+  },
+  "recapSaver": {
+    "dialogTitle": "Enregistrer le résumé",
+    "titleLabel": "Titre *",
+    "titlePlaceholder": "Par exemple : The Matrix - Résumé",
+    "genreLabel": "Genre",
+    "genrePlaceholder": "Par exemple : Science-fiction",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Une brève description du résumé",
+    "cancel": "Annuler",
+    "save": "Enregistrer le résumé",
+    "savingVideo": "Enregistrement de la vidéo...",
+    "generatingAudio": "Création de l'audio...",
+    "saving": "Enregistrement...",
+    "titleRequired": "Veuillez entrer un titre",
+    "saveError": "Erreur lors de l'enregistrement du résumé"
+  },
+  "historyPage": {
+    "title": "Historique des résumés",
+    "searchPlaceholder": "Rechercher des résumés...",
+    "allGenres": "Tous les genres",
+    "noRecapsFound": "Aucun résumé trouvé",
+    "createFirst": "Créez votre premier résumé",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce résumé ?",
+    "playAudio": "Lire l'audio",
+    "downloadAudio": "Télécharger l'audio",
+    "downloadVideo": "Télécharger la vidéo",
+    "delete": "Supprimer",
+    "loading": "Chargement de votre historique..."
+  },
+  "contactPage": {
+    "title": "Contact",
+    "subtitle": "Nous sommes heureux de vous aider et de répondre à toutes vos questions. Contactez-nous et notre équipe vous répondra rapidement",
+    "getInTouch": "Contactez-nous",
+    "email": "E-mail",
+    "emailDesc": "Envoyez-nous un e-mail et nous vous répondrons sous 24 heures",
+    "phone": "Téléphone",
+    "phoneDesc": "Disponible du dimanche au jeudi, 9h00-18h00",
+    "address": "Adresse",
+    "addressDesc": "Nos bureaux",
+    "supportHoursTitle": "Heures d'assistance",
+    "days": {
+      "sunThu": "Dim-Jeu",
+      "fri": "Vendredi",
+      "sat": "Samedi"
+    },
+    "closed": "Fermé",
+    "avgResponseTime": "Temps de réponse moyen : moins de 2 heures les jours ouvrables",
+    "formTitle": "Envoyez-nous un message",
+    "nameLabel": "Nom complet *",
+    "namePlaceholder": "Entrez votre nom complet",
+    "emailLabel": "E-mail *",
+    "subjectLabel": "Sujet *",
+    "subjectPlaceholder": "Sujet du message",
+    "messageLabel": "Message *",
+    "messagePlaceholder": "Écrivez votre message ici...",
+    "sendButton": "Envoyer le message",
+    "sending": "Envoi en cours...",
+    "successMessage": "Votre message a été envoyé avec succès ! Nous vous répondrons sous 24 heures."
+  },
+  "faqPage": {
+    "title": "Questions fréquentes",
+    "subtitle": "Trouvez des réponses aux questions les plus fréquentes sur notre service",
+    "questions": [
+      {
+        "question": "Comment obtenir une clé API Gemini ?",
+        "answer": "Vous devez vous inscrire sur Google AI Studio et obtenir une clé API gratuite. La clé vous permet d'utiliser les services d'intelligence artificielle de Google. Il suffit d'aller sur le site de Google AI Studio, de créer un compte et de générer une nouvelle clé API."
+      },
+      {
+        "question": "Quelle est la taille maximale de fichier que je peux télécharger ?",
+        "answer": "Nous prenons actuellement en charge les fichiers jusqu'à 3,5 Go et jusqu'à 3 heures de durée. Si vous avez un fichier plus volumineux, vous pouvez le compresser avec un logiciel de compression vidéo ou nous contacter pour une solution personnalisée. Nous travaillons à l'augmentation de ces limites à l'avenir."
+      },
+      {
+        "question": "Combien de temps faut-il pour créer un résumé ?",
+        "answer": "Le temps de traitement dépend de la durée de la vidéo originale et de la durée du résumé demandé. Le processus prend généralement entre 2 et 15 minutes. Une vidéo d'une heure est traitée en environ 8 minutes en moyenne, et une vidéo de deux heures peut prendre jusqu'à 15 minutes."
+      },
+      {
+        "question": "Mes informations sont-elles sécurisées ?",
+        "answer": "Oui, nous utilisons un chiffrement avancé et ne stockons jamais vos clés API. Tous les fichiers sont automatiquement supprimés après le traitement. Nous accordons une grande importance à la confidentialité des utilisateurs et à la sécurité des données selon les normes internationales."
+      },
+      {
+        "question": "Quels formats vidéo sont pris en charge ?",
+        "answer": "Nous prenons en charge les formats les plus courants : MP4, AVI, MOV et MKV. Ils couvrent la plupart des vidéos produites aujourd'hui. Si vous avez un fichier dans un autre format, vous pouvez le convertir à l'aide d'outils gratuits en ligne."
+      },
+      {
+        "question": "Puis-je modifier le résumé après sa création ?",
+        "answer": "Actuellement, le résumé est généré automatiquement en fonction des paramètres que vous avez choisis. Nous travaillons sur des fonctionnalités d'édition avancées qui permettront une personnalisation du résumé, y compris le remplacement de segments et l'ajustement du texte."
+      },
+      {
+        "question": "Que se passe-t-il en cas de problème lors du traitement de la vidéo ?",
+        "answer": "En cas d'erreur, le système vous en informera immédiatement et proposera des solutions. Les erreurs courantes sont liées à la taille du fichier ou à un format non pris en charge. Notre équipe est disponible pour un support technique en cas de problème."
+      },
+      {
+        "question": "Le service est-il gratuit ?",
+        "answer": "Le service de base est disponible gratuitement avec certaines limites. Vous utilisez votre propre clé API, donc les coûts dépendent de votre propre utilisation de Google Gemini. Nous avons également des plans avancés pour les utilisateurs professionnels."
+      }
+    ],
+    "notFoundTitle": "Vous n'avez pas trouvé la réponse que vous cherchiez ?",
+    "notFoundSubtitle": "Notre équipe est là pour vous aider ! Contactez-nous et nous vous répondrons rapidement",
+    "contactUs": "Contactez-nous"
+  },
+  "privacyPage": {
+    "title": "Politique de confidentialité",
+    "lastUpdated": "Dernière mise à jour : {{date}}",
+    "sections": [
+      {
+        "heading": "1. Introduction",
+        "body": "Chez Movies & TV Recaps Maker Hub (\"le Service\"), nous nous engageons à protéger votre vie privée. Cette politique explique quelles informations nous collectons et comment nous les utilisons."
+      }
+    ],
+    "whatWeCollectHeading": "2. Quelles informations collectons-nous ?",
+    "videoFilesTitle": "Fichiers vidéo",
+    "videoFilesBody": "Les fichiers vidéo que vous téléchargez sont traités directement dans votre navigateur via FFmpeg.wasm. Ils ne sont jamais stockés sur nos serveurs et sont effacés de la mémoire du navigateur une fois le traitement terminé ou la page actualisée.",
+    "apiKeyTitle": "Clé API Gemini",
+    "apiKeyBody": "Votre clé API est envoyée directement depuis votre navigateur vers les services Google Gemini. Elle n'est jamais stockée sur nos serveurs, à aucun stade.",
+    "anonStatsTitle": "Statistiques anonymes",
+    "anonStatsBody": "Nous collectons des données entièrement anonymes afin d'améliorer le service. Ces données comprennent :",
+    "anonStatsList": [
+      "Le nombre de résumés créés.",
+      "Le nombre de notes et la somme des notes.",
+      "Le nombre de visiteurs uniques (via un identifiant aléatoire et anonyme stocké uniquement dans votre navigateur)."
+    ],
+    "howWeUseHeading": "3. Comment utilisons-nous les informations ?",
+    "howWeUseIntro": "Les informations collectées sont utilisées uniquement aux fins suivantes :",
+    "howWeUseList": [
+      "Pour vous fournir les fonctionnalités du Service (traitement vidéo et génération de script).",
+      "Pour améliorer le Service et analyser son utilisation de manière anonyme."
+    ],
+    "securityHeading": "4. Sécurité des données",
+    "securityBody": "Nous prenons des mesures de sécurité raisonnables pour protéger vos informations. Cependant, il est important de rappeler qu'aucun système n'est sécurisé à 100 %. La responsabilité de la protection de votre clé API vous incombe.",
+    "thirdPartyHeading": "5. Services tiers",
+    "thirdPartyBody": "Le Service utilise des services tiers, y compris Google Gemini. Nous vous recommandons de consulter leurs politiques de confidentialité pour comprendre comment ils traitent les informations.",
+    "changesHeading": "6. Modifications de cette politique",
+    "changesBody": "Nous pouvons mettre à jour cette politique de confidentialité de temps à autre. Nous publierons tout changement sur cette page."
+  },
+  "termsPage": {
+    "title": "Conditions d'utilisation",
+    "lastUpdated": "Dernière mise à jour : {{date}}",
+    "agreementHeading": "1. Acceptation des conditions",
+    "agreementBody": "Bienvenue sur Movies & TV Recaps Maker Hub (\"le Service\"). En utilisant le Service, vous acceptez pleinement ces Conditions d'utilisation. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser le Service.",
+    "descriptionHeading": "2. Description du service",
+    "descriptionBody": "Le Service fournit des outils pour créer des résumés vidéo à partir des fichiers multimédias que vous téléchargez. Le traitement est effectué à l'aide de technologies côté client (FFmpeg.wasm) et d'intelligence artificielle (Google Gemini AI).",
+    "responsibilityHeading": "3. Responsabilité de l'utilisateur",
+    "responsibilityList": [
+      "Vous déclarez détenir tous les droits légaux sur les fichiers vidéo que vous téléchargez et traitez.",
+      "Il est interdit d'utiliser le Service à des fins illégales ou pour enfreindre les droits d'auteur.",
+      "Vous êtes seul responsable de l'utilisation de votre clé API Google Gemini et de tous les coûts associés. Le Service n'est pas responsable de ces frais.",
+      "Le contenu généré (le résumé) est de votre seule responsabilité."
+    ],
+    "ipHeading": "4. Propriété intellectuelle",
+    "ipBody": "Tout le code, le design et les textes du site sont la propriété exclusive de Movies & TV Recaps Maker Hub. Le contenu que vous créez via le Service vous appartient, sous réserve des droits d'auteur originaux de la vidéo.",
+    "liabilityHeading": "5. Limitation de responsabilité",
+    "liabilityBody": "Le Service est fourni \"TEL QUEL\" (AS IS), sans aucune garantie, expresse ou implicite. Nous ne garantissons pas que le Service sera toujours disponible, exempt d'erreurs ou de virus. Nous ne serons pas responsables de tout dommage, direct ou indirect, résultant de l'utilisation du Service.",
+    "privacyHeading": "6. Confidentialité",
+    "privacyBodyPrefix": "Nous respectons votre vie privée. Veuillez consulter notre ",
+    "privacyLinkText": "Politique de confidentialité",
+    "privacyBodySuffix": " pour comprendre comment nous collectons et utilisons les informations.",
+    "changesHeading": "7. Modifications des conditions",
+    "changesBody": "Nous nous réservons le droit de mettre à jour ces Conditions d'utilisation de temps à autre. La poursuite de l'utilisation du Service après une mise à jour constitue une acceptation des nouvelles conditions."
+  }
+}

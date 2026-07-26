@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { Download, Copy, Play, Pause, Square, PlayCircle, Save } from 'lucide-react'
 import type { RecapOutput } from '../types'
 import { RecapSaver } from './RecapSaver'
@@ -9,6 +10,7 @@ interface ResultsSectionProps {
 }
 
 const ResultsSection = ({ output }: ResultsSectionProps) => {
+  const { t } = useTranslation()
   const [isCopied, setIsCopied] = useState(false)
   const [showSaver, setShowSaver] = useState(false)
   
@@ -130,7 +132,7 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
       >
       {/* 1. Video Recap */}
       <div className="glass rounded-lg p-6">
-        <h3 className="text-xl font-semibold text-white mb-4">סיכום וידאו (ללא קול)</h3>
+        <h3 className="text-xl font-semibold text-white mb-4">{t('resultsSection.videoTitle')}</h3>
         
         <div className="relative w-full rounded-lg overflow-hidden group mb-4">
           <video 
@@ -157,7 +159,7 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
             whileTap={{ scale: 0.98 }}
           >
             {isVideoPlaying ? <Pause size={20} /> : <Play size={20} />}
-            <span>{isVideoPlaying ? 'השהה' : 'נגן וידאו'}</span>
+            <span>{isVideoPlaying ? t('resultsSection.pauseVideo') : t('resultsSection.playVideo')}</span>
           </motion.button>
           <motion.a
             href={output.videoUrl}
@@ -167,7 +169,7 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
             whileTap={{ scale: 0.98 }}
           >
             <Download className="h-5 w-5" />
-            <span>הורד וידאו</span>
+            <span>{t('resultsSection.downloadVideo')}</span>
           </motion.a>
           <motion.button
             onClick={() => setShowSaver(true)}
@@ -176,14 +178,14 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
             whileTap={{ scale: 0.98 }}
           >
             <Save className="h-5 w-5" />
-            <span>שמור סיכום</span>
+            <span>{t('resultsSection.saveRecap')}</span>
           </motion.button>
         </div>
       </div>
 
       {/* 2. Generated Script */}
       <div className="glass rounded-lg p-6">
-        <h3 className="text-xl font-semibold text-white mb-4">תסריט שנוצר</h3>
+        <h3 className="text-xl font-semibold text-white mb-4">{t('resultsSection.scriptTitle')}</h3>
         <textarea
           readOnly
           value={output.script}
@@ -194,17 +196,17 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
           className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center"
         >
           <Copy className="h-5 w-5 ml-2" />
-          {isCopied ? 'הועתק!' : 'העתק תסריט'}
+          {isCopied ? t('resultsSection.copied') : t('resultsSection.copyScript')}
         </button>
       </div>
 
       {/* 3. Audio Voice-over */}
       <div className="glass rounded-lg p-6">
-        <h3 className="text-xl font-semibold text-white mb-4">קריינות אודיו</h3>
+        <h3 className="text-xl font-semibold text-white mb-4">{t('resultsSection.audioTitle')}</h3>
         
         <div className="space-y-4">
           <div>
-            <label className="text-sm text-gray-400 block mb-2">בחר שפה:</label>
+            <label className="text-sm text-gray-400 block mb-2">{t('resultsSection.selectLanguage')}</label>
             <select 
                 value={selectedLanguage}
                 onChange={(e) => setSelectedLanguage(e.target.value)}
@@ -217,7 +219,7 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
           </div>
 
           <div>
-            <label className="text-sm text-gray-400 block mb-2">בחר קול:</label>
+            <label className="text-sm text-gray-400 block mb-2">{t('resultsSection.selectVoice')}</label>
             <select 
                 value={selectedVoice?.name || ''}
                 onChange={(e) => setSelectedVoice(allVoices.find(v => v.name === e.target.value) || null)}
@@ -240,7 +242,7 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
             </button>
         </div>
         
-        <p className="text-xs text-gray-500 mt-4 text-center">הורדת קובץ האודיו אינה נתמכת כרגע.</p>
+        <p className="text-xs text-gray-500 mt-4 text-center">{t('resultsSection.audioDownloadUnsupported')}</p>
       </div>
     </motion.div>
     </>

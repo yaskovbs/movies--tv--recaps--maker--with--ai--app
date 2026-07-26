@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { Loader2, CheckCircle, AlertCircle, Upload, Cog, Wand2, Mic } from 'lucide-react'
 import type { ProcessingStatus } from '../types'
 
@@ -7,6 +8,8 @@ interface ProcessingStatusProps {
 }
 
 const ProcessingStatusComponent = ({ status }: ProcessingStatusProps) => {
+  const { t } = useTranslation()
+
   const getIcon = () => {
     switch (status.stage) {
       case 'loading_engine':
@@ -29,19 +32,19 @@ const ProcessingStatusComponent = ({ status }: ProcessingStatusProps) => {
   const getStageText = () => {
     switch (status.stage) {
       case 'loading_engine':
-        return 'טוען מנוע וידאו...'
+        return t('processingStatus.loadingEngine')
       case 'cutting_video':
-        return 'מעבד וידאו...'
+        return t('processingStatus.cuttingVideo')
       case 'generating_script':
-        return 'יוצר תסריט עם AI...'
+        return t('processingStatus.generatingScript')
       case 'generating_audio':
-        return 'יוצר קריינות...'
+        return t('processingStatus.generatingAudio')
       case 'completed':
-        return 'הושלם בהצלחה!'
+        return t('processingStatus.completed')
       case 'error':
-        return 'שגיאה בעיבוד'
+        return t('processingStatus.error')
       default:
-        return 'מתחיל עיבוד...'
+        return t('processingStatus.starting')
     }
   }
 
@@ -81,9 +84,9 @@ const ProcessingStatusComponent = ({ status }: ProcessingStatusProps) => {
       </div>
 
       <div className="flex justify-between text-sm text-gray-400">
-        <span>{status.progress}% הושלם</span>
+        <span>{t('processingStatus.percentDone', { percent: status.progress })}</span>
         <span>
-          {status.stage === 'completed' ? 'מוכן' : 'אנא המתן...'}
+          {status.stage === 'completed' ? t('processingStatus.ready') : t('processingStatus.pleaseWait')}
         </span>
       </div>
 

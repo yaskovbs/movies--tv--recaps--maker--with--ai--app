@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { Upload, X, File, Loader2, Clock } from 'lucide-react'
 import type { VideoFile } from '../types'
 import { formatVideoLength } from '../lib/utils'
@@ -10,11 +11,12 @@ interface VideoUploaderProps {
   onRemoveFile: () => void
 }
 
-const VideoUploader = ({ 
-  onFileSelect, 
-  selectedFile, 
-  onRemoveFile 
+const VideoUploader = ({
+  onFileSelect,
+  selectedFile,
+  onRemoveFile
 }: VideoUploaderProps) => {
+  const { t } = useTranslation()
   const [dragActive, setDragActive] = useState(false)
   const [reading, setReading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -72,12 +74,12 @@ const VideoUploader = ({
   const handleFileSelection = async (file: File) => {
     const fileExtension = file.name.split('.').pop()?.toUpperCase()
     if (!fileExtension || !supportedFormats.includes(fileExtension)) {
-      alert(`סוג קובץ לא נתמך. קבצים נתמכים: ${supportedFormats.join(', ')}`)
+      alert(t('videoUploader.unsupportedFormat', { formats: supportedFormats.join(', ') }))
       return
     }
 
     if (file.size > maxSize) {
-      alert('הקובץ גדול מדי. גודל מקסימלי: 3.5GB')
+      alert(t('videoUploader.fileTooLarge'))
       return
     }
 
@@ -102,7 +104,7 @@ const VideoUploader = ({
       onFileSelect(videoFile)
     } catch (err) {
       console.error('Failed to read file:', err)
-      alert('לא ניתן לקרוא את הקובץ. אנא נסה שוב.')
+      alert(t('videoUploader.readError'))
     } finally {
       setReading(false)
     }
@@ -129,8 +131,8 @@ const VideoUploader = ({
         animate={{ opacity: 1, scale: 1 }}
       >
         <Loader2 className="h-10 w-10 text-blue-400 animate-spin mx-auto mb-3" />
-        <p className="text-white font-medium">קורא את הקובץ...</p>
-        <p className="text-gray-400 text-sm mt-1">אנא המתן</p>
+        <p className="text-white font-medium">{t('videoUploader.readingTitle')}</p>
+        <p className="text-gray-400 text-sm mt-1">{t('videoUploader.readingSubtitle')}</p>
       </motion.div>
     )
   }
@@ -152,12 +154,12 @@ const VideoUploader = ({
                 {selectedFile.duration !== undefined && (
                   <span className="flex items-center gap-1">
                     <Clock className="h-3.5 w-3.5" />
-                    משך: {formatVideoLength(selectedFile.duration)}
+                    {t('videoUploader.duration')} {formatVideoLength(selectedFile.duration)}
                   </span>
                 )}
               </p>
               {selectedFile.buffer && (
-                <p className="text-green-500 text-xs mt-0.5">✓ נקרא בהצלחה</p>
+                <p className="text-green-500 text-xs mt-0.5">✓ {t('videoUploader.readSuccess')}</p>
               )}
             </div>
           </div>
@@ -206,18 +208,18 @@ const VideoUploader = ({
       >
         <Upload className="h-16 w-16 text-gray-400 mb-4" />
         <h3 className="text-xl font-semibold text-white mb-2">
-          העלה קובץ וידאו
+          {t('videoUploader.title')}
         </h3>
         <p className="text-gray-400 mb-4">
-          גרור ושחרר קובץ או לחץ לבחירה
+          {t('videoUploader.subtitle')}
         </p>
-        
+
         <div className="mt-4 text-center text-sm">
           <p className="text-gray-300">
-            <span className="font-semibold">קבצים נתמכים:</span> {supportedFormats.join(', ')}
+            <span className="font-semibold">{t('videoUploader.supportedFormats')}</span> {supportedFormats.join(', ')}
           </p>
           <p className="text-gray-300 mt-1">
-            <span className="font-semibold">גודל מקסימלי:</span> 3.5GB
+            <span className="font-semibold">{t('videoUploader.maxSize')}</span> 3.5GB
           </p>
         </div>
       </motion.div>
