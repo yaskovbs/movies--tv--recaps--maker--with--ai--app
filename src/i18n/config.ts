@@ -6,6 +6,8 @@ import en from '../locales/en.json'
 import he from '../locales/he.json'
 import es from '../locales/es.json'
 import fr from '../locales/fr.json'
+import ru from '../locales/ru.json'
+import ar from '../locales/ar.json'
 
 export interface SupportedLanguage {
   code: string
@@ -16,6 +18,8 @@ export interface SupportedLanguage {
 export const supportedLanguages: SupportedLanguage[] = [
   { code: 'en', label: 'English', dir: 'ltr' },
   { code: 'he', label: 'עברית', dir: 'rtl' },
+  { code: 'ru', label: 'Русский', dir: 'ltr' },
+  { code: 'ar', label: 'العربية', dir: 'rtl' },
   { code: 'es', label: 'Español', dir: 'ltr' },
   { code: 'fr', label: 'Français', dir: 'ltr' },
 ]
@@ -39,6 +43,8 @@ i18n
       he: { translation: he },
       es: { translation: es },
       fr: { translation: fr },
+      ru: { translation: ru },
+      ar: { translation: ar },
     },
     fallbackLng: 'en',
     supportedLngs: supportedLanguages.map((lang) => lang.code),
