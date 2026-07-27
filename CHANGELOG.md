@@ -53,7 +53,7 @@ Summary of the work done on this branch, in the order it happened. This is a run
 
 - Added `i18next` + `react-i18next` + `i18next-browser-languagedetector`.
 - Every user-facing string across all 14 components was extracted into translation files: `src/locales/{en,he,ru,ar,es,fr}.json`.
-- **English is now the default language** for first-time visitors (previously the whole site was hardcoded Hebrew). A language switcher in the header lets users pick English, Hebrew, Russian, Arabic, Spanish, or French; the choice persists across reloads via `localStorage`.
+- First-time visitors get their **browser/OS language auto-detected** (falling back to English if it isn't one of the six supported languages); a language switcher in the header lets anyone override it to English, Hebrew, Russian, Arabic, Spanish, or French. Once someone picks a language manually, that choice is saved to `localStorage` and always wins over auto-detection on future visits. (This replaced an initial version that defaulted everyone to English regardless of browser language, per a follow-up request to auto-detect instead - e.g. a visitor with a Hebrew browser locale now gets Hebrew automatically.)
 - Hebrew and Arabic are registered as RTL languages — `document.documentElement.dir`/`lang` flip automatically on language change, mirroring the entire layout correctly (verified visually).
 - `index.html`'s static `<title>`/meta tags/`lang`/`dir` were updated to English defaults (these render before the JS app mounts, so they can't be driven by i18next).
 

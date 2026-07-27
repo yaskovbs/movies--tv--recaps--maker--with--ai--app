@@ -48,13 +48,17 @@ i18n
     },
     fallbackLng: 'en',
     supportedLngs: supportedLanguages.map((lang) => lang.code),
+    // Browsers report regional variants like "he-IL" or "ru-RU"; trim to the
+    // primary subtag so they match our resource keys ("he", "ru", ...).
+    load: 'languageOnly',
     interpolation: {
       escapeValue: false,
     },
     detection: {
-      // Default language is English; only a language the user explicitly
-      // picked before (saved to localStorage) overrides that default.
-      order: ['localStorage'],
+      // A language the user explicitly picked before (saved to localStorage)
+      // wins; otherwise fall back to auto-detecting from the browser/OS
+      // language, and finally to English if that isn't one we support.
+      order: ['localStorage', 'navigator'],
       caches: ['localStorage'],
       lookupLocalStorage: 'appLanguage',
     },
