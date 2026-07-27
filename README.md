@@ -1,143 +1,172 @@
-# יוצר סיכומי וידאו - Movie & TV Show Recap Maker (גרסה מקומית)
+# Movies & TV Recaps Maker Hub
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-פלטפורמה מקומית ליצירת סיכומי וידאו מקצועיים לסרטים וסדרות באמצעות בינה מלאכותית של Google Gemini וטכנולוגיית FFmpeg. **פועלת לחלוטין בדפדפן ללא צורך בשרת חיצוני.**
+**פלטפורמת אינטרנט ליצירת סיכומי וידאו מקצועיים לסרטים וסדרות באמצעות בינה מלאכותית.** מעלים סרטון, מתארים אותו בטקסט, והמערכת חותכת ממנו אוטומטית קטעים לאורך כל הסרטון ויוצרת תסריט קריינות בעזרת Google Gemini AI — הכול ישירות בדפדפן, בלי להעלות את קובץ הווידאו לשום שרת.
+
+תיעוד מפורט של כל השינויים וההחלטות הטכניות בפרויקט נמצא בקובץ [CHANGELOG.md](CHANGELOG.md).
 
 ## ✨ תכונות עיקריות
 
-- 🎬 **עיבוד וידאו מתקדם** - שימוש ב-FFmpeg ישירות בדפדפן
-- 🤖 **בינה מלאכותית** - יצירת תסריטים בעברית באמצעות Google Gemini AI
-- 🔒 **בטוח ומאובטח** - הקבצים שלכם מוגנים והמפתחות לא נשמרים
-- 📱 **ממשק ידידותי** - קל לשימוש לכל הגילאים
-- ⚡ **עיבוד מהיר** - טכנולוגיית AI מתקדמת לעיבוד מהיר ויעיל
-- 📊 **סטטיסטיקות בזמן אמת** - מעקב אחרי השימוש והביצועים
+- 🎬 **עיבוד וידאו בדפדפן** — חיתוך והרכבה של הסיכום מתבצעים ב-FFmpeg.wasm ישירות בדפדפן שלכם, ללא שרת עיבוד חיצוני. קובץ הווידאו המקורי לעולם לא עוזב את המחשב שלכם בשלב הזה.
+- 🤖 **תסריט חכם עם Gemini AI** — התיאור שאתם כותבים (עלילה, דמויות, אירועים מרכזיים) הוא המקור העיקרי לתסריט שנוצר; ה-AI מונחה במפורש להיצמד לטקסט שהזנתם ולא "להמציא" פרטים.
+- ⏱️ **סנכרון אוטומטי בין אורך הסיכום למרווח החיתוך** — לאחר העלאת סרטון, המערכת מחשבת אוטומטית כל כמה שניות לחתוך כדי שהסיכום הסופי אכן ייצא באורך שביקשתם, ומציגה גם את משך הסרטון המקורי.
+- 💾 **שמירה אמיתית של סיכומים** — ניתן לשמור סיכום (וידאו + תסריט + אודיו) להיסטוריה שלכם ולחזור אליו מאוחר יותר, כולל נגן וידאו מובנה בעמוד ההיסטוריה.
+- 🌍 **תמיכה מלאה ב-6 שפות** — אנגלית, עברית, רוסית, ערבית, ספרדית וצרפתית. האתר מזהה אוטומטית את שפת הדפדפן שלכם (למשל דפדפן בעברית יקבל ממשק בעברית), עם אפשרות להחליף שפה ידנית מהתפריט העליון; עברית וערבית כוללות תמיכת RTL מלאה עם היפוך אוטומטי של כל הפריסה.
+- 🔒 **בטוח ומאובטח** — מפתח ה-API שלכם ל-Gemini נשלח ישירות מהדפדפן ל-Google ולעולם לא נשמר בצד שרת.
+- 🎨 **עיצוב זכוכית (Glassmorphism)** — ממשק כהה ומודרני עם פאנלים שקופים מטושטשים על רקע דינמי.
+- 📊 **סטטיסטיקות שימוש** — מעקב אנונימי אחרי מספר הסיכומים שנוצרו ודירוגי משתמשים.
 
-## 🚀 התחלה מהירה
+## 💻 דרישות מערכת (כולל Windows)
+
+זוהי אפליקציית **אינטרנט** — אין קובץ התקנה (`.exe`) להורדה, וגם אין צורך בו. היא פועלת בכל מחשב עם דפדפן מודרני, כולל **Windows 10 / 11**, macOS ו-Linux.
+
+לשימוש רגיל באתר (לא לפיתוח) צריך רק:
+- דפדפן עדכני — Google Chrome, Microsoft Edge או Firefox מומלצים (עיבוד הווידאו מבוסס WebAssembly, שנתמך היטב בדפדפנים אלו).
+- מפתח API חינמי ל-Google Gemini (ניתן להשיג ב-[Google AI Studio](https://aistudio.google.com/app/apikey)).
+
+> **הערה חשובה על מגבלות זיכרון בדפדפן:** גודל הקובץ המקסימלי הנתמך הוא **3.5GB**. זו לא מגבלה שרירותית — WebAssembly (הטכנולוגיה שמריצה את מנוע העיבוד בדפדפן) מוגבל ל-4GB זיכרון, ו-3.5GB משאיר מרווח ביטחון בטוח מתחת לתקרה הזו.
+
+## 🚀 שימוש מהיר (למשתמש קצה)
+
+1. פתחו את כתובת האתר בדפדפן (ב-Windows, macOS או כל מערכת אחרת).
+2. לחצו על **API Key** בפינה העליונה והדביקו את מפתח ה-Gemini שלכם.
+3. גררו קובץ וידאו (MP4 / AVI / MOV / MKV, עד 3.5GB) לתיבת ההעלאה.
+4. מלאו כותרת ותיאור מפורט של הסרט/הסדרה — התסריט ייווצר בעיקר על סמך התיאור הזה.
+5. כווננו את אורך הסיכום הרצוי (מרווח החיתוך יחושב אוטומטית).
+6. לחצו **צור סיכום וידאו** והמתינו — זמן העיבוד תלוי באורך ובאיכות קובץ המקור (ראו הערה למטה).
+7. לאחר הסיום: צפו בסיכום, העתיקו את התסריט, הורידו את הקובץ, או שמרו אותו להיסטוריה.
+
+> **למה עיבוד וידאו לוקח זמן?** מנוע העיבוד חייב "לצפות" בכל הסרטון המקורי מתחילתו ועד סופו כדי לבחור אילו קטעים לחתוך, ולכן קובץ ארוך או ברזולוציה גבוהה יעובד לאט יותר. הפרויקט רץ כרגע על ליבת מעבד אחת בלבד בכוונה תחילה (החלטה מודעת שנועדה להימנע מסיכון תאימות עם משאבים חיצוניים באתר) — פרטים מלאים ב-[CHANGELOG.md](CHANGELOG.md).
+
+## 🛠️ פיתוח מקומי
 
 ### דרישות מקדימות
 
-- Node.js (גרסה 18 ומעלה)
-- npm או yarn
-- מפתח API של Google Gemini (קבל חינם מ-[Google AI Studio](https://makersuite.google.com/app/apikey))
+- [Node.js](https://nodejs.org/) גרסה 20 ומעלה (מוגדר ב-`.node-version`) — גם ב-Windows וגם ב-macOS/Linux.
+- npm (מגיע יחד עם Node.js).
 
-### התקנה
+### התקנה והרצה
 
-1. **שכפל את הפרויקט:**
-   ```bash
-   git clone <repository-url>
-   cd moviesandtvshowsrecapsmakerwithai-master
-   ```
+באותה צורה בדיוק ב-Windows (PowerShell / CMD), macOS או Linux:
 
-2. **התקן תלויות:**
-   ```bash
-   npm install
-   ```
+```bash
+git clone <repository-url>
+cd movies--tv--recaps--maker--with--ai--app
 
-3. **הגדר משתני סביבה:**
-   צור קובץ `.env` בתיקיית השורש והוסף מפתח Google Gemini API:
-   ```env
-   VITE_GEMINI_API_KEY=your-gemini-api-key
-   ```
+npm install
+npm run dev
+```
 
-4. **הפעל את שרת הפיתוח:**
-   ```bash
-   npm run dev
-   ```
+לאחר מכן פתחו בדפדפן את הכתובת שמוצגת בטרמינל (בדרך כלל `http://localhost:5173`).
 
-5. **פתח את הדפדפן:**
-   נווט אל `http://localhost:5173`
+### משתני סביבה
+
+לפיתוח מקומי אפשר להעתיק את `.env.example` לקובץ `.env.local` (הפרויקט משתמש ב-Blink SDK לאחסון היסטוריית הסיכומים):
+
+```env
+VITE_BLINK_PROJECT_ID=your-blink-project-id
+VITE_BLINK_PUBLISHABLE_KEY=your-blink-publishable-key
+```
+
+מפתח ה-Gemini AI **לא** מוגדר כמשתנה סביבה — הוא מוזן ישירות על ידי כל משתמש דרך ממשק האתר ונשמר רק בזיכרון הדפדפן שלו.
 
 ## ☁️ פריסה ל-Cloudflare Pages
 
-הפרויקט מוכן לפריסה כאתר סטטי ב-Cloudflare Pages:
+הפרויקט מוכן לפריסה כאתר סטטי:
 
 - **Build command:** `npm run build`
 - **Build output directory:** `dist`
 - **Node version:** 20 (מוגדר ב-`.node-version`)
 
-משתני הסביבה הנדרשים (ניתן להגדיר בלוח הבקרה של Cloudflare Pages, תחת Settings → Environment variables):
+משתני הסביבה הנדרשים (בלוח הבקרה של Cloudflare Pages, תחת Settings → Environment variables):
 
 ```env
 VITE_BLINK_PROJECT_ID=...
 VITE_BLINK_PUBLISHABLE_KEY=...
 ```
 
-לפריסה דרך שורת הפקודה, לאחר `npm install`:
+לפריסה משורת הפקודה, לאחר `npm install`:
 
 ```bash
 npm run deploy
 ```
 
-הפקודה בונה את הפרויקט ומריצה `wrangler pages deploy dist` (מוגדר גם ב-`wrangler.toml`). קובץ `public/_redirects` כבר כולל את חוקי ה-SPA fallback הנדרשים.
+הפקודה בונה את הפרויקט ומריצה `wrangler pages deploy dist` (מוגדר גם ב-`wrangler.toml`). קובץ `public/_redirects` כבר כולל את חוקי ה-SPA fallback הנדרשים לניתוב בצד הלקוח.
 
-## 📖 איך להשתמש
+## 🧰 טכנולוגיות
 
-1. **העלאת וידאו** - גרור קובץ וידאו או בחר מהמחשב
-2. **הגדרות סיכום** - קבע את אורך הסיכום ותאר את הווידאו ל-AI
-3. **יצירת סיכום** - לחץ על הכפתור ותן לקסם לקרות!
-
-## 🛠️ טכנולוגיות
-
-- **Frontend:** React 19, TypeScript, Vite
-- **UI:** Tailwind CSS, Framer Motion
-- **Video Processing:** FFmpeg (WebAssembly)
-- **AI:** Google Gemini 3.6 Flash
-- **Storage:** Local Storage (Browser)
-- **Icons:** Lucide React
+| תחום | טכנולוגיה |
+|---|---|
+| Frontend | React 19, TypeScript, Vite 6 |
+| עיצוב | Tailwind CSS, Framer Motion, Radix UI |
+| עיבוד וידאו | FFmpeg.wasm (WebAssembly, בדפדפן) |
+| בינה מלאכותית | Google Gemini (יצירת תסריט + חיפוש מידע אופציונלי) |
+| אחסון/היסטוריה | Blink SDK (מסד נתונים + אחסון קבצים) |
+| תרגום (i18n) | i18next, react-i18next, i18next-browser-languagedetector |
+| פריסה | Cloudflare Pages (Wrangler) |
+| פרסום | Google AdSense |
 
 ## 📁 מבנה הפרויקט
 
 ```
 src/
-├── components/          # רכיבי React
-│   ├── HomePage.tsx    # דף הבית הראשי
-│   ├── VideoUploader.tsx
-│   ├── RecapSettings.tsx
+├── components/            # רכיבי React
+│   ├── HomePage.tsx        # דף הבית וניהול תהליך היצירה
+│   ├── VideoUploader.tsx   # העלאת קובץ + קריאת משך הסרטון
+│   ├── RecapSettings.tsx   # הגדרות הסיכום
 │   ├── ProcessingStatus.tsx
-│   ├── ResultsSection.tsx
-│   └── StatsSection.tsx
+│   ├── ResultsSection.tsx  # תצוגת התוצאה + שמירה
+│   ├── RecapSaver.tsx      # דיאלוג שמירת סיכום
+│   ├── HistoryPage.tsx     # היסטוריית סיכומים שמורים
+│   ├── StatsSection.tsx    # סטטיסטיקות ודירוג
+│   ├── LanguageSwitcher.tsx
+│   └── ui/                 # רכיבי UI בסיסיים (shadcn/radix)
+├── i18n/
+│   └── config.ts            # אתחול i18next + זיהוי שפה + RTL/LTR
+├── locales/                 # קבצי תרגום: en / he / ru / ar / es / fr
 ├── lib/
-│   ├── localStorage.ts # אחסון מקומי
-│   └── supabase.ts     # חיבור למסד נתונים (לא בשימוש)
+│   ├── blink.ts             # לקוח Blink SDK
+│   ├── recapStorage.ts      # שמירת/טעינת סיכומים
+│   └── localStorage.ts      # סטטיסטיקות מקומיות
 ├── types/
-│   └── index.ts        # הגדרות TypeScript
-└── App.tsx            # אפליקציית React ראשית
+│   └── index.ts
+└── App.tsx                  # ניתוב ראשי
 ```
 
 ## 🔧 סקריפטים זמינים
 
-- `npm run dev` - הפעלת שרת פיתוח
-- `npm run build` - בניית הפרויקט לייצור
-- `npm run preview` - תצוגה מקדימה של הבנייה
-- `npm run lint` - בדיקת קוד עם ESLint
+- `npm run dev` — שרת פיתוח
+- `npm run build` — בנייה לייצור
+- `npm run preview` — תצוגה מקדימה של הבנייה
+- `npm run typecheck` — בדיקת טיפוסי TypeScript
+- `npm run lint` — בדיקת קוד עם ESLint
+- `npm run deploy` — בנייה ופריסה ל-Cloudflare Pages
 
-## 🤝 תרומה
+## 🌍 שפות נתמכות
 
-תרומות מתקבלות בברכה! אנא:
+| שפה | קוד | כיוון |
+|---|---|---|
+| English | `en` | LTR |
+| עברית | `he` | RTL |
+| Русский | `ru` | LTR |
+| العربية | `ar` | RTL |
+| Español | `es` | LTR |
+| Français | `fr` | LTR |
 
-1. Fork את הפרויקט
-2. צור branch חדש (`git checkout -b feature/AmazingFeature`)
-3. Commit את השינויים (`git commit -m 'Add some AmazingFeature'`)
-4. Push ל-branch (`git push origin feature/AmazingFeature`)
-5. פתח Pull Request
+השפה נבחרת אוטומטית לפי שפת הדפדפן בביקור הראשון; כל בחירה ידנית מהתפריט העליון נשמרת ומועדפת בביקורים הבאים.
+
+## 🔐 פרטיות ואבטחה
+
+- קובצי הווידאו מעובדים מקומית בדפדפן ואינם מועלים לשרת.
+- מפתח ה-Gemini API נשלח ישירות מהדפדפן ל-Google ואינו נשמר בצד שרת.
+- סיכומים שנשמרים (וידאו, אודיו, תסריט) מאוחסנים דרך Blink Storage לפי בחירת המשתמש בלבד.
+- פירוט מלא בעמודי [מדיניות הפרטיות](/privacy) ו[תנאי השימוש](/terms) שבתוך האתר.
 
 ## 📄 רישיון
 
-פרויקט זה מוגן ברישיון MIT - ראה את קובץ [LICENSE](LICENSE) לפרטים.
+פרויקט זה מוגן ברישיון MIT — ראו את קובץ [LICENSE](LICENSE) לפרטים.
 
 ## 📞 צור קשר
 
-- **דוא"ל:** [your-email@example.com]
-- **GitHub Issues:** [פתח issue](https://github.com/your-username/moviesandtvshowsrecapsmakerwithai/issues)
-
-## 🙏 תודות
-
-- [Google Gemini AI](https://ai.google.dev/) - עבור יכולות הבינה המלאכותית
-- [FFmpeg](https://ffmpeg.org/) - עבור עיבוד וידאו מתקדם
-- [Supabase](https://supabase.com/) - עבור שירותי Backend
-- [React](https://reactjs.org/) ו-[Vite](https://vitejs.dev/) - עבור חוויית פיתוח מעולה
-
----
-
-**הערה:** אפליקציה זו פועלת לחלוטין מקומית בדפדפן. כל הנתונים נשמרים באחסון המקומי של הדפדפן, והקבצים שלכם לעולם לא עולים לשרת חיצוני. הפרטיות והאבטחה שלכם מובטחות.
+- **דוא"ל:** yaskovbs2502@gmail.com
