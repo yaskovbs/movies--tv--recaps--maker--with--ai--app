@@ -28,25 +28,54 @@
 }
 
 @layer utilities {
+  /*
+   * Real glass reads as glass because of three cues layered together, not
+   * just a blurred background: a diagonal sheen (light grazing the surface),
+   * a brighter top edge than bottom edge (the edge catching light), and an
+   * inset highlight/shadow pair that gives the pane physical thickness.
+   */
   .glass-bg {
-    @apply bg-white/[0.06] backdrop-blur-xl backdrop-saturate-150 shadow-[0_8px_32px_0_rgba(0,0,0,0.45)];
+    @apply relative bg-gradient-to-br from-white/[0.20] via-white/[0.08] to-white/[0.03] backdrop-blur-xl backdrop-saturate-[200%] shadow-[0_8px_32px_0_rgba(0,0,0,0.45),0_0_60px_-20px_rgba(129,140,248,0.5),inset_0_1px_0_0_rgba(255,255,255,0.2),inset_0_-1px_0_0_rgba(0,0,0,0.25)];
   }
   .glass {
-    @apply bg-white/[0.06] backdrop-blur-xl backdrop-saturate-150 border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.45)];
+    @apply relative bg-gradient-to-br from-white/[0.20] via-white/[0.08] to-white/[0.03] backdrop-blur-xl backdrop-saturate-[200%] border border-white/15 border-t-white/40 shadow-[0_8px_32px_0_rgba(0,0,0,0.45),0_0_60px_-20px_rgba(129,140,248,0.5),inset_0_1px_0_0_rgba(255,255,255,0.2),inset_0_-1px_0_0_rgba(0,0,0,0.25)];
   }
   .glass-strong {
-    @apply bg-white/[0.09] backdrop-blur-2xl backdrop-saturate-150 border border-white/15 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)];
+    @apply relative bg-gradient-to-br from-white/[0.28] via-white/[0.12] to-white/[0.04] backdrop-blur-2xl backdrop-saturate-[200%] border border-white/20 border-t-white/50 shadow-[0_12px_40px_0_rgba(0,0,0,0.5),0_0_70px_-15px_rgba(129,140,248,0.55),inset_0_1px_0_0_rgba(255,255,255,0.28),inset_0_-1px_0_0_rgba(0,0,0,0.3)];
   }
   .glass-subtle {
-    @apply bg-white/[0.03] backdrop-blur-md border border-white/10;
+    @apply relative bg-gradient-to-br from-white/[0.10] via-white/[0.04] to-white/[0.01] backdrop-blur-md border border-white/10 border-t-white/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.12)];
   }
   .glass-header {
-    @apply bg-gray-950/50 backdrop-blur-xl backdrop-saturate-150 border-b border-white/10;
+    @apply relative bg-gradient-to-b from-gray-950/60 to-gray-950/40 backdrop-blur-xl backdrop-saturate-[180%] border-b border-white/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.12),0_4px_24px_0_rgba(0,0,0,0.35)];
   }
   .glass-footer {
-    @apply bg-gray-950/50 backdrop-blur-xl backdrop-saturate-150 border-t border-white/10;
+    @apply relative bg-gradient-to-t from-gray-950/60 to-gray-950/40 backdrop-blur-xl backdrop-saturate-[180%] border-t border-white/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)];
   }
   .glass-input {
-    @apply bg-white/[0.05] backdrop-blur-sm border border-white/10 transition-colors focus:bg-white/[0.08] focus:border-white/20;
+    @apply bg-white/[0.05] backdrop-blur-sm border border-white/10 border-t-white/20 shadow-[inset_0_1px_2px_0_rgba(0,0,0,0.25)] transition-colors focus:bg-white/[0.08] focus:border-white/25;
+  }
+
+  /* Diagonal light-sheen streak. Add alongside .glass/.glass-strong on any
+     element with rounded corners + overflow-hidden (or add overflow-hidden
+     here via the element itself) to get a proper glass "shine" catching the
+     light across the panel. Kept as an opt-in class since it needs the host
+     element to clip its own overflow (dropdowns/popovers should skip it). */
+  .glass-shine {
+    @apply overflow-hidden;
+  }
+  .glass-shine::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      115deg,
+      rgba(255, 255, 255, 0.16) 0%,
+      rgba(255, 255, 255, 0.03) 22%,
+      rgba(255, 255, 255, 0) 45%,
+      rgba(255, 255, 255, 0) 70%,
+      rgba(255, 255, 255, 0.06) 100%
+    );
+    pointer-events: none;
   }
 }
