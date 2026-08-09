@@ -61,6 +61,12 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - Added a new "analyzing video" processing stage, and a small badge on the results video ("Gemini watched the video and picked these moments") shown when the smart selection was actually used. Translated across all 6 languages.
 - Verified the new `between(t,...)` OR'd select-filter syntax and the JSON/timestamp-parsing + trim-to-target logic against a real ffmpeg binary and synthetic Gemini-shaped responses before wiring it into the FFmpeg.wasm call.
 
+## Learning from usage over time (lightweight, step 1 of 2)
+
+- Gemini's actual model can't be made to learn automatically from this app's usage - the public API has no such hook. What's implemented instead is a real, working improvement loop entirely within the app: a 👍/👎 rating on each saved recap in History (`recapStorageService.rateRecap`), and `recapStorageService.getGoodExamples()`, which pulls a user's own "up"-rated past recaps (preferring the same genre) and feeds their scripts into the prompt as few-shot examples for that user's next recap - so the app actually improves from what a user has personally found good, without needing to retrain or fine-tune anything.
+- Non-fatal and per-user: if the user isn't authenticated or has no rated recaps yet, this silently contributes nothing extra to the prompt - no behavior change.
+- Planned step 2 (not yet built): once enough rated examples accumulate, periodically run a real Gemini fine-tuning job on the collected data for a model genuinely trained on this app's own successful recaps, rather than only steering it via the prompt.
+
 ## Google AdSense
 
 - Added the AdSense loader script to `index.html`'s `<head>`. Since this is a single-page app, one `index.html` serves every route, so this covers the whole site automatically.

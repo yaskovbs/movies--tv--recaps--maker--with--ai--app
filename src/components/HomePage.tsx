@@ -11,6 +11,8 @@ import ProcessingStatus from './ProcessingStatus'
 import StatsSection from './StatsSection'
 import ResultsSection from './ResultsSection'
 import { localStorageService } from '../lib/localStorage'
+import { recapStorageService } from '../lib/recapStorage'
+import type { RecapRecord } from '../lib/blink'
 import type { VideoFile, AudioFile, RecapSettings as RecapSettingsType, ProcessingStatus as ProcessingStatusType, RecapOutput } from '../types'
 
 interface HomePageProps {
@@ -222,7 +224,8 @@ async function generateScriptWithGemini(
   apiKey: string,
   scriptLanguage: string,
   webSearchResults?: string,
-  fileRefs?: GeminiFileRef[]
+  fileRefs?: GeminiFileRef[],
+  goodExamples?: RecapRecord[]
 ): Promise<string> {
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
 
@@ -242,10 +245,18 @@ async function generateScriptWithGemini(
     ? `\n\nYou have also been given ${attachedSources} - use what you actually see/hear in them (visuals, dialogue, names, specific details, tone) as an additional, highly reliable source alongside the description below.`
     : '';
 
+  // Few-shot examples pulled from this same user's own "up"-rated past
+  // recaps (see recapStorageService.getGoodExamples) - a lightweight way for
+  // the app to actually improve from real usage over time without needing
+  // to fine-tune or retrain Gemini itself.
+  const examplesContext = goodExamples && goodExamples.length > 0
+    ? `\n\nHere are examples of scripts that worked well for this user's past recaps - match their tone, pacing, and style where it fits:\n${goodExamples.map((ex, i) => `\n    Example ${i + 1} (Title: ${ex.title}${ex.genre ? `, Genre: ${ex.genre}` : ''}):\n    """\n    ${ex.scriptText}\n    """`).join('\n')}`
+    : '';
+
   const prompt = `
     You are a professional video scriptwriter creating voice-over scripts for movie/TV show recaps in ${scriptLanguage}.
 
-    Title: ${settings.title}${genreText}${youtubeContext}${contextInfo}${attachmentsContext}
+    Title: ${settings.title}${genreText}${youtubeContext}${contextInfo}${attachmentsContext}${examplesContext}
 
     User-provided description (this is the primary and most important source - rely on it much more heavily than you normally would as a scriptwriter):
     """
@@ -533,7 +544,8 @@ const HomePage = ({ apiKey }: HomePageProps) => {
       // Reuse the same video file already uploaded for segment analysis (if
       // that succeeded) rather than uploading it to Gemini a second time.
       const scriptFileRefs = [videoFileRef, audioFileRef].filter((ref): ref is GeminiFileRef => !!ref);
-      const generatedScript = await generateScriptWithGemini(settings, apiKey, scriptLanguage, webSearchResults, scriptFileRefs);
+      const goodExamples = await recapStorageService.getGoodExamples(settings.genre);
+      const generatedScript = await generateScriptWithGemini(settings, apiKey, scriptLanguage, webSearchResults, scriptFileRefs, goodExamples);
 
       setProcessingStatus({
         stage: 'generating_script',

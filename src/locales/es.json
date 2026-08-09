@@ -217,6 +217,8 @@
     "playAudio": "Reproducir audio",
     "downloadAudio": "Descargar audio",
     "downloadVideo": "Descargar video",
+    "rateGoodHint": "Calificar como bueno - los futuros guiones aprenderán de este",
+    "rateBad": "Calificar como malo",
     "delete": "Eliminar",
     "loading": "Cargando tu historial..."
   },

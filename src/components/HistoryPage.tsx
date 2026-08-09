@@ -4,7 +4,7 @@ import { RecapRecord } from '../lib/blink'
 import { recapStorageService } from '../lib/recapStorage'
 import { Button } from './ui/button'
 import { Card } from './ui/card'
-import { Trash2, Download, Play, Search, Filter, Film } from 'lucide-react'
+import { Trash2, Download, Play, Search, Filter, Film, ThumbsUp, ThumbsDown } from 'lucide-react'
 import { Input } from './ui/input'
 
 export default function HistoryPage() {
@@ -36,6 +36,17 @@ export default function HistoryPage() {
       setRecaps(recaps.filter(r => r.id !== recapId))
     } catch (error) {
       console.error('Failed to delete recap:', error)
+    }
+  }
+
+  const handleRate = async (recapId: string, rating: 'up' | 'down') => {
+    const previous = recaps.find(r => r.id === recapId)?.rating
+    setRecaps(recaps.map(r => r.id === recapId ? { ...r, rating } : r))
+    try {
+      await recapStorageService.rateRecap(recapId, rating)
+    } catch (error) {
+      console.error('Failed to rate recap:', error)
+      setRecaps(recaps.map(r => r.id === recapId ? { ...r, rating: previous } : r))
     }
   }
 
@@ -143,8 +154,26 @@ export default function HistoryPage() {
                   </div>
                 </div>
 
-                <div className="px-6 py-4 bg-black/10 border-t border-white/10 flex gap-2 justify-between items-center">
-                  <div className="flex gap-2">
+                <div className="px-6 py-4 bg-black/10 border-t border-white/10 flex gap-2 justify-between items-center flex-wrap">
+                  <div className="flex gap-2 items-center">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleRate(recap.id, 'up')}
+                      title={t('historyPage.rateGoodHint')}
+                      className={`hover:bg-green-900/20 ${recap.rating === 'up' ? 'text-green-400 bg-green-900/20' : 'text-gray-400 hover:text-green-300'}`}
+                    >
+                      <ThumbsUp className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleRate(recap.id, 'down')}
+                      title={t('historyPage.rateBad')}
+                      className={`hover:bg-red-900/20 ${recap.rating === 'down' ? 'text-red-400 bg-red-900/20' : 'text-gray-400 hover:text-red-300'}`}
+                    >
+                      <ThumbsDown className="w-4 h-4" />
+                    </Button>
                     {recap.videoUrl && (
                       <Button
                         size="icon"

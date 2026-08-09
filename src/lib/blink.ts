@@ -19,4 +19,9 @@ export interface RecapRecord {
   duration: number;
   cutInterval: number;
   createdAt: string;
+  // Optional feedback set from History - "up"-rated recaps are fed back into
+  // future script-generation prompts as few-shot examples (see
+  // recapStorageService.getGoodExamples), so the app improves from actual
+  // usage over time without needing to retrain the underlying model.
+  rating?: 'up' | 'down';
 }
