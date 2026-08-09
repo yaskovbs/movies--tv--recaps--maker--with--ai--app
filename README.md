@@ -66,7 +66,11 @@ npm run dev
 
 1. צרו פרויקט חינמי ב-[supabase.com](https://supabase.com).
 2. **הפעילו התחברות אנונימית** (חובה): Dashboard → Authentication → Sign In / Providers → Anonymous Sign-Ins → Enable. זה מה שנותן לכל מבקר זהות אמיתית לשמירה בלי להירשם.
-3. הריצו את קובץ [`supabase-schema.sql`](supabase-schema.sql) שבשורש הפרויקט דרך Dashboard → SQL Editor → New query (יוצר את טבלאות `recaps` ו-`tuning_jobs` + bucket אחסון ציבורי בשם `recaps`, כולל כל מדיניות ה-RLS הנדרשת).
+3. הריצו את הסכמה — שתי דרכים אפשריות, בוחרים אחת:
+   - **ידנית (הכי פשוט):** העתיקו את התוכן של [`supabase/migrations/20260809120000_initial_schema.sql`](supabase/migrations/20260809120000_initial_schema.sql) והריצו דרך Dashboard → SQL Editor → New query.
+   - **אוטומטית דרך GitHub:** Dashboard → Project Settings → Integrations → GitHub → חברו את הריפו הזה, Working directory = `.`, הפעילו **Deploy to production** עם הענף `main`. **חשוב: השאירו את "Automatic branching" כבוי** — זו תכונה שיוצרת מסד נתונים נפרד לכל Pull Request ועלולה לגבות כסף (Supabase מציגים על כך אזהרה מפורשת: "Branching Compute is not covered by your organization's Spend Cap"). בלי branching, כל push ל-`main` פשוט מריץ את קובצי ה-migrations ב-`supabase/migrations/` על מסד הייצור, בחינם.
+
+   שתי הדרכים יוצרות את אותו הדבר: טבלאות `recaps` ו-`tuning_jobs` + bucket אחסון ציבורי בשם `recaps`, כולל כל מדיניות ה-RLS הנדרשת.
 4. העתיקו את ה-URL ומפתח ה-anon של הפרויקט (Dashboard → Settings → API) לקובץ `.env.local` (העתיקו מ-`.env.example`):
 
 ```env
