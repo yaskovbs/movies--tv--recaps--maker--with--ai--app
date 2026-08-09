@@ -1,4 +1,4 @@
-import { blink, TuningJobRecord, RecapRecord } from './blink'
+import { blink, TuningJobRecord, RecapRecord, getCurrentUser } from './blink'
 
 // Step 2 of "learning from usage": once a user has accumulated enough
 // "up"-rated recaps (see recapStorage.ts / step 1's few-shot examples), this
@@ -55,7 +55,10 @@ async function findTunableBaseModel(apiKey: string): Promise<string | undefined>
  * message on failure - callers should show that message, not silently retry.
  */
 export async function startTuningJob(apiKey: string, examples: RecapRecord[]): Promise<TuningJobRecord> {
-  const user = await blink.auth.me()
+  // Training runs for minutes to hours, so unlike saving/rating recaps this
+  // one specifically asks for a real signed-in account rather than this
+  // browser's anonymous ID, so the job can reliably be checked on later.
+  const user = await getCurrentUser()
   if (!user?.id) {
     throw new Error('You need to be signed in to train a personalized model.')
   }
@@ -111,7 +114,7 @@ export async function startTuningJob(apiKey: string, examples: RecapRecord[]): P
 
 /** Fetches this user's most recent tuning job, if any. */
 export async function getLatestTuningJob(): Promise<TuningJobRecord | null> {
-  const user = await blink.auth.me()
+  const user = await getCurrentUser()
   if (!user?.id) return null
   const jobs = await tuningJobsTable.list({
     where: { userId: user.id },

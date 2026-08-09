@@ -17,7 +17,7 @@ const LanguageSwitcher = () => {
         title={t('header.language')}
       >
         <Globe className="h-4 w-4" />
-        <span>{current.label}</span>
+        <span className="hidden sm:inline">{current.label}</span>
       </button>
 
       {open && (

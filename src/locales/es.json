@@ -362,5 +362,20 @@
     "privacyBodySuffix": " para entender cómo recopilamos y usamos la información.",
     "changesHeading": "7. Cambios en los términos",
     "changesBody": "Nos reservamos el derecho de actualizar estos Términos de Servicio de vez en cuando. El uso continuado del Servicio después de una actualización constituye la aceptación de los nuevos términos."
+  },
+  "auth": {
+    "signInButton": "Iniciar sesión",
+    "signUpButton": "Crear cuenta",
+    "signInTitle": "Iniciar sesión",
+    "signUpTitle": "Crear una cuenta",
+    "optionalHint": "Totalmente opcional - el sitio funciona sin iniciar sesión. Inicia sesión solo si quieres que tu historial te siga entre dispositivos.",
+    "emailLabel": "Correo electrónico",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "Contraseña",
+    "passwordPlaceholder": "Al menos 8 caracteres",
+    "switchToSignUp": "¿No tienes cuenta? Crea una",
+    "switchToSignIn": "¿Ya tienes cuenta? Inicia sesión",
+    "signOut": "Cerrar sesión",
+    "genericError": "Algo salió mal. Inténtalo de nuevo."
   }
 }
