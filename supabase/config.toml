@@ -1,0 +1,13 @@
+# Minimal Supabase CLI project config - only what the GitHub integration needs
+# to recognize this as a Supabase project directory and apply migrations on
+# push/merge to your production branch. Project linking itself happens in the
+# Supabase Dashboard (Project Settings -> Integrations -> GitHub), not here.
+#
+# Deliberately left out: [auth]/[api]/[storage] overrides that Preview Branches
+# would otherwise read - this repo isn't using Automatic Branching (it creates
+# a full per-PR database branch, which is compute that isn't covered by a free
+# Spend Cap and can incur real charges), so there's nothing here to conflict
+# with a preview environment that doesn't exist.
+
+[db]
+major_version = 15

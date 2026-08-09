@@ -1,9 +1,12 @@
--- Movies & TV Recaps Maker - Supabase schema
+-- Movies & TV Recaps Maker - initial schema
 --
--- Run this once in your Supabase project's SQL Editor (Dashboard -> SQL Editor -> New query),
--- after creating the project. See README.md for the full setup walkthrough.
+-- This is a real Supabase CLI migration (supabase/migrations/), so it gets applied
+-- automatically by the GitHub integration on every push/merge to your production
+-- branch (Dashboard -> Project Settings -> Integrations -> GitHub -> "Deploy to
+-- production"). If you'd rather set things up by hand instead, copy this file's
+-- contents into Dashboard -> SQL Editor -> New query and run it once - same effect.
 --
--- Before running this, enable anonymous sign-ins:
+-- Before running this (either way), enable anonymous sign-ins:
 --   Dashboard -> Authentication -> Sign In / Providers -> Anonymous Sign-Ins -> Enable
 -- The site works without anyone creating a real account - every visitor gets a real
 -- (but anonymous) Supabase user automatically, which is what these tables' Row Level
