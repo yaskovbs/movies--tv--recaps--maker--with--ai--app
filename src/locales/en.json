@@ -88,6 +88,19 @@
     "readSuccess": "Read successfully",
     "duration": "Length:"
   },
+  "audioUploader": {
+    "title": "Add voice-over audio (optional)",
+    "subtitle": "Drag and drop an MP3 file, or click to select",
+    "hint": "If provided, it will be used as the recap video's narration instead of leaving it silent.",
+    "supportedFormats": "Supported files:",
+    "maxSize": "Maximum size:",
+    "readingTitle": "Reading the audio file...",
+    "readingSubtitle": "Please wait",
+    "unsupportedFormat": "Unsupported file type. Supported files: {{formats}}",
+    "fileTooLarge": "The file is too large. Maximum size: 100MB",
+    "readError": "Unable to read the audio file. Please try again.",
+    "readSuccess": "Read successfully"
+  },
   "recapSettings": {
     "title": "Recap Settings",
     "movieTitleLabel": "Movie/Series Title *",
@@ -184,6 +197,7 @@
     "save": "Save Recap",
     "savingVideo": "Saving the video...",
     "generatingAudio": "Creating audio...",
+    "uploadingAudio": "Uploading your narration...",
     "saving": "Saving...",
     "titleRequired": "Please enter a title",
     "saveError": "Error saving the recap"

@@ -88,6 +88,19 @@
     "readSuccess": "Leído correctamente",
     "duration": "Duración:"
   },
+  "audioUploader": {
+    "title": "Añade audio de narración (opcional)",
+    "subtitle": "Arrastra y suelta un archivo MP3, o haz clic para seleccionarlo",
+    "hint": "Si lo subes, se usará como la narración del video del resumen en lugar de dejarlo en silencio.",
+    "supportedFormats": "Archivos compatibles:",
+    "maxSize": "Tamaño máximo:",
+    "readingTitle": "Leyendo el archivo de audio...",
+    "readingSubtitle": "Por favor espera",
+    "unsupportedFormat": "Tipo de archivo no compatible. Archivos admitidos: {{formats}}",
+    "fileTooLarge": "El archivo es demasiado grande. Tamaño máximo: 100MB",
+    "readError": "No se pudo leer el archivo de audio. Inténtalo de nuevo.",
+    "readSuccess": "Leído correctamente"
+  },
   "recapSettings": {
     "title": "Configuración del resumen",
     "movieTitleLabel": "Título de la película/serie *",
@@ -184,6 +197,7 @@
     "save": "Guardar resumen",
     "savingVideo": "Guardando el video...",
     "generatingAudio": "Creando audio...",
+    "uploadingAudio": "Subiendo tu narración...",
     "saving": "Guardando...",
     "titleRequired": "Por favor ingresa un título",
     "saveError": "Error al guardar el resumen"

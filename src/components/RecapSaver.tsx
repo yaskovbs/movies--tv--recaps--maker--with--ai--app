@@ -11,11 +11,12 @@ import { AlertCircle, Loader2 } from 'lucide-react'
 interface RecapSaverProps {
   script: string
   videoUrl: string
+  customAudioFile?: File
   open: boolean
   onClose: () => void
 }
 
-export function RecapSaver({ script, videoUrl, open, onClose }: RecapSaverProps) {
+export function RecapSaver({ script, videoUrl, customAudioFile, open, onClose }: RecapSaverProps) {
   const { t } = useTranslation()
   const [title, setTitle] = useState('')
   const [genre, setGenre] = useState('')
@@ -43,17 +44,31 @@ export function RecapSaver({ script, videoUrl, open, onClose }: RecapSaverProps)
         `recaps/${Date.now()}-${title.trim().replace(/[^\w\-א-ת]+/g, '_')}.mp4`
       )
 
-      // Generate audio using Blink AI - non-fatal if it fails.
+      // If the user supplied their own MP3 narration, it's already muxed into
+      // the video - upload that same file as the recap's audioUrl instead of
+      // generating a second, different-sounding text-to-speech narration.
       setStage('audio')
       let audioUrl = ''
-      try {
-        const { url } = await blink.ai.generateSpeech({
-          text: script,
-          voice: 'nova'
-        })
-        audioUrl = url
-      } catch (e) {
-        console.warn('TTS generation failed, saving without audio', e)
+      if (customAudioFile) {
+        try {
+          const { publicUrl } = await blink.storage.upload(
+            customAudioFile,
+            `recaps/${Date.now()}-${title.trim().replace(/[^\w\-א-ת]+/g, '_')}.mp3`
+          )
+          audioUrl = publicUrl
+        } catch (e) {
+          console.warn('Uploading custom narration failed, saving without a separate audio file', e)
+        }
+      } else {
+        try {
+          const { url } = await blink.ai.generateSpeech({
+            text: script,
+            voice: 'nova'
+          })
+          audioUrl = url
+        } catch (e) {
+          console.warn('TTS generation failed, saving without audio', e)
+        }
       }
 
       // Save recap to database
@@ -142,7 +157,7 @@ export function RecapSaver({ script, videoUrl, open, onClose }: RecapSaverProps)
             >
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {stage === 'video' ? t('recapSaver.savingVideo')
-                : stage === 'audio' ? t('recapSaver.generatingAudio')
+                : stage === 'audio' ? (customAudioFile ? t('recapSaver.uploadingAudio') : t('recapSaver.generatingAudio'))
                 : stage === 'saving' ? t('recapSaver.saving')
                 : t('recapSaver.save')}
             </Button>
