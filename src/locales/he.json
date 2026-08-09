@@ -59,6 +59,8 @@
     "status": {
       "preparing": "מתכונן לעיבוד...",
       "loadingEngine": "טוען את מנוע הווידאו...",
+      "uploadingVideoForGemini": "מעלה את הווידאו ל-Gemini כדי שיוכל לצפות בו...",
+      "analyzingVideo": "Gemini צופה בווידאו ובוחר את הרגעים הטובים ביותר...",
       "writingFile": "כותב קובץ למערכת...",
       "cutting": "חותך קטעים מהווידאו... {{percent}}%",
       "generatingScript": "יוצר תסריט עם Gemini AI...",
@@ -148,6 +150,7 @@
   },
   "processingStatus": {
     "loadingEngine": "טוען מנוע וידאו...",
+    "analyzingVideo": "מנתח את הווידאו עם Gemini...",
     "cuttingVideo": "מעבד וידאו...",
     "generatingScript": "יוצר תסריט עם AI...",
     "generatingAudio": "יוצר קריינות...",
@@ -170,7 +173,8 @@
     "audioTitle": "קריינות אודיו",
     "selectLanguage": "בחר שפה:",
     "selectVoice": "בחר קול:",
-    "audioDownloadUnsupported": "הורדת קובץ האודיו אינה נתמכת כרגע."
+    "audioDownloadUnsupported": "הורדת קובץ האודיו אינה נתמכת כרגע.",
+    "smartSelectionBadge": "Gemini צפה בווידאו ובחר את הרגעים האלה"
   },
   "statsSection": {
     "loading": "טוען נתונים...",

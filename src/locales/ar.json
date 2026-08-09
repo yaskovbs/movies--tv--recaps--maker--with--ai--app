@@ -59,6 +59,8 @@
     "status": {
       "preparing": "جارٍ التحضير للمعالجة...",
       "loadingEngine": "جارٍ تحميل محرك الفيديو...",
+      "uploadingVideoForGemini": "جارٍ رفع الفيديو إلى Gemini ليتمكن من مشاهدته...",
+      "analyzingVideo": "يشاهد Gemini الفيديو ويختار أفضل اللحظات...",
       "writingFile": "جارٍ كتابة الملف إلى النظام...",
       "cutting": "جارٍ قص المقاطع من الفيديو... {{percent}}%",
       "generatingScript": "جارٍ إنشاء نص عبر Gemini AI...",
@@ -148,6 +150,7 @@
   },
   "processingStatus": {
     "loadingEngine": "جارٍ تحميل محرك الفيديو...",
+    "analyzingVideo": "جارٍ تحليل الفيديو باستخدام Gemini...",
     "cuttingVideo": "جارٍ معالجة الفيديو...",
     "generatingScript": "جارٍ إنشاء نص باستخدام الذكاء الاصطناعي...",
     "generatingAudio": "جارٍ إنشاء التعليق الصوتي...",
@@ -170,7 +173,8 @@
     "audioTitle": "التعليق الصوتي",
     "selectLanguage": "اختر اللغة:",
     "selectVoice": "اختر الصوت:",
-    "audioDownloadUnsupported": "تنزيل ملف الصوت غير مدعوم حاليًا."
+    "audioDownloadUnsupported": "تنزيل ملف الصوت غير مدعوم حاليًا.",
+    "smartSelectionBadge": "شاهد Gemini الفيديو واختار هذه اللحظات"
   },
   "statsSection": {
     "loading": "جارٍ تحميل البيانات...",
