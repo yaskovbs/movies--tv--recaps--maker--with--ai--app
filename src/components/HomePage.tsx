@@ -26,15 +26,23 @@ const scriptLanguageNames: Record<string, string> = {
   fr: 'French',
 }
 
-// Uploads the user's narration MP3 to Gemini's File API so the model can
-// actually listen to it (not just read a text description of it). Inline
-// base64 audio in generateContent is capped around 20MB per request, which a
-// several-minute narration can easily exceed, so this uses the resumable
-// upload + file_uri reference flow instead, which Google's audio/video
-// inputs are designed around.
-async function uploadAudioToGemini(file: File, apiKey: string): Promise<{ uri: string; mimeType: string }> {
-  const mimeType = file.type || 'audio/mpeg';
+interface GeminiFileRef {
+  uri: string
+  mimeType: string
+}
 
+// Uploads a file (audio narration or the source video) to Gemini's File API
+// so the model can actually see/hear it, not just read a text description of
+// it. Inline base64 media in generateContent is capped around 20MB per
+// request, which both a multi-minute narration and any real video file can
+// easily exceed, so this uses the resumable upload + file_uri reference flow
+// instead, which is what Google's audio/video inputs are designed around.
+async function uploadFileToGemini(
+  file: File,
+  apiKey: string,
+  mimeType: string,
+  maxPollAttempts = 20
+): Promise<GeminiFileRef> {
   const startResponse = await fetch(
     `https://generativelanguage.googleapis.com/upload/v1beta/files?key=${apiKey}`,
     {
@@ -50,11 +58,11 @@ async function uploadAudioToGemini(file: File, apiKey: string): Promise<{ uri: s
     }
   );
   if (!startResponse.ok) {
-    throw new Error('Failed to start the audio upload to Gemini.');
+    throw new Error('Failed to start the file upload to Gemini.');
   }
   const uploadUrl = startResponse.headers.get('X-Goog-Upload-URL');
   if (!uploadUrl) {
-    throw new Error('Gemini did not return an upload URL for the audio file.');
+    throw new Error('Gemini did not return an upload URL.');
   }
 
   const uploadResponse = await fetch(uploadUrl, {
@@ -67,7 +75,7 @@ async function uploadAudioToGemini(file: File, apiKey: string): Promise<{ uri: s
     body: file,
   });
   if (!uploadResponse.ok) {
-    throw new Error('Failed to upload the audio bytes to Gemini.');
+    throw new Error('Failed to upload the file bytes to Gemini.');
   }
 
   let fileInfo = (await uploadResponse.json()).file as { uri?: string; name?: string; state?: string };
@@ -75,9 +83,9 @@ async function uploadAudioToGemini(file: File, apiKey: string): Promise<{ uri: s
     throw new Error('Gemini upload response is missing the file URI.');
   }
 
-  // Audio files go through a brief PROCESSING step before they can be
-  // referenced in generateContent - poll until Gemini marks it ACTIVE.
-  for (let attempt = 0; attempt < 20 && fileInfo.state === 'PROCESSING'; attempt++) {
+  // Audio/video files go through a PROCESSING step (longer for video) before
+  // they can be referenced in generateContent - poll until Gemini marks it ACTIVE.
+  for (let attempt = 0; attempt < maxPollAttempts && fileInfo.state === 'PROCESSING'; attempt++) {
     await new Promise(resolve => setTimeout(resolve, 1500));
     const statusResponse = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/${fileInfo.name}?key=${apiKey}`
@@ -87,10 +95,126 @@ async function uploadAudioToGemini(file: File, apiKey: string): Promise<{ uri: s
   }
 
   if (fileInfo.state !== 'ACTIVE' || !fileInfo.uri) {
-    throw new Error('Gemini could not finish processing the audio file in time.');
+    throw new Error('Gemini could not finish processing the file in time.');
   }
 
   return { uri: fileInfo.uri, mimeType };
+}
+
+function guessVideoMimeType(fileName: string): string {
+  const ext = fileName.split('.').pop()?.toLowerCase();
+  switch (ext) {
+    case 'mov': return 'video/mov';
+    case 'avi': return 'video/avi';
+    case 'mkv': return 'video/x-matroska';
+    default: return 'video/mp4';
+  }
+}
+
+interface VideoSegment {
+  start: number
+  end: number
+}
+
+// Gemini's File API caps individual files at 2GB - beyond that, skip video
+// analysis entirely rather than waste time on an upload that will just fail.
+const GEMINI_VIDEO_SIZE_CAP = 2 * 1024 * 1024 * 1024;
+
+// Asks Gemini to actually watch the uploaded video and pick out the moments
+// worth including in the recap, instead of FFmpeg blindly sampling evenly-
+// spaced clips. Returns chronological, non-overlapping segments (in seconds)
+// trimmed to roughly targetDurationSeconds total.
+async function analyzeVideoSegmentsWithGemini(
+  videoFileRef: GeminiFileRef,
+  apiKey: string,
+  targetDurationSeconds: number,
+  videoDurationSeconds: number | undefined,
+  description: string
+): Promise<VideoSegment[]> {
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+
+  const prompt = `
+    You are given a movie/TV episode video file. Watch it and select the most important, representative moments to include in a short recap.
+    ${description ? `\n    Context about the content, provided by the user:\n    """\n    ${description}\n    """\n` : ''}
+    Return a JSON array, and ONLY a JSON array with no other text and no markdown code fences, of the segments to include in the recap, in chronological order, using exactly this shape:
+    [{"start": "HH:MM:SS", "end": "HH:MM:SS"}, ...]
+
+    Rules:
+    - Each segment must capture a genuinely important, representative moment (key plot beats, turning points, standout visuals or lines) - not arbitrary evenly-spaced clips.
+    - Segments must be listed in chronological order and must not overlap.
+    - Each segment should be roughly 1-4 seconds long.
+    - The segments' combined total duration should add up to approximately ${targetDurationSeconds} seconds.
+    - Use HH:MM:SS timestamps that fall within the actual video${videoDurationSeconds ? ` (it is about ${Math.round(videoDurationSeconds)} seconds long)` : ''}.
+  `;
+
+  const response = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{
+        parts: [
+          { file_data: { mime_type: videoFileRef.mimeType, file_uri: videoFileRef.uri } },
+          { text: prompt },
+        ],
+      }],
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    throw new Error(errorData?.error?.message || 'Gemini video analysis request failed.');
+  }
+
+  const data = await response.json();
+  const text: string | undefined = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) {
+    throw new Error('Gemini returned no video analysis.');
+  }
+
+  const cleaned = text.trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
+  const parsed = JSON.parse(cleaned) as Array<{ start: string; end: string }>;
+
+  const toSeconds = (ts: string): number => {
+    const parts = ts.split(':').map(Number);
+    if (parts.some(Number.isNaN)) return NaN;
+    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    if (parts.length === 2) return parts[0] * 60 + parts[1];
+    return parts[0];
+  };
+
+  const segments = parsed
+    .map(({ start, end }) => ({ start: toSeconds(start), end: toSeconds(end) }))
+    .filter(({ start, end }) => Number.isFinite(start) && Number.isFinite(end) && end > start)
+    .map(({ start, end }) => ({
+      start: Math.max(0, start),
+      end: videoDurationSeconds ? Math.min(end, videoDurationSeconds) : end,
+    }))
+    .filter(({ start, end }) => end > start)
+    .sort((a, b) => a.start - b.start);
+
+  if (segments.length === 0) {
+    throw new Error('Gemini did not return any usable segments.');
+  }
+
+  // Keep segments in order until the running total would exceed the target,
+  // then clip the final one so the total stays close to what was requested.
+  const trimmed: VideoSegment[] = [];
+  let total = 0;
+  for (const seg of segments) {
+    if (total >= targetDurationSeconds) break;
+    const remaining = targetDurationSeconds - total;
+    const segDuration = seg.end - seg.start;
+    if (segDuration <= remaining) {
+      trimmed.push(seg);
+      total += segDuration;
+    } else {
+      trimmed.push({ start: seg.start, end: seg.start + remaining });
+      total += remaining;
+      break;
+    }
+  }
+
+  return trimmed;
 }
 
 async function generateScriptWithGemini(
@@ -98,7 +222,7 @@ async function generateScriptWithGemini(
   apiKey: string,
   scriptLanguage: string,
   webSearchResults?: string,
-  audioFileRef?: { uri: string; mimeType: string }
+  fileRefs?: GeminiFileRef[]
 ): Promise<string> {
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
 
@@ -111,14 +235,17 @@ async function generateScriptWithGemini(
   const youtubeContext = settings.youtubeLink
     ? `\n\nThe style should be similar to this ${settings.linkType === 'channel' ? 'channel' : 'video'}'s recaps: ${settings.youtubeLink}`
     : '';
-  const audioContext = audioFileRef
-    ? `\n\nAn audio narration file is also attached to this request - listen to it and treat what is actually said in it (dialogue, names, specific details, tone) as an additional, highly reliable source alongside the description below.`
+  const hasVideo = fileRefs?.some(f => f.mimeType.startsWith('video/'));
+  const hasAudio = fileRefs?.some(f => f.mimeType.startsWith('audio/'));
+  const attachedSources = [hasVideo && 'the source video', hasAudio && 'an audio narration file'].filter(Boolean).join(' and ');
+  const attachmentsContext = attachedSources
+    ? `\n\nYou have also been given ${attachedSources} - use what you actually see/hear in them (visuals, dialogue, names, specific details, tone) as an additional, highly reliable source alongside the description below.`
     : '';
 
   const prompt = `
     You are a professional video scriptwriter creating voice-over scripts for movie/TV show recaps in ${scriptLanguage}.
 
-    Title: ${settings.title}${genreText}${youtubeContext}${contextInfo}${audioContext}
+    Title: ${settings.title}${genreText}${youtubeContext}${contextInfo}${attachmentsContext}
 
     User-provided description (this is the primary and most important source - rely on it much more heavily than you normally would as a scriptwriter):
     """
@@ -127,8 +254,8 @@ async function generateScriptWithGemini(
 
     Create an engaging, cinematic voice-over script in ${scriptLanguage} for a video recap.
     The script should be:
-    - Grounded almost entirely in the user-provided description above${audioFileRef ? ' and the attached audio narration' : ''} - stick closely to their wording, facts, and details, and rely on them far more than on general or prior knowledge about the title
-    - Do not invent plot points, characters, or events that are not in the description${audioFileRef ? ' or audio' : ''} and do not contradict them
+    - Grounded almost entirely in the user-provided description above${attachedSources ? ` and the attached ${attachedSources}` : ''} - stick closely to their wording, facts, and details, and rely on them far more than on general or prior knowledge about the title
+    - Do not invent plot points, characters, or events that are not in the description${attachedSources ? ' or attachments' : ''} and do not contradict them
     - Only use general knowledge to fill in minor gaps that source doesn't cover, and keep that to a minimum
     - Exciting and dramatic
     - Concise (3-4 sentences, matching the video duration of ${settings.duration} seconds)
@@ -140,8 +267,8 @@ async function generateScriptWithGemini(
   `;
 
   const parts: Array<Record<string, unknown>> = [{ text: prompt }];
-  if (audioFileRef) {
-    parts.push({ file_data: { mime_type: audioFileRef.mimeType, file_uri: audioFileRef.uri } });
+  for (const ref of fileRefs || []) {
+    parts.push({ file_data: { mime_type: ref.mimeType, file_uri: ref.uri } });
   }
 
   const maxRetries = 3;
@@ -281,6 +408,42 @@ const HomePage = ({ apiKey }: HomePageProps) => {
         });
       }
 
+      // Before any cutting happens, let Gemini actually watch the source
+      // video and pick out the moments worth keeping, instead of FFmpeg
+      // blindly sampling evenly-spaced clips. Non-fatal at every step - if
+      // the file is over Gemini's per-file cap, or the upload/analysis
+      // fails for any reason, this silently falls back to the original
+      // periodic sampling further down.
+      let videoFileRef: GeminiFileRef | undefined;
+      let smartSegments: VideoSegment[] | undefined;
+      if (selectedFile.file.size <= GEMINI_VIDEO_SIZE_CAP) {
+        setProcessingStatus({
+          stage: 'analyzing_video',
+          progress: 0,
+          message: t('home.status.uploadingVideoForGemini')
+        });
+        try {
+          videoFileRef = await uploadFileToGemini(selectedFile.file, apiKey, guessVideoMimeType(selectedFile.name), 60);
+          setProcessingStatus({
+            stage: 'analyzing_video',
+            progress: 60,
+            message: t('home.status.analyzingVideo')
+          });
+          smartSegments = await analyzeVideoSegmentsWithGemini(
+            videoFileRef,
+            apiKey,
+            settings.duration,
+            selectedFile.duration,
+            settings.description
+          );
+        } catch (e) {
+          console.warn('Gemini video analysis failed, falling back to standard periodic sampling', e);
+          smartSegments = undefined;
+        }
+      } else {
+        console.warn('Video is over Gemini\'s 2GB per-file limit - skipping video analysis, using standard periodic sampling.');
+      }
+
       setProcessingStatus({
         stage: 'cutting_video',
         progress: 0,
@@ -298,7 +461,11 @@ const HomePage = ({ apiKey }: HomePageProps) => {
       }
 
       const outputFileName = 'recap.mp4';
-      const selectFilter = `select='lt(mod(t,${settings.intervalSeconds}),${settings.captureSeconds})',setpts=N/FRAME_RATE/TB`;
+      // When Gemini picked out meaningful segments, cut exactly those instead
+      // of the periodic "every N seconds" fallback.
+      const selectFilter = smartSegments && smartSegments.length > 0
+        ? `select='${smartSegments.map(s => `between(t,${s.start.toFixed(2)},${s.end.toFixed(2)})`).join('+')}',setpts=N/FRAME_RATE/TB`
+        : `select='lt(mod(t,${settings.intervalSeconds}),${settings.captureSeconds})',setpts=N/FRAME_RATE/TB`;
       // Cap resolution and use a fast x264 preset - recap clips don't need full
       // source resolution or the default "medium" preset's quality, and both cuts
       // are large speed wins for a software encoder running in-browser.
@@ -343,7 +510,7 @@ const HomePage = ({ apiKey }: HomePageProps) => {
       // so the model actually listens to it instead of only reading text
       // about it - non-fatal if it fails, the script still generates from
       // the description (and the audio is still muxed into the video either way).
-      let audioFileRef: { uri: string; mimeType: string } | undefined;
+      let audioFileRef: GeminiFileRef | undefined;
       if (audioFile) {
         setProcessingStatus({
           stage: 'generating_script',
@@ -351,7 +518,7 @@ const HomePage = ({ apiKey }: HomePageProps) => {
           message: t('home.status.analyzingAudio')
         });
         try {
-          audioFileRef = await uploadAudioToGemini(audioFile.file, apiKey);
+          audioFileRef = await uploadFileToGemini(audioFile.file, apiKey, audioFile.file.type || 'audio/mpeg');
         } catch (e) {
           console.warn('Uploading narration audio to Gemini failed, generating script from text only', e);
         }
@@ -363,7 +530,10 @@ const HomePage = ({ apiKey }: HomePageProps) => {
         message: t('home.status.generatingCustomScript')
       });
       const scriptLanguage = scriptLanguageNames[i18n.resolvedLanguage || 'en'] || 'English';
-      const generatedScript = await generateScriptWithGemini(settings, apiKey, scriptLanguage, webSearchResults, audioFileRef);
+      // Reuse the same video file already uploaded for segment analysis (if
+      // that succeeded) rather than uploading it to Gemini a second time.
+      const scriptFileRefs = [videoFileRef, audioFileRef].filter((ref): ref is GeminiFileRef => !!ref);
+      const generatedScript = await generateScriptWithGemini(settings, apiKey, scriptLanguage, webSearchResults, scriptFileRefs);
 
       setProcessingStatus({
         stage: 'generating_script',
@@ -389,6 +559,7 @@ const HomePage = ({ apiKey }: HomePageProps) => {
         videoUrl: videoUrl,
         script: generatedScript,
         customAudioFile: audioFile?.file,
+        usedSmartSelection: !!(smartSegments && smartSegments.length > 0),
       });
 
       // Increment the counter locally

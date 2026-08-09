@@ -31,7 +31,7 @@ export interface RecapSettings {
 }
 
 export interface ProcessingStatus {
-  stage: 'loading_engine' | 'cutting_video' | 'generating_script' | 'generating_audio' | 'completed' | 'error'
+  stage: 'loading_engine' | 'analyzing_video' | 'cutting_video' | 'generating_script' | 'generating_audio' | 'completed' | 'error'
   progress: number
   message: string
   generatedVideoUrl?: string
@@ -56,4 +56,7 @@ export interface RecapOutput {
   // into videoUrl, and kept here so saving can upload the original file as
   // the recap's audioUrl too instead of generating text-to-speech audio.
   customAudioFile?: File;
+  // True when Gemini watched the source video and picked the recap's segments
+  // itself, instead of the fallback periodic "every N seconds" sampling.
+  usedSmartSelection?: boolean;
 }

@@ -52,6 +52,15 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - Gemini also actually listens to the file, not just the video: the MP3 is uploaded through Gemini's File API (resumable upload + poll until `ACTIVE`, since inline base64 audio is capped around 20MB per request and a narration track can exceed that) and referenced via `file_data`/`file_uri` in the same `generateContent` call used for the script, alongside the text description. Non-fatal if the upload/processing fails - falls back to generating the script from the text description alone, same as before.
 - Fully translated across all 6 languages.
 
+## Gemini watches the video and picks the segments itself
+
+- Previously FFmpeg always cut evenly-spaced clips on a fixed timer (`select='lt(mod(t,interval),capture)'`) - neither FFmpeg nor Gemini ever looked at what was actually happening in the video; the only "understanding" came from the text description (and, since the MP3 feature above, the narration audio).
+- Now, before any cutting happens, the source video (if 2GB or under - Gemini File API's per-file cap) is uploaded through Gemini's File API and Gemini is asked to actually watch it and pick chronological, non-overlapping moments worth including, returned as timestamps and trimmed to roughly the requested recap length. FFmpeg then cuts exactly those segments (`select='between(t,s1,e1)+between(t,s2,e2)+...'`) instead of the periodic fallback.
+- Non-fatal at every step - file too large, upload failure, analysis failure, or an unparseable response all silently fall back to the original periodic sampling, so nothing breaks for any video.
+- The same uploaded video (when analysis succeeded) is reused for the script-writing call too, alongside any narration audio, instead of uploading it to Gemini twice.
+- Added a new "analyzing video" processing stage, and a small badge on the results video ("Gemini watched the video and picked these moments") shown when the smart selection was actually used. Translated across all 6 languages.
+- Verified the new `between(t,...)` OR'd select-filter syntax and the JSON/timestamp-parsing + trim-to-target logic against a real ffmpeg binary and synthetic Gemini-shaped responses before wiring it into the FFmpeg.wasm call.
+
 ## Google AdSense
 
 - Added the AdSense loader script to `index.html`'s `<head>`. Since this is a single-page app, one `index.html` serves every route, so this covers the whole site automatically.

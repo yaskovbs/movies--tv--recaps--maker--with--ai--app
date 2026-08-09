@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { Loader2, CheckCircle, AlertCircle, Upload, Cog, Wand2, Mic } from 'lucide-react'
+import { Loader2, CheckCircle, AlertCircle, Upload, Cog, Wand2, Mic, Eye } from 'lucide-react'
 import type { ProcessingStatus } from '../types'
 
 interface ProcessingStatusProps {
@@ -14,6 +14,8 @@ const ProcessingStatusComponent = ({ status }: ProcessingStatusProps) => {
     switch (status.stage) {
       case 'loading_engine':
         return <Upload className="h-6 w-6" />
+      case 'analyzing_video':
+        return <Eye className="h-6 w-6" />
       case 'cutting_video':
         return <Cog className="h-6 w-6 animate-spin" />
       case 'generating_script':
@@ -33,6 +35,8 @@ const ProcessingStatusComponent = ({ status }: ProcessingStatusProps) => {
     switch (status.stage) {
       case 'loading_engine':
         return t('processingStatus.loadingEngine')
+      case 'analyzing_video':
+        return t('processingStatus.analyzingVideo')
       case 'cutting_video':
         return t('processingStatus.cuttingVideo')
       case 'generating_script':

@@ -59,6 +59,8 @@
     "status": {
       "preparing": "Подготовка к обработке...",
       "loadingEngine": "Загрузка видеодвижка...",
+      "uploadingVideoForGemini": "Загрузка видео в Gemini, чтобы он мог его посмотреть...",
+      "analyzingVideo": "Gemini просматривает видео и выбирает лучшие моменты...",
       "writingFile": "Запись файла в систему...",
       "cutting": "Нарезка сегментов видео... {{percent}}%",
       "generatingScript": "Создание сценария с помощью Gemini AI...",
@@ -148,6 +150,7 @@
   },
   "processingStatus": {
     "loadingEngine": "Загрузка видеодвижка...",
+    "analyzingVideo": "Анализ видео с помощью Gemini...",
     "cuttingVideo": "Обработка видео...",
     "generatingScript": "Создание сценария с помощью ИИ...",
     "generatingAudio": "Создание озвучки...",
@@ -170,7 +173,8 @@
     "audioTitle": "Аудио-озвучка",
     "selectLanguage": "Выберите язык:",
     "selectVoice": "Выберите голос:",
-    "audioDownloadUnsupported": "Скачивание аудиофайла в настоящее время не поддерживается."
+    "audioDownloadUnsupported": "Скачивание аудиофайла в настоящее время не поддерживается.",
+    "smartSelectionBadge": "Gemini посмотрел видео и выбрал эти моменты"
   },
   "statsSection": {
     "loading": "Загрузка данных...",
