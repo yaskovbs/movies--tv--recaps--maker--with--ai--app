@@ -83,6 +83,12 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - Fixed a real layout bug found while building this: adding the new header button pushed mobile width past 390px (real overflow, confirmed via a live browser check) - language/sign-in/API-key buttons now collapse to icon-only below the `sm` breakpoint, same treatment across all three so none of them get cut off on a phone.
 - Fully translated across all 6 languages (key parity verified against en.json).
 
+## Fixed the actual root cause of "recaps won't save" (mobile blob eviction)
+
+- A user's screenshot (after the sign-in fix above) narrowed the generic "Failed to fetch" down to the video-read step specifically, not the upload - `RecapSaver` was calling `fetch(videoUrl)` on the recap's `blob:` URL to re-derive a `Blob` for uploading. A `blob:` URL only works as long as the browser's internal blob registry still has that data; it can evict it - especially on mobile, under memory pressure or after the tab is backgrounded - well before the JS `Blob` object itself (still referenced in React state) would ever be garbage-collected. That's a very plausible explanation for a phone-specific "works right after generating, fails a bit later when saving."
+- Fixed properly rather than working around it: `RecapOutput` now carries the actual `Blob` (`videoBlob`) alongside `videoUrl` (still used for the `<video>` preview/download), and `RecapSaver` uploads that `Blob` directly - no `fetch()` of the blob URL at all anymore, so this whole failure class is gone rather than just producing a clearer error message for it.
+- typecheck/lint/build clean; full route QA pass shows no page errors.
+
 ## Google AdSense
 
 - Added the AdSense loader script to `index.html`'s `<head>`. Since this is a single-page app, one `index.html` serves every route, so this covers the whole site automatically.

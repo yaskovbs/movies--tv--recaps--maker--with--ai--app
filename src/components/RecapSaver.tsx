@@ -10,13 +10,13 @@ import { AlertCircle, Loader2 } from 'lucide-react'
 
 interface RecapSaverProps {
   script: string
-  videoUrl: string
+  videoBlob: Blob
   customAudioFile?: File
   open: boolean
   onClose: () => void
 }
 
-export function RecapSaver({ script, videoUrl, customAudioFile, open, onClose }: RecapSaverProps) {
+export function RecapSaver({ script, videoBlob, customAudioFile, open, onClose }: RecapSaverProps) {
   const { t } = useTranslation()
   const [title, setTitle] = useState('')
   const [genre, setGenre] = useState('')
@@ -35,25 +35,15 @@ export function RecapSaver({ script, videoUrl, customAudioFile, open, onClose }:
     setError('')
 
     try {
-      // Upload the generated video (a local blob: URL, only valid in this tab)
-      // to persistent storage so it can actually be saved and reopened later.
-      // Split into two distinct try/catch blocks on purpose: a raw browser
-      // "Failed to fetch" doesn't say whether the problem is reading the
-      // local blob or reaching Blink's storage API, and those need very
-      // different fixes - this makes the error message tell us which.
+      // Upload the generated video to persistent storage so it can actually
+      // be saved and reopened later. Uses the Blob object handed down from
+      // HomePage directly - it used to re-derive this via fetch(videoUrl),
+      // but a blob: URL depends on the browser's internal blob registry,
+      // which can evict the data (especially on mobile, under memory
+      // pressure or after the tab is backgrounded) well before this
+      // component's own reference to the Blob would be garbage-collected.
+      // Holding the Blob itself sidesteps that failure mode entirely.
       setStage('video')
-      let videoBlob: Blob
-      try {
-        const response = await fetch(videoUrl)
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`)
-        }
-        videoBlob = await response.blob()
-      } catch (e) {
-        console.error('Could not read the generated video from this tab:', e)
-        throw new Error(t('recapSaver.videoReadError'))
-      }
-
       let savedVideoUrl: string
       try {
         const result = await blink.storage.upload(

@@ -51,6 +51,14 @@ export interface FAQ {
 
 export interface RecapOutput {
   videoUrl: string;
+  // The actual generated video data, kept alongside videoUrl (a blob: URL
+  // derived from it) so saving can upload this directly instead of doing
+  // fetch(videoUrl) to re-derive it - a blob: URL depends on the browser's
+  // internal blob registry, which can evict its data (especially on mobile,
+  // under memory pressure or after the tab is backgrounded) well before the
+  // JS object itself would be garbage-collected. Holding the Blob directly
+  // sidesteps that whole failure class.
+  videoBlob: Blob;
   script: string;
   // Set when the user supplied their own MP3 narration - it's already muxed
   // into videoUrl, and kept here so saving can upload the original file as

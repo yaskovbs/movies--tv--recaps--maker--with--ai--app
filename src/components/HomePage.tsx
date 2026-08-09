@@ -506,7 +506,8 @@ const HomePage = ({ apiKey }: HomePageProps) => {
       ]);
 
       const data = await ffmpeg.readFile(outputFileName);
-      const videoUrl = URL.createObjectURL(new Blob([data as unknown as BlobPart], { type: 'video/mp4' }));
+      const videoBlob = new Blob([data as unknown as BlobPart], { type: 'video/mp4' });
+      const videoUrl = URL.createObjectURL(videoBlob);
 
       setProcessingStatus({
         stage: 'generating_script',
@@ -589,6 +590,7 @@ const HomePage = ({ apiKey }: HomePageProps) => {
 
       setRecapOutput({
         videoUrl: videoUrl,
+        videoBlob: videoBlob,
         script: generatedScript,
         customAudioFile: audioFile?.file,
         usedSmartSelection: !!(smartSegments && smartSegments.length > 0),

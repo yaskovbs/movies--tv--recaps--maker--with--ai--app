@@ -201,7 +201,6 @@
     "cancel": "Cancel",
     "save": "Save Recap",
     "savingVideo": "Saving the video...",
-    "videoReadError": "Could not read the generated video from this tab. Try creating the recap again.",
     "videoUploadError": "Could not upload the video to storage. Check your connection and try again.",
     "generatingAudio": "Creating audio...",
     "uploadingAudio": "Uploading your narration...",
