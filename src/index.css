@@ -34,40 +34,48 @@
    * a brighter top edge than bottom edge (the edge catching light), and an
    * inset highlight/shadow pair that gives the pane physical thickness.
    */
+  /* None of these set `position` on purpose. They're compiled after
+     Tailwind's own positioning utilities (.relative/.absolute/.fixed/.sticky),
+     so at equal specificity a `position` here would silently win the cascade
+     and override whatever positioning the host element actually needs -
+     this bit both the sticky header (glass-header) and, worse, the Radix
+     Dialog content and the language-switcher dropdown (both need `fixed`/
+     `absolute` from Tailwind to be positioned - and place/position
+     themselves via their own wrapper, so `relative` was never needed here
+     for the glass effect itself). Use `.glass-shine` below if a component
+     specifically needs a positioning context for the sheen pseudo-element. */
   .glass-bg {
-    @apply relative bg-gradient-to-br from-white/[0.20] via-white/[0.08] to-white/[0.03] backdrop-blur-xl backdrop-saturate-[200%] shadow-[0_8px_32px_0_rgba(0,0,0,0.45),0_0_60px_-20px_rgba(129,140,248,0.5),inset_0_1px_0_0_rgba(255,255,255,0.2),inset_0_-1px_0_0_rgba(0,0,0,0.25)];
+    @apply bg-gradient-to-br from-white/[0.20] via-white/[0.08] to-white/[0.03] backdrop-blur-xl backdrop-saturate-[200%] shadow-[0_8px_32px_0_rgba(0,0,0,0.45),0_0_60px_-20px_rgba(129,140,248,0.5),inset_0_1px_0_0_rgba(255,255,255,0.2),inset_0_-1px_0_0_rgba(0,0,0,0.25)];
   }
   .glass {
-    @apply relative bg-gradient-to-br from-white/[0.20] via-white/[0.08] to-white/[0.03] backdrop-blur-xl backdrop-saturate-[200%] border border-white/15 border-t-white/40 shadow-[0_8px_32px_0_rgba(0,0,0,0.45),0_0_60px_-20px_rgba(129,140,248,0.5),inset_0_1px_0_0_rgba(255,255,255,0.2),inset_0_-1px_0_0_rgba(0,0,0,0.25)];
+    @apply bg-gradient-to-br from-white/[0.20] via-white/[0.08] to-white/[0.03] backdrop-blur-xl backdrop-saturate-[200%] border border-white/15 border-t-white/40 shadow-[0_8px_32px_0_rgba(0,0,0,0.45),0_0_60px_-20px_rgba(129,140,248,0.5),inset_0_1px_0_0_rgba(255,255,255,0.2),inset_0_-1px_0_0_rgba(0,0,0,0.25)];
   }
   .glass-strong {
-    @apply relative bg-gradient-to-br from-white/[0.28] via-white/[0.12] to-white/[0.04] backdrop-blur-2xl backdrop-saturate-[200%] border border-white/20 border-t-white/50 shadow-[0_12px_40px_0_rgba(0,0,0,0.5),0_0_70px_-15px_rgba(129,140,248,0.55),inset_0_1px_0_0_rgba(255,255,255,0.28),inset_0_-1px_0_0_rgba(0,0,0,0.3)];
+    @apply bg-gradient-to-br from-white/[0.28] via-white/[0.12] to-white/[0.04] backdrop-blur-2xl backdrop-saturate-[200%] border border-white/20 border-t-white/50 shadow-[0_12px_40px_0_rgba(0,0,0,0.5),0_0_70px_-15px_rgba(129,140,248,0.55),inset_0_1px_0_0_rgba(255,255,255,0.28),inset_0_-1px_0_0_rgba(0,0,0,0.3)];
   }
   .glass-subtle {
-    @apply relative bg-gradient-to-br from-white/[0.10] via-white/[0.04] to-white/[0.01] backdrop-blur-md border border-white/10 border-t-white/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.12)];
+    @apply bg-gradient-to-br from-white/[0.10] via-white/[0.04] to-white/[0.01] backdrop-blur-md border border-white/10 border-t-white/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.12)];
   }
   .glass-header {
-    /* No `relative` here on purpose: the Header component sets `sticky` itself,
-       and since this class is compiled after Tailwind's own `.sticky` utility,
-       an equal-specificity `position: relative` here would silently win the
-       cascade and break the sticky header. `sticky` already provides its own
-       positioning context, so it isn't needed for the glass effect either. */
     @apply bg-gradient-to-b from-gray-950/60 to-gray-950/40 backdrop-blur-xl backdrop-saturate-[180%] border-b border-white/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.12),0_4px_24px_0_rgba(0,0,0,0.35)];
   }
   .glass-footer {
-    @apply relative bg-gradient-to-t from-gray-950/60 to-gray-950/40 backdrop-blur-xl backdrop-saturate-[180%] border-t border-white/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)];
+    @apply bg-gradient-to-t from-gray-950/60 to-gray-950/40 backdrop-blur-xl backdrop-saturate-[180%] border-t border-white/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)];
   }
   .glass-input {
     @apply bg-white/[0.05] backdrop-blur-sm border border-white/10 border-t-white/20 shadow-[inset_0_1px_2px_0_rgba(0,0,0,0.25)] transition-colors focus:bg-white/[0.08] focus:border-white/25;
   }
 
   /* Diagonal light-sheen streak. Add alongside .glass/.glass-strong on any
-     element with rounded corners + overflow-hidden (or add overflow-hidden
-     here via the element itself) to get a proper glass "shine" catching the
-     light across the panel. Kept as an opt-in class since it needs the host
-     element to clip its own overflow (dropdowns/popovers should skip it). */
+     *static* element with rounded corners to get a proper glass "shine"
+     catching the light across the panel - it needs its own positioning
+     context for the ::before overlay below, which is safe here since this
+     class is only ever meant for plain content panels. Do NOT add this to
+     a Dialog/dropdown or anything else Tailwind positions with `fixed`/
+     `absolute` - `relative` would win the cascade over those the same way
+     it used to on the other glass-* classes above. */
   .glass-shine {
-    @apply overflow-hidden;
+    @apply relative overflow-hidden;
   }
   .glass-shine::before {
     content: '';
