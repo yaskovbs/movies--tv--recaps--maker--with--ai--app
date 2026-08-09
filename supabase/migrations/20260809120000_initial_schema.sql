@@ -6,6 +6,11 @@
 -- production"). If you'd rather set things up by hand instead, copy this file's
 -- contents into Dashboard -> SQL Editor -> New query and run it once - same effect.
 --
+-- Safe to run more than once: every statement below is idempotent (tables/indexes
+-- use IF NOT EXISTS, and policies are dropped before being recreated - CREATE POLICY
+-- itself has no IF NOT EXISTS in Postgres, so re-running a plain CREATE POLICY
+-- twice would otherwise fail with "policy already exists").
+--
 -- Before running this (either way), enable anonymous sign-ins:
 --   Dashboard -> Authentication -> Sign In / Providers -> Anonymous Sign-Ins -> Enable
 -- The site works without anyone creating a real account - every visitor gets a real
@@ -31,18 +36,22 @@ create table if not exists public.recaps (
 
 alter table public.recaps enable row level security;
 
+drop policy if exists "Users can view their own recaps" on public.recaps;
 create policy "Users can view their own recaps"
   on public.recaps for select
   using (auth.uid() = user_id);
 
+drop policy if exists "Users can insert their own recaps" on public.recaps;
 create policy "Users can insert their own recaps"
   on public.recaps for insert
   with check (auth.uid() = user_id);
 
+drop policy if exists "Users can update their own recaps" on public.recaps;
 create policy "Users can update their own recaps"
   on public.recaps for update
   using (auth.uid() = user_id);
 
+drop policy if exists "Users can delete their own recaps" on public.recaps;
 create policy "Users can delete their own recaps"
   on public.recaps for delete
   using (auth.uid() = user_id);
@@ -68,14 +77,17 @@ create table if not exists public.tuning_jobs (
 
 alter table public.tuning_jobs enable row level security;
 
+drop policy if exists "Users can view their own tuning jobs" on public.tuning_jobs;
 create policy "Users can view their own tuning jobs"
   on public.tuning_jobs for select
   using (auth.uid() = user_id);
 
+drop policy if exists "Users can insert their own tuning jobs" on public.tuning_jobs;
 create policy "Users can insert their own tuning jobs"
   on public.tuning_jobs for insert
   with check (auth.uid() = user_id);
 
+drop policy if exists "Users can update their own tuning jobs" on public.tuning_jobs;
 create policy "Users can update their own tuning jobs"
   on public.tuning_jobs for update
   using (auth.uid() = user_id);
@@ -91,10 +103,12 @@ insert into storage.buckets (id, name, public)
 values ('recaps', 'recaps', true)
 on conflict (id) do nothing;
 
+drop policy if exists "Anyone can view recap files" on storage.objects;
 create policy "Anyone can view recap files"
   on storage.objects for select
   using (bucket_id = 'recaps');
 
+drop policy if exists "Signed-in users can upload recap files" on storage.objects;
 create policy "Signed-in users can upload recap files"
   on storage.objects for insert
   with check (bucket_id = 'recaps' and auth.role() = 'authenticated');
