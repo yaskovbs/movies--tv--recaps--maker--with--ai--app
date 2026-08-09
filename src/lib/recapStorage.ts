@@ -1,20 +1,19 @@
-import { blink, RecapRecord } from './blink'
+import { blink, RecapRecord, getEffectiveUserId } from './blink'
 
 const recapsTable = blink.db.table<RecapRecord>('recaps')
 
 export class RecapStorageService {
   /**
-   * Save a recap to the database
+   * Save a recap to the database. Signing in is optional - anonymous users
+   * get a stable per-browser ID (see getEffectiveUserId) instead of being
+   * blocked from saving at all.
    */
   async saveRecap(recap: Omit<RecapRecord, 'id' | 'createdAt'>): Promise<RecapRecord> {
     try {
-      const user = await blink.auth.me()
-      if (!user?.id) {
-        throw new Error('User not authenticated')
-      }
+      const userId = await getEffectiveUserId()
 
       const recapData = {
-        userId: user.id,
+        userId,
         title: recap.title,
         genre: recap.genre || '',
         description: recap.description || '',
@@ -35,17 +34,14 @@ export class RecapStorageService {
   }
 
   /**
-   * Fetch all recaps for current user
+   * Fetch all recaps for the current user (or this browser's anonymous ID).
    */
   async getRecaps(): Promise<RecapRecord[]> {
     try {
-      const user = await blink.auth.me()
-      if (!user?.id) {
-        throw new Error('User not authenticated')
-      }
+      const userId = await getEffectiveUserId()
 
       const recaps = await recapsTable.list({
-        where: { userId: user.id },
+        where: { userId },
         orderBy: { createdAt: 'desc' }
       })
 
@@ -86,16 +82,15 @@ export class RecapStorageService {
    * examples when generating a new script - a lightweight way for the app to
    * improve from actual usage over time without retraining Gemini itself.
    * Prefers recaps matching the given genre. Non-fatal: returns an empty
-   * array (instead of throwing) if the user isn't authenticated yet or has
-   * no rated recaps - this is a nice-to-have, not a requirement.
+   * array (instead of throwing) if there are no rated recaps yet - this is a
+   * nice-to-have, not a requirement.
    */
   async getGoodExamples(genre: string, limit = 3): Promise<RecapRecord[]> {
     try {
-      const user = await blink.auth.me()
-      if (!user?.id) return []
+      const userId = await getEffectiveUserId()
 
       const recaps = await recapsTable.list({
-        where: { userId: user.id, rating: 'up' },
+        where: { userId, rating: 'up' },
         orderBy: { createdAt: 'desc' },
         limit: 20,
       }) as RecapRecord[]

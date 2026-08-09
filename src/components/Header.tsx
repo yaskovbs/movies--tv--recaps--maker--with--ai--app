@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { Film, Key, Menu, X, FileText, Shield, HelpCircle } from 'lucide-react'
 import LanguageSwitcher from './LanguageSwitcher'
+import AuthPanel from './AuthPanel'
 
 interface HeaderProps {
   apiKey: string
@@ -64,14 +65,15 @@ const Header = ({ apiKey, onApiKeyChange }: HeaderProps) => {
           {/* כפתור API Key + שפה */}
           <div className="flex items-center space-x-2 space-x-reverse">
             <LanguageSwitcher />
+            <AuthPanel />
             <motion.button
               onClick={() => setShowApiInput(!showApiInput)}
               className="flex items-center px-3 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Key className="h-4 w-4 ml-2" />
-              <span className="text-sm">{t('header.apiKeyButton')}</span>
+              <Key className="h-4 w-4 sm:ml-2" />
+              <span className="hidden sm:inline text-sm">{t('header.apiKeyButton')}</span>
             </motion.button>
 
             {/* תפריט מובייל */}

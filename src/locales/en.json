@@ -362,5 +362,20 @@
     "privacyBodySuffix": " to understand how we collect and use information.",
     "changesHeading": "7. Changes to the Terms",
     "changesBody": "We reserve the right to update these Terms of Service from time to time. Continued use of the Service after an update constitutes acceptance of the new terms."
+  },
+  "auth": {
+    "signInButton": "Sign In",
+    "signUpButton": "Create Account",
+    "signInTitle": "Sign in",
+    "signUpTitle": "Create an account",
+    "optionalHint": "Totally optional - the site works without signing in. Sign in only if you want your history to follow you across devices.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "At least 8 characters",
+    "switchToSignUp": "Don't have an account? Create one",
+    "switchToSignIn": "Already have an account? Sign in",
+    "signOut": "Sign out",
+    "genericError": "Something went wrong. Please try again."
   }
 }

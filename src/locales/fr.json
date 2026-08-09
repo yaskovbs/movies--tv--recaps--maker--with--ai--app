@@ -362,5 +362,20 @@
     "privacyBodySuffix": " pour comprendre comment nous collectons et utilisons les informations.",
     "changesHeading": "7. Modifications des conditions",
     "changesBody": "Nous nous réservons le droit de mettre à jour ces Conditions d'utilisation de temps à autre. La poursuite de l'utilisation du Service après une mise à jour constitue une acceptation des nouvelles conditions."
+  },
+  "auth": {
+    "signInButton": "Se connecter",
+    "signUpButton": "Créer un compte",
+    "signInTitle": "Connexion",
+    "signUpTitle": "Créer un compte",
+    "optionalHint": "Totalement facultatif - le site fonctionne sans connexion. Connectez-vous seulement si vous voulez que votre historique vous suive sur tous vos appareils.",
+    "emailLabel": "E-mail",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "Mot de passe",
+    "passwordPlaceholder": "8 caractères minimum",
+    "switchToSignUp": "Pas de compte ? Créez-en un",
+    "switchToSignIn": "Déjà un compte ? Connectez-vous",
+    "signOut": "Se déconnecter",
+    "genericError": "Une erreur s'est produite. Veuillez réessayer."
   }
 }

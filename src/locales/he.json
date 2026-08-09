@@ -362,5 +362,20 @@
     "privacyBodySuffix": " שלנו כדי להבין כיצד אנו אוספים ומשתמשים במידע.",
     "changesHeading": "7. שינויים בתנאים",
     "changesBody": "אנו שומרים לעצמנו את הזכות לעדכן תנאי שימוש אלה מעת לעת. המשך השימוש בשירות לאחר עדכון מהווה הסכמה לתנאים החדשים."
+  },
+  "auth": {
+    "signInButton": "התחברות",
+    "signUpButton": "יצירת חשבון",
+    "signInTitle": "התחברות",
+    "signUpTitle": "יצירת חשבון",
+    "optionalHint": "לגמרי אופציונלי - האתר עובד גם בלי התחברות. התחברו רק אם תרצו שההיסטוריה שלכם תעקוב אחריכם בין מכשירים.",
+    "emailLabel": "אימייל",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "סיסמה",
+    "passwordPlaceholder": "לפחות 8 תווים",
+    "switchToSignUp": "אין לכם חשבון? צרו אחד",
+    "switchToSignIn": "כבר יש לכם חשבון? התחברו",
+    "signOut": "התנתקות",
+    "genericError": "משהו השתבש. אנא נסו שוב."
   }
 }

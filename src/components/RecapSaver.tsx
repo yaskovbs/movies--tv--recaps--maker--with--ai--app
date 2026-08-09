@@ -74,7 +74,9 @@ export function RecapSaver({ script, videoUrl, customAudioFile, open, onClose }:
       // Save recap to database
       setStage('saving')
       await recapStorageService.saveRecap({
-        userId: (await blink.auth.me())?.id || 'anonymous',
+        // recapStorageService.saveRecap resolves the real userId itself
+        // (signed-in user, or a per-browser anonymous ID) - this is ignored.
+        userId: '',
         title,
         genre: genre || '',
         description: description || '',
