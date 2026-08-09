@@ -1,4 +1,4 @@
-import { blink, TuningJobRecord, RecapRecord, getCurrentUser } from './blink'
+import { supabase, ensureSession, isPermanentUser, TuningJobRecord, TuningJobRow, RecapRecord, tuningJobRowToRecord } from './supabase'
 
 // Step 2 of "learning from usage": once a user has accumulated enough
 // "up"-rated recaps (see recapStorage.ts / step 1's few-shot examples), this
@@ -16,8 +16,6 @@ import { blink, TuningJobRecord, RecapRecord, getCurrentUser } from './blink'
 // non-fatally and report a clear reason rather than break anything, exactly
 // like the video/audio Gemini File API calls elsewhere in this file's sibling
 // (HomePage.tsx).
-
-const tuningJobsTable = blink.db.table<TuningJobRecord>('tuning_jobs')
 
 export const MIN_EXAMPLES_FOR_TUNING = 15
 
@@ -51,15 +49,16 @@ async function findTunableBaseModel(apiKey: string): Promise<string | undefined>
 
 /**
  * Starts a fine-tuning job from this user's "up"-rated recaps and records it
- * in Blink DB so its progress can be checked later. Throws with a clear
+ * in the database so its progress can be checked later. Throws with a clear
  * message on failure - callers should show that message, not silently retry.
  */
 export async function startTuningJob(apiKey: string, examples: RecapRecord[]): Promise<TuningJobRecord> {
   // Training runs for minutes to hours, so unlike saving/rating recaps this
-  // one specifically asks for a real signed-in account rather than this
-  // browser's anonymous ID, so the job can reliably be checked on later.
-  const user = await getCurrentUser()
-  if (!user?.id) {
+  // one specifically asks for a real signed-in account rather than the
+  // automatic anonymous session, so the job can reliably be checked on later
+  // even if this browser's local session is ever lost.
+  const user = await ensureSession()
+  if (!isPermanentUser(user)) {
     throw new Error('You need to be signed in to train a personalized model.')
   }
   if (examples.length < MIN_EXAMPLES_FOR_TUNING) {
@@ -102,26 +101,39 @@ export async function startTuningJob(apiKey: string, examples: RecapRecord[]): P
     throw new Error('Gemini did not return a tuning operation to track.')
   }
 
-  return tuningJobsTable.create({
-    userId: user.id,
-    operationName: operation.name,
-    baseModel,
-    exampleCount: examples.length,
-    status: 'training',
-    createdAt: new Date().toISOString(),
-  })
+  const { data, error } = await supabase
+    .from('tuning_jobs')
+    .insert({
+      user_id: user!.id,
+      operation_name: operation.name,
+      base_model: baseModel,
+      example_count: examples.length,
+      status: 'training',
+    })
+    .select()
+    .single()
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return tuningJobRowToRecord(data as TuningJobRow)
 }
 
 /** Fetches this user's most recent tuning job, if any. */
 export async function getLatestTuningJob(): Promise<TuningJobRecord | null> {
-  const user = await getCurrentUser()
-  if (!user?.id) return null
-  const jobs = await tuningJobsTable.list({
-    where: { userId: user.id },
-    orderBy: { createdAt: 'desc' },
-    limit: 1,
-  })
-  return jobs[0] || null
+  const user = await ensureSession()
+  if (!isPermanentUser(user)) return null
+
+  const { data, error } = await supabase
+    .from('tuning_jobs')
+    .select()
+    .eq('user_id', user!.id)
+    .order('created_at', { ascending: false })
+    .limit(1)
+
+  if (error || !data || data.length === 0) return null
+  return tuningJobRowToRecord(data[0] as TuningJobRow)
 }
 
 /**
@@ -145,23 +157,34 @@ export async function refreshTuningJobStatus(job: TuningJobRecord, apiKey: strin
     if (!operation.done) return job
 
     if (operation.error) {
-      return tuningJobsTable.update(job.id, {
+      return updateTuningJob(job.id, {
         status: 'failed',
-        errorMessage: operation.error.message || 'Training failed for an unknown reason.',
+        error_message: operation.error.message || 'Training failed for an unknown reason.',
       })
     }
 
     const tunedModelName = operation.response?.name || operation.metadata?.tunedModel
     if (!tunedModelName) {
-      return tuningJobsTable.update(job.id, {
+      return updateTuningJob(job.id, {
         status: 'failed',
-        errorMessage: 'Training finished but did not return a usable model.',
+        error_message: 'Training finished but did not return a usable model.',
       })
     }
 
-    return tuningJobsTable.update(job.id, { status: 'ready', tunedModelName })
+    return updateTuningJob(job.id, { status: 'ready', tuned_model_name: tunedModelName })
   } catch (error) {
     console.warn('Could not refresh tuning job status:', error)
     return job
   }
+}
+
+async function updateTuningJob(
+  id: string,
+  updates: Partial<Pick<TuningJobRow, 'status' | 'tuned_model_name' | 'error_message'>>
+): Promise<TuningJobRecord> {
+  const { data, error } = await supabase.from('tuning_jobs').update(updates).eq('id', id).select().single()
+  if (error) {
+    throw new Error(error.message)
+  }
+  return tuningJobRowToRecord(data as TuningJobRow)
 }

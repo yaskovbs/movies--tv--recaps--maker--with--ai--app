@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { RecapRecord, TuningJobRecord } from '../lib/blink'
+import { RecapRecord, TuningJobRecord } from '../lib/supabase'
 import { recapStorageService } from '../lib/recapStorage'
 import { startTuningJob, getLatestTuningJob, refreshTuningJobStatus, MIN_EXAMPLES_FOR_TUNING } from '../lib/geminiTuning'
 import { Button } from './ui/button'

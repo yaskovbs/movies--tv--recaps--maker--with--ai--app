@@ -60,16 +60,23 @@ npm run dev
 
 לאחר מכן פתחו בדפדפן את הכתובת שמוצגת בטרמינל (בדרך כלל `http://localhost:5173`).
 
-### משתני סביבה
+### הגדרת Supabase (שמירת סיכומים, היסטוריה, התחברות)
 
-לפיתוח מקומי אפשר להעתיק את `.env.example` לקובץ `.env.local` (הפרויקט משתמש ב-Blink SDK לאחסון היסטוריית הסיכומים):
+הפרויקט משתמש ב-[Supabase](https://supabase.com) (חינמי) לשמירת סיכומים, היסטוריה, דירוגים והתחברות אופציונלית. בלי זה האתר עדיין עובד ליצירת סיכומים — רק השמירה/היסטוריה/התחברות לא יפעלו.
+
+1. צרו פרויקט חינמי ב-[supabase.com](https://supabase.com).
+2. **הפעילו התחברות אנונימית** (חובה): Dashboard → Authentication → Sign In / Providers → Anonymous Sign-Ins → Enable. זה מה שנותן לכל מבקר זהות אמיתית לשמירה בלי להירשם.
+3. הריצו את קובץ [`supabase-schema.sql`](supabase-schema.sql) שבשורש הפרויקט דרך Dashboard → SQL Editor → New query (יוצר את טבלאות `recaps` ו-`tuning_jobs` + bucket אחסון ציבורי בשם `recaps`, כולל כל מדיניות ה-RLS הנדרשת).
+4. העתיקו את ה-URL ומפתח ה-anon של הפרויקט (Dashboard → Settings → API) לקובץ `.env.local` (העתיקו מ-`.env.example`):
 
 ```env
-VITE_BLINK_PROJECT_ID=your-blink-project-id
-VITE_BLINK_PUBLISHABLE_KEY=your-blink-publishable-key
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
 מפתח ה-Gemini AI **לא** מוגדר כמשתנה סביבה — הוא מוזן ישירות על ידי כל משתמש דרך ממשק האתר ונשמר רק בזיכרון הדפדפן שלו.
+
+> **הערה:** אין עוד תמיכה בהקראת טקסט אוטומטית (TTS) לסיכומים שלא כוללים קובץ MP3 משלכם — Supabase (בשונה מהפתרון הקודם) לא כולל שירות כזה מובנה.
 
 ## ☁️ פריסה ל-Cloudflare Pages
 
@@ -82,8 +89,8 @@ VITE_BLINK_PUBLISHABLE_KEY=your-blink-publishable-key
 משתני הסביבה הנדרשים (בלוח הבקרה של Cloudflare Pages, תחת Settings → Environment variables):
 
 ```env
-VITE_BLINK_PROJECT_ID=...
-VITE_BLINK_PUBLISHABLE_KEY=...
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
 ```
 
 לפריסה משורת הפקודה, לאחר `npm install`:
@@ -102,7 +109,7 @@ npm run deploy
 | עיצוב | Tailwind CSS, Framer Motion, Radix UI |
 | עיבוד וידאו | FFmpeg.wasm (WebAssembly, בדפדפן) |
 | בינה מלאכותית | Google Gemini (יצירת תסריט + חיפוש מידע אופציונלי) |
-| אחסון/היסטוריה | Blink SDK (מסד נתונים + אחסון קבצים) |
+| אחסון/היסטוריה/התחברות | Supabase (מסד נתונים Postgres + אחסון קבצים + Auth) |
 | תרגום (i18n) | i18next, react-i18next, i18next-browser-languagedetector |
 | פריסה | Cloudflare Pages (Wrangler) |
 | פרסום | Google AdSense |
@@ -126,8 +133,9 @@ src/
 │   └── config.ts            # אתחול i18next + זיהוי שפה + RTL/LTR
 ├── locales/                 # קבצי תרגום: en / he / ru / ar / es / fr
 ├── lib/
-│   ├── blink.ts             # לקוח Blink SDK
+│   ├── supabase.ts          # לקוח Supabase + עזרי אימות/סוגים
 │   ├── recapStorage.ts      # שמירת/טעינת סיכומים
+│   ├── geminiTuning.ts      # Fine-tuning אישי מבוסס Gemini
 │   └── localStorage.ts      # סטטיסטיקות מקומיות
 ├── types/
 │   └── index.ts
@@ -160,7 +168,7 @@ src/
 
 - קובצי הווידאו מעובדים מקומית בדפדפן ואינם מועלים לשרת.
 - מפתח ה-Gemini API נשלח ישירות מהדפדפן ל-Google ואינו נשמר בצד שרת.
-- סיכומים שנשמרים (וידאו, אודיו, תסריט) מאוחסנים דרך Blink Storage לפי בחירת המשתמש בלבד.
+- סיכומים שנשמרים (וידאו, אודיו, תסריט) מאוחסנים דרך Supabase לפי בחירת המשתמש בלבד. בלי התחברות, כל מבקר מקבל זהות אנונימית פרטית (Supabase Anonymous Auth) - ההיסטוריה שלו לא נגישה למבקרים אחרים.
 - פירוט מלא בעמודי [מדיניות הפרטיות](/privacy) ו[תנאי השימוש](/terms) שבתוך האתר.
 
 ## 📄 רישיון

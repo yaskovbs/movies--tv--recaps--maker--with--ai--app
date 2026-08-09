@@ -13,7 +13,7 @@ import ResultsSection from './ResultsSection'
 import { localStorageService } from '../lib/localStorage'
 import { recapStorageService } from '../lib/recapStorage'
 import { getLatestTuningJob } from '../lib/geminiTuning'
-import type { RecapRecord } from '../lib/blink'
+import type { RecapRecord } from '../lib/supabase'
 import type { VideoFile, AudioFile, RecapSettings as RecapSettingsType, ProcessingStatus as ProcessingStatusType, RecapOutput } from '../types'
 
 interface HomePageProps {

@@ -1,66 +1,71 @@
-import { blink, RecapRecord, getEffectiveUserId } from './blink'
-
-const recapsTable = blink.db.table<RecapRecord>('recaps')
+import { supabase, ensureSession, RecapRecord, RecapRow, recapRowToRecord } from './supabase'
 
 export class RecapStorageService {
   /**
-   * Save a recap to the database. Signing in is optional - anonymous users
-   * get a stable per-browser ID (see getEffectiveUserId) instead of being
-   * blocked from saving at all.
+   * Save a recap to the database. Signing in is optional - ensureSession()
+   * transparently gets (or creates) a real, if anonymous, Supabase user so
+   * this always has somewhere to save to.
    */
-  async saveRecap(recap: Omit<RecapRecord, 'id' | 'createdAt'>): Promise<RecapRecord> {
-    try {
-      const userId = await getEffectiveUserId()
-
-      const recapData = {
-        userId,
-        title: recap.title,
-        genre: recap.genre || '',
-        description: recap.description || '',
-        scriptText: recap.scriptText,
-        videoUrl: recap.videoUrl || '',
-        audioUrl: recap.audioUrl || '',
-        duration: recap.duration || 0,
-        cutInterval: recap.cutInterval || 0,
-        createdAt: new Date().toISOString()
-      }
-
-      const savedRecap = await recapsTable.create(recapData)
-      return savedRecap as RecapRecord
-    } catch (error) {
-      console.error('Failed to save recap:', error)
-      throw error
+  async saveRecap(recap: Omit<RecapRecord, 'id' | 'createdAt' | 'userId'>): Promise<RecapRecord> {
+    const user = await ensureSession()
+    if (!user) {
+      throw new Error('Could not establish a session to save under. Please try again.')
     }
+
+    const { data, error } = await supabase
+      .from('recaps')
+      .insert({
+        user_id: user.id,
+        title: recap.title,
+        genre: recap.genre || null,
+        description: recap.description || null,
+        script_text: recap.scriptText,
+        video_url: recap.videoUrl || null,
+        audio_url: recap.audioUrl || null,
+        duration: recap.duration || 0,
+        cut_interval: recap.cutInterval || 0,
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Failed to save recap:', error)
+      throw new Error(error.message)
+    }
+
+    return recapRowToRecord(data as RecapRow)
   }
 
   /**
-   * Fetch all recaps for the current user (or this browser's anonymous ID).
+   * Fetch all recaps for the current user (signed-in, or this session's
+   * anonymous identity).
    */
   async getRecaps(): Promise<RecapRecord[]> {
-    try {
-      const userId = await getEffectiveUserId()
+    const user = await ensureSession()
+    if (!user) return []
 
-      const recaps = await recapsTable.list({
-        where: { userId },
-        orderBy: { createdAt: 'desc' }
-      })
+    const { data, error } = await supabase
+      .from('recaps')
+      .select()
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
 
-      return recaps as RecapRecord[]
-    } catch (error) {
+    if (error) {
       console.error('Failed to fetch recaps:', error)
-      throw error
+      throw new Error(error.message)
     }
+
+    return (data as RecapRow[]).map(recapRowToRecord)
   }
 
   /**
-   * Delete a recap from the database
+   * Delete a recap from the database.
    */
   async deleteRecap(recapId: string): Promise<void> {
-    try {
-      await recapsTable.delete(recapId)
-    } catch (error) {
+    const { error } = await supabase.from('recaps').delete().eq('id', recapId)
+    if (error) {
       console.error('Failed to delete recap:', error)
-      throw error
+      throw new Error(error.message)
     }
   }
 
@@ -69,11 +74,10 @@ export class RecapStorageService {
    * for getGoodExamples() below.
    */
   async rateRecap(recapId: string, rating: 'up' | 'down'): Promise<void> {
-    try {
-      await recapsTable.update(recapId, { rating })
-    } catch (error) {
+    const { error } = await supabase.from('recaps').update({ rating }).eq('id', recapId)
+    if (error) {
       console.error('Failed to rate recap:', error)
-      throw error
+      throw new Error(error.message)
     }
   }
 
@@ -87,14 +91,20 @@ export class RecapStorageService {
    */
   async getGoodExamples(genre: string, limit = 3): Promise<RecapRecord[]> {
     try {
-      const userId = await getEffectiveUserId()
+      const user = await ensureSession()
+      if (!user) return []
 
-      const recaps = await recapsTable.list({
-        where: { userId, rating: 'up' },
-        orderBy: { createdAt: 'desc' },
-        limit: 20,
-      }) as RecapRecord[]
+      const { data, error } = await supabase
+        .from('recaps')
+        .select()
+        .eq('user_id', user.id)
+        .eq('rating', 'up')
+        .order('created_at', { ascending: false })
+        .limit(20)
 
+      if (error) throw error
+
+      const recaps = (data as RecapRow[]).map(recapRowToRecord)
       const sameGenre = genre ? recaps.filter(r => r.genre === genre) : []
       const rest = recaps.filter(r => !sameGenre.includes(r))
       return [...sameGenre, ...rest].slice(0, limit)
