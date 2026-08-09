@@ -45,6 +45,12 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - `RecapSaver` was hardcoding `videoUrl: ''` — the generated video was never actually persisted, only the script and optional audio. It now uploads the video (fetched back from its local `blob:` URL) to Blink's persistent storage via `blink.storage.upload()` before saving the record, with the save button showing which stage it's in (uploading video / generating audio / saving).
 - `HistoryPage` now shows a playable `<video>` preview and a download button for recaps that have a saved video.
 
+## Optional custom voice-over (MP3)
+
+- Added an optional MP3 upload step (`AudioUploader`, shown right after the video picker, before recap creation). If provided, it's muxed directly into the FFmpeg output as the recap's audio track (`-map 0:v -map 1:a -c:a aac -shortest`) instead of the recap staying silent (`-an`).
+- `RecapSaver` now uploads that same original MP3 as the saved recap's `audioUrl` instead of generating a second, different-sounding text-to-speech narration - so History's existing "play/download audio" controls play back the user's actual narration when one was provided, matching what's embedded in the video.
+- Fully translated across all 6 languages.
+
 ## Google AdSense
 
 - Added the AdSense loader script to `index.html`'s `<head>`. Since this is a single-page app, one `index.html` serves every route, so this covers the whole site automatically.

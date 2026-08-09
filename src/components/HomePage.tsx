@@ -5,12 +5,13 @@ import { Play, Users, Zap, Shield, Cpu } from 'lucide-react'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { toBlobURL } from '@ffmpeg/util'
 import VideoUploader from './VideoUploader'
+import AudioUploader from './AudioUploader'
 import RecapSettings from './RecapSettings'
 import ProcessingStatus from './ProcessingStatus'
 import StatsSection from './StatsSection'
 import ResultsSection from './ResultsSection'
 import { localStorageService } from '../lib/localStorage'
-import type { VideoFile, RecapSettings as RecapSettingsType, ProcessingStatus as ProcessingStatusType, RecapOutput } from '../types'
+import type { VideoFile, AudioFile, RecapSettings as RecapSettingsType, ProcessingStatus as ProcessingStatusType, RecapOutput } from '../types'
 
 interface HomePageProps {
   apiKey: string
@@ -127,6 +128,7 @@ async function searchWebForMovieInfo(title: string, genre: string, apiKey: strin
 const HomePage = ({ apiKey }: HomePageProps) => {
   const { t, i18n } = useTranslation()
   const [selectedFile, setSelectedFile] = useState<VideoFile | null>(null)
+  const [audioFile, setAudioFile] = useState<AudioFile | null>(null)
   const [settings, setSettings] = useState<RecapSettingsType>({
     duration: 30,
     intervalSeconds: 8,
@@ -215,21 +217,28 @@ const HomePage = ({ apiKey }: HomePageProps) => {
         throw new Error(t('home.alerts.fileNotRead'));
       }
       await ffmpeg.writeFile(selectedFile.name, selectedFile.buffer);
+      if (audioFile) {
+        await ffmpeg.writeFile(audioFile.name, audioFile.buffer);
+      }
 
       const outputFileName = 'recap.mp4';
       const selectFilter = `select='lt(mod(t,${settings.intervalSeconds}),${settings.captureSeconds})',setpts=N/FRAME_RATE/TB`;
       // Cap resolution and use a fast x264 preset - recap clips don't need full
       // source resolution or the default "medium" preset's quality, and both cuts
       // are large speed wins for a software encoder running in-browser.
+      // When the user supplied their own MP3 narration, mux it in as the second
+      // input's audio stream instead of leaving the recap silent (-an).
       await ffmpeg.exec([
         '-i', selectedFile.name,
+        ...(audioFile ? ['-i', audioFile.name] : []),
         '-vf', `${selectFilter},scale='min(1280,iw)':-2`,
-        '-an',
+        ...(audioFile ? ['-map', '0:v', '-map', '1:a', '-c:a', 'aac', '-b:a', '192k'] : ['-an']),
         '-c:v', 'libx264',
         '-preset', 'veryfast',
         '-crf', '26',
         '-movflags', '+faststart',
         '-t', `${settings.duration}`,
+        ...(audioFile ? ['-shortest'] : []),
         '-y',
         outputFileName
       ]);
@@ -285,12 +294,16 @@ const HomePage = ({ apiKey }: HomePageProps) => {
       setRecapOutput({
         videoUrl: videoUrl,
         script: generatedScript,
+        customAudioFile: audioFile?.file,
       });
 
       // Increment the counter locally
       await localStorageService.incrementRecapsCreated();
 
       await ffmpeg.deleteFile(selectedFile.name);
+      if (audioFile) {
+        await ffmpeg.deleteFile(audioFile.name);
+      }
       await ffmpeg.deleteFile(outputFileName);
 
     } catch (error: unknown) {
@@ -390,6 +403,11 @@ const HomePage = ({ apiKey }: HomePageProps) => {
               selectedFile={selectedFile}
               onFileSelect={setSelectedFile}
               onRemoveFile={() => setSelectedFile(null)}
+            />
+            <AudioUploader
+              selectedFile={audioFile}
+              onFileSelect={setAudioFile}
+              onRemoveFile={() => setAudioFile(null)}
             />
             <RecapSettings settings={settings} onSettingsChange={setSettings} videoDuration={selectedFile?.duration} />
             <motion.button

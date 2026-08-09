@@ -88,6 +88,19 @@
     "readSuccess": "נקרא בהצלחה",
     "duration": "משך:"
   },
+  "audioUploader": {
+    "title": "הוסף קובץ קריינות (אופציונלי)",
+    "subtitle": "גרור ושחרר קובץ MP3 או לחץ לבחירה",
+    "hint": "אם תעלה קובץ, הוא ישמש כפס הקול של הסיכום במקום שהווידאו יישאר שקט.",
+    "supportedFormats": "קבצים נתמכים:",
+    "maxSize": "גודל מקסימלי:",
+    "readingTitle": "קורא את קובץ האודיו...",
+    "readingSubtitle": "אנא המתן",
+    "unsupportedFormat": "סוג קובץ לא נתמך. קבצים נתמכים: {{formats}}",
+    "fileTooLarge": "הקובץ גדול מדי. גודל מקסימלי: 100MB",
+    "readError": "לא ניתן לקרוא את קובץ האודיו. אנא נסה שוב.",
+    "readSuccess": "נקרא בהצלחה"
+  },
   "recapSettings": {
     "title": "הגדרות סיכום",
     "movieTitleLabel": "כותרת הסרט/סדרה *",
@@ -184,6 +197,7 @@
     "save": "שמור סיכום",
     "savingVideo": "שומר את הסרטון...",
     "generatingAudio": "יוצר אודיו...",
+    "uploadingAudio": "מעלה את הקריינות שלך...",
     "saving": "שומר...",
     "titleRequired": "נא להזין כותרת",
     "saveError": "שגיאה בשמירת הסיכום"
