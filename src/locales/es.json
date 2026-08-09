@@ -220,7 +220,18 @@
     "rateGoodHint": "Calificar como bueno - los futuros guiones aprenderán de este",
     "rateBad": "Calificar como malo",
     "delete": "Eliminar",
-    "loading": "Cargando tu historial..."
+    "loading": "Cargando tu historial...",
+    "tuning": {
+      "title": "Modelo de IA personalizado",
+      "description": "Una vez que hayas calificado suficientes resúmenes como \"bueno\", podrás entrenar un modelo Gemini ajustado a tus propios guiones exitosos - los resúmenes futuros lo usarán automáticamente en lugar del modelo base (para resúmenes sin archivo de video/audio adjunto).",
+      "progress": "Se necesitan {{count}}/{{min}} resúmenes calificados como \"bueno\" para empezar el entrenamiento.",
+      "startButton": "Iniciar entrenamiento",
+      "apiKeyRequired": "Primero ingresa tu clave de API de Gemini (arriba a la derecha).",
+      "startError": "No se pudo iniciar el entrenamiento.",
+      "training": "Entrenamiento en curso - esto puede tardar un tiempo. Vuelve a comprobarlo más tarde.",
+      "ready": "¡Listo! Tu modelo personalizado ahora se usa automáticamente para los nuevos resúmenes.",
+      "failed": "El entrenamiento falló"
+    }
   },
   "contactPage": {
     "title": "Contacto",

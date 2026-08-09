@@ -220,7 +220,18 @@
     "rateGoodHint": "Rate good - future scripts will learn from this one",
     "rateBad": "Rate bad",
     "delete": "Delete",
-    "loading": "Loading your history..."
+    "loading": "Loading your history...",
+    "tuning": {
+      "title": "Personalized AI model",
+      "description": "Once you've rated enough recaps \"up\", you can train a Gemini model fine-tuned on your own successful scripts - future recaps will then use it automatically instead of the base model (for recaps without an attached video/audio file).",
+      "progress": "{{count}}/{{min}} recaps rated \"up\" needed to start training.",
+      "startButton": "Start training",
+      "apiKeyRequired": "Enter your Gemini API key first (top right).",
+      "startError": "Could not start training.",
+      "training": "Training in progress - this can take a while. Check back later.",
+      "ready": "Ready! Your personalized model is now used automatically for new recaps.",
+      "failed": "Training failed"
+    }
   },
   "contactPage": {
     "title": "Contact",

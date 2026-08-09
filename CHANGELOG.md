@@ -61,11 +61,18 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - Added a new "analyzing video" processing stage, and a small badge on the results video ("Gemini watched the video and picked these moments") shown when the smart selection was actually used. Translated across all 6 languages.
 - Verified the new `between(t,...)` OR'd select-filter syntax and the JSON/timestamp-parsing + trim-to-target logic against a real ffmpeg binary and synthetic Gemini-shaped responses before wiring it into the FFmpeg.wasm call.
 
-## Learning from usage over time (lightweight, step 1 of 2)
+## Learning from usage over time (step 1: rating + few-shot examples)
 
 - Gemini's actual model can't be made to learn automatically from this app's usage - the public API has no such hook. What's implemented instead is a real, working improvement loop entirely within the app: a 👍/👎 rating on each saved recap in History (`recapStorageService.rateRecap`), and `recapStorageService.getGoodExamples()`, which pulls a user's own "up"-rated past recaps (preferring the same genre) and feeds their scripts into the prompt as few-shot examples for that user's next recap - so the app actually improves from what a user has personally found good, without needing to retrain or fine-tune anything.
 - Non-fatal and per-user: if the user isn't authenticated or has no rated recaps yet, this silently contributes nothing extra to the prompt - no behavior change.
-- Planned step 2 (not yet built): once enough rated examples accumulate, periodically run a real Gemini fine-tuning job on the collected data for a model genuinely trained on this app's own successful recaps, rather than only steering it via the prompt.
+
+## Learning from usage over time (step 2: real fine-tuning)
+
+- Added `src/lib/geminiTuning.ts` and a "Personalized AI model" card at the top of History. Once a user has 15+ recaps rated "up", they can click "Start training" to kick off a real Gemini supervised fine-tuning job (`POST /v1beta/tunedModels`) using those recaps as training data (title/genre/description → script pairs), authenticated with their own API key - no separate Google Cloud project or service account needed.
+- The base model to tune is discovered dynamically (`GET /v1beta/models`, filtered for `supportedGenerationMethods` containing `createTunedModel`) rather than hardcoded, since tuning support varies by API key/project.
+- Training is a genuinely long-running job (minutes to hours), so this doesn't block the UI - History checks the job's status once whenever it loads (`refreshTuningJobStatus`, tracked in a new `tuning_jobs` Blink DB table) rather than polling in a loop. Once a job reports `ready`, `HomePage` automatically uses that tuned model (`tunedModels/xxx`) instead of the base model for future script generation - but only for recaps with no attached video/audio file, since the tuned model comes from a text-only pipeline and isn't expected to handle multimodal `file_data` parts reliably.
+- **Known uncertainty, called out explicitly**: Google's fine-tuning story has been shifting toward its Vertex AI / "Gemini Enterprise" platform (GCP project + service-account auth), which this app's simple "paste your API key" model can't use. The plain API-key `tunedModels` endpoint this code targets does still exist per Google's public API definitions as of this writing, but it may only support certain base models, may be restricted for some projects, or could be phased out over time. Every step here (base-model discovery, job creation, status polling) is written to fail non-fatally with a clear error rather than break anything - if tuning isn't available for a given API key, the app simply keeps using step 1's few-shot approach.
+- Fully translated across all 6 languages (key parity verified against en.json).
 
 ## Google AdSense
 
