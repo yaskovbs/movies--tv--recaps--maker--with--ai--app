@@ -126,7 +126,7 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
     <>
       <RecapSaver
         script={output.script}
-        videoUrl={output.videoUrl}
+        videoBlob={output.videoBlob}
         customAudioFile={output.customAudioFile}
         open={showSaver}
         onClose={() => setShowSaver(false)}
