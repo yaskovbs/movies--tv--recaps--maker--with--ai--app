@@ -201,6 +201,8 @@
     "cancel": "Annuler",
     "save": "Enregistrer le résumé",
     "savingVideo": "Enregistrement de la vidéo...",
+    "videoReadError": "Impossible de lire la vidéo générée depuis cet onglet. Essayez de recréer le résumé.",
+    "videoUploadError": "Impossible de télécharger la vidéo vers le stockage. Vérifiez votre connexion et réessayez.",
     "generatingAudio": "Création de l'audio...",
     "uploadingAudio": "Téléchargement de votre narration...",
     "saving": "Enregistrement...",

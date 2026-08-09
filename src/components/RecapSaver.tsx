@@ -37,12 +37,34 @@ export function RecapSaver({ script, videoUrl, customAudioFile, open, onClose }:
     try {
       // Upload the generated video (a local blob: URL, only valid in this tab)
       // to persistent storage so it can actually be saved and reopened later.
+      // Split into two distinct try/catch blocks on purpose: a raw browser
+      // "Failed to fetch" doesn't say whether the problem is reading the
+      // local blob or reaching Blink's storage API, and those need very
+      // different fixes - this makes the error message tell us which.
       setStage('video')
-      const videoBlob = await (await fetch(videoUrl)).blob()
-      const { publicUrl: savedVideoUrl } = await blink.storage.upload(
-        videoBlob,
-        `recaps/${Date.now()}-${title.trim().replace(/[^\w\-א-ת]+/g, '_')}.mp4`
-      )
+      let videoBlob: Blob
+      try {
+        const response = await fetch(videoUrl)
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`)
+        }
+        videoBlob = await response.blob()
+      } catch (e) {
+        console.error('Could not read the generated video from this tab:', e)
+        throw new Error(t('recapSaver.videoReadError'))
+      }
+
+      let savedVideoUrl: string
+      try {
+        const result = await blink.storage.upload(
+          videoBlob,
+          `recaps/${Date.now()}-${title.trim().replace(/[^\w\-א-ת]+/g, '_')}.mp4`
+        )
+        savedVideoUrl = result.publicUrl
+      } catch (e) {
+        console.error('Could not upload the video to storage:', e)
+        throw new Error(t('recapSaver.videoUploadError'))
+      }
 
       // If the user supplied their own MP3 narration, it's already muxed into
       // the video - upload that same file as the recap's audioUrl instead of
