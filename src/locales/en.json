@@ -217,6 +217,8 @@
     "playAudio": "Play Audio",
     "downloadAudio": "Download Audio",
     "downloadVideo": "Download Video",
+    "rateGoodHint": "Rate good - future scripts will learn from this one",
+    "rateBad": "Rate bad",
     "delete": "Delete",
     "loading": "Loading your history..."
   },
