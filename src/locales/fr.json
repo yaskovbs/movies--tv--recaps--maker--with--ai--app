@@ -62,6 +62,7 @@
       "writingFile": "Écriture du fichier dans le système...",
       "cutting": "Découpage des segments de la vidéo... {{percent}}%",
       "generatingScript": "Création du script avec Gemini AI...",
+      "analyzingAudio": "Envoi de votre narration à Gemini pour qu'il l'écoute...",
       "searchingWeb": "Recherche d'informations sur internet à propos du film/de la série...",
       "generatingCustomScript": "Création d'un script personnalisé...",
       "scriptDone": "Le script a été créé avec succès.",
@@ -91,7 +92,7 @@
   "audioUploader": {
     "title": "Ajoutez une narration audio (facultatif)",
     "subtitle": "Glissez-déposez un fichier MP3, ou cliquez pour le sélectionner",
-    "hint": "Si vous en ajoutez une, elle sera utilisée comme narration de la vidéo du résumé au lieu de la laisser silencieuse.",
+    "hint": "Si vous en ajoutez une, elle sera utilisée comme narration de la vidéo du résumé, et Gemini l'écoutera aussi lors de la rédaction du script.",
     "supportedFormats": "Fichiers pris en charge :",
     "maxSize": "Taille maximale :",
     "readingTitle": "Lecture du fichier audio...",

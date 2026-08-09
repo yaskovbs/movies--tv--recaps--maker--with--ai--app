@@ -26,11 +26,79 @@ const scriptLanguageNames: Record<string, string> = {
   fr: 'French',
 }
 
+// Uploads the user's narration MP3 to Gemini's File API so the model can
+// actually listen to it (not just read a text description of it). Inline
+// base64 audio in generateContent is capped around 20MB per request, which a
+// several-minute narration can easily exceed, so this uses the resumable
+// upload + file_uri reference flow instead, which Google's audio/video
+// inputs are designed around.
+async function uploadAudioToGemini(file: File, apiKey: string): Promise<{ uri: string; mimeType: string }> {
+  const mimeType = file.type || 'audio/mpeg';
+
+  const startResponse = await fetch(
+    `https://generativelanguage.googleapis.com/upload/v1beta/files?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: {
+        'X-Goog-Upload-Protocol': 'resumable',
+        'X-Goog-Upload-Command': 'start',
+        'X-Goog-Upload-Header-Content-Length': String(file.size),
+        'X-Goog-Upload-Header-Content-Type': mimeType,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ file: { display_name: file.name } }),
+    }
+  );
+  if (!startResponse.ok) {
+    throw new Error('Failed to start the audio upload to Gemini.');
+  }
+  const uploadUrl = startResponse.headers.get('X-Goog-Upload-URL');
+  if (!uploadUrl) {
+    throw new Error('Gemini did not return an upload URL for the audio file.');
+  }
+
+  const uploadResponse = await fetch(uploadUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Length': String(file.size),
+      'X-Goog-Upload-Offset': '0',
+      'X-Goog-Upload-Command': 'upload, finalize',
+    },
+    body: file,
+  });
+  if (!uploadResponse.ok) {
+    throw new Error('Failed to upload the audio bytes to Gemini.');
+  }
+
+  let fileInfo = (await uploadResponse.json()).file as { uri?: string; name?: string; state?: string };
+  if (!fileInfo?.uri || !fileInfo?.name) {
+    throw new Error('Gemini upload response is missing the file URI.');
+  }
+
+  // Audio files go through a brief PROCESSING step before they can be
+  // referenced in generateContent - poll until Gemini marks it ACTIVE.
+  for (let attempt = 0; attempt < 20 && fileInfo.state === 'PROCESSING'; attempt++) {
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    const statusResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/${fileInfo.name}?key=${apiKey}`
+    );
+    if (!statusResponse.ok) break;
+    fileInfo = await statusResponse.json();
+  }
+
+  if (fileInfo.state !== 'ACTIVE' || !fileInfo.uri) {
+    throw new Error('Gemini could not finish processing the audio file in time.');
+  }
+
+  return { uri: fileInfo.uri, mimeType };
+}
+
 async function generateScriptWithGemini(
   settings: RecapSettingsType,
   apiKey: string,
   scriptLanguage: string,
-  webSearchResults?: string
+  webSearchResults?: string,
+  audioFileRef?: { uri: string; mimeType: string }
 ): Promise<string> {
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
 
@@ -43,11 +111,14 @@ async function generateScriptWithGemini(
   const youtubeContext = settings.youtubeLink
     ? `\n\nThe style should be similar to this ${settings.linkType === 'channel' ? 'channel' : 'video'}'s recaps: ${settings.youtubeLink}`
     : '';
+  const audioContext = audioFileRef
+    ? `\n\nAn audio narration file is also attached to this request - listen to it and treat what is actually said in it (dialogue, names, specific details, tone) as an additional, highly reliable source alongside the description below.`
+    : '';
 
   const prompt = `
     You are a professional video scriptwriter creating voice-over scripts for movie/TV show recaps in ${scriptLanguage}.
 
-    Title: ${settings.title}${genreText}${youtubeContext}${contextInfo}
+    Title: ${settings.title}${genreText}${youtubeContext}${contextInfo}${audioContext}
 
     User-provided description (this is the primary and most important source - rely on it much more heavily than you normally would as a scriptwriter):
     """
@@ -56,9 +127,9 @@ async function generateScriptWithGemini(
 
     Create an engaging, cinematic voice-over script in ${scriptLanguage} for a video recap.
     The script should be:
-    - Grounded almost entirely in the user-provided description above - stick closely to its wording, facts, and details, and rely on it far more than on general or prior knowledge about the title
-    - Do not invent plot points, characters, or events that are not in the description and do not contradict it
-    - Only use general knowledge to fill in minor gaps the description does not cover, and keep that to a minimum
+    - Grounded almost entirely in the user-provided description above${audioFileRef ? ' and the attached audio narration' : ''} - stick closely to their wording, facts, and details, and rely on them far more than on general or prior knowledge about the title
+    - Do not invent plot points, characters, or events that are not in the description${audioFileRef ? ' or audio' : ''} and do not contradict them
+    - Only use general knowledge to fill in minor gaps that source doesn't cover, and keep that to a minimum
     - Exciting and dramatic
     - Concise (3-4 sentences, matching the video duration of ${settings.duration} seconds)
     - In natural, fluent ${scriptLanguage}
@@ -68,12 +139,17 @@ async function generateScriptWithGemini(
     Return ONLY the ${scriptLanguage} script text, no additional commentary.
   `;
 
+  const parts: Array<Record<string, unknown>> = [{ text: prompt }];
+  if (audioFileRef) {
+    parts.push({ file_data: { mime_type: audioFileRef.mimeType, file_uri: audioFileRef.uri } });
+  }
+
   const maxRetries = 3;
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      body: JSON.stringify({ contents: [{ parts }] })
     });
 
     if (response.status === 503) {
@@ -263,13 +339,31 @@ const HomePage = ({ apiKey }: HomePageProps) => {
         webSearchResults = await searchWebForMovieInfo(settings.title, settings.genre, apiKey);
       }
 
+      // If the user attached a narration MP3, upload it to Gemini's File API
+      // so the model actually listens to it instead of only reading text
+      // about it - non-fatal if it fails, the script still generates from
+      // the description (and the audio is still muxed into the video either way).
+      let audioFileRef: { uri: string; mimeType: string } | undefined;
+      if (audioFile) {
+        setProcessingStatus({
+          stage: 'generating_script',
+          progress: 45,
+          message: t('home.status.analyzingAudio')
+        });
+        try {
+          audioFileRef = await uploadAudioToGemini(audioFile.file, apiKey);
+        } catch (e) {
+          console.warn('Uploading narration audio to Gemini failed, generating script from text only', e);
+        }
+      }
+
       setProcessingStatus({
         stage: 'generating_script',
         progress: settings.webSearch ? 60 : 50,
         message: t('home.status.generatingCustomScript')
       });
       const scriptLanguage = scriptLanguageNames[i18n.resolvedLanguage || 'en'] || 'English';
-      const generatedScript = await generateScriptWithGemini(settings, apiKey, scriptLanguage, webSearchResults);
+      const generatedScript = await generateScriptWithGemini(settings, apiKey, scriptLanguage, webSearchResults, audioFileRef);
 
       setProcessingStatus({
         stage: 'generating_script',
