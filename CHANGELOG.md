@@ -89,6 +89,16 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - Fixed properly rather than working around it: `RecapOutput` now carries the actual `Blob` (`videoBlob`) alongside `videoUrl` (still used for the `<video>` preview/download), and `RecapSaver` uploads that `Blob` directly - no `fetch()` of the blob URL at all anymore, so this whole failure class is gone rather than just producing a clearer error message for it.
 - typecheck/lint/build clean; full route QA pass shows no page errors.
 
+## Migrated from Blink to Supabase (auth, database, storage)
+
+- Replaced `@blinkdotnew/sdk`/`@blinkdotnew/react` with `@supabase/supabase-js` entirely - database, file storage, and auth all now run on Supabase instead of Blink. Root cause: a live-site CORS failure (`Access-Control-Allow-Credentials` missing on Blink's response for this site's actual Cloudflare Pages origin) was confirmed via a real browser console capture, blocking every save. Rather than depend on a third-party dashboard setting we don't control, switched providers.
+- **New file `supabase-schema.sql`** (repo root) - the SQL to run once in Supabase's SQL Editor: `recaps` and `tuning_jobs` tables with Row Level Security policies keyed to `auth.uid()`, plus a public `recaps` storage bucket. See the README's new "הגדרת Supabase" section for the full setup walkthrough (create project → enable anonymous sign-ins → run the SQL → set `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY`).
+- **Optional sign-in is actually more capable now than it was on Blink**: `ensureSession()` (`lib/supabase.ts`) uses Supabase's built-in anonymous sign-in to give every visitor a real, backend-recognized user ID (not just a client-generated `localStorage` string), which Postgres RLS policies can check directly. When someone signs up with email/password, `supabase.auth.updateUser()` *upgrades that same anonymous session in place* - their existing anonymous history carries over onto the new account automatically, rather than starting a separate empty account.
+- Renamed `src/lib/blink.ts` → `src/lib/supabase.ts`; `RecapRecord`/`TuningJobRecord` are unchanged from the app's point of view (still camelCase), converted at the edges from Postgres's snake_case row shape.
+- **Dropped feature**: Supabase has no built-in text-to-speech - recaps saved without a custom MP3 narration no longer get an auto-generated fallback voice-over audio file (the video itself, and the script text, are unaffected either way).
+- **Found and fixed a real crash bug while wiring this up**: `createClient()` throws synchronously on an empty URL, which would take down the *entire app* before it even renders if `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` aren't set yet - verified this in Node directly. Falls back to a syntactically-valid placeholder URL instead, so an unconfigured deployment degrades to "save/sign-in don't work" (with a clear console error) rather than a blank page; verified live that every route still loads with zero page errors even with Supabase completely unconfigured.
+- typecheck/lint/build all clean; full route + interaction QA pass shows no regressions from the swap.
+
 ## Google AdSense
 
 - Added the AdSense loader script to `index.html`'s `<head>`. Since this is a single-page app, one `index.html` serves every route, so this covers the whole site automatically.

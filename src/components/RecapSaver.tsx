@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { blink } from '../lib/blink'
+import { uploadRecapFile } from '../lib/supabase'
 import { recapStorageService } from '../lib/recapStorage'
 import { Button } from './ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog'
@@ -46,49 +46,37 @@ export function RecapSaver({ script, videoBlob, customAudioFile, open, onClose }
       setStage('video')
       let savedVideoUrl: string
       try {
-        const result = await blink.storage.upload(
+        savedVideoUrl = await uploadRecapFile(
           videoBlob,
-          `recaps/${Date.now()}-${title.trim().replace(/[^\w\-א-ת]+/g, '_')}.mp4`
+          `${Date.now()}-${title.trim().replace(/[^\w\-א-ת]+/g, '_')}.mp4`
         )
-        savedVideoUrl = result.publicUrl
       } catch (e) {
         console.error('Could not upload the video to storage:', e)
         throw new Error(t('recapSaver.videoUploadError'))
       }
 
       // If the user supplied their own MP3 narration, it's already muxed into
-      // the video - upload that same file as the recap's audioUrl instead of
-      // generating a second, different-sounding text-to-speech narration.
+      // the video - upload that same file as the recap's audioUrl too, so
+      // History's audio controls have something to play/download. There's no
+      // auto-generated narration fallback anymore (Supabase has no built-in
+      // text-to-speech) - recaps without a custom MP3 simply have no separate
+      // audio file, same as the video itself already being silent in that case.
       setStage('audio')
       let audioUrl = ''
       if (customAudioFile) {
         try {
-          const { publicUrl } = await blink.storage.upload(
+          audioUrl = await uploadRecapFile(
             customAudioFile,
-            `recaps/${Date.now()}-${title.trim().replace(/[^\w\-א-ת]+/g, '_')}.mp3`
+            `${Date.now()}-${title.trim().replace(/[^\w\-א-ת]+/g, '_')}.mp3`
           )
-          audioUrl = publicUrl
         } catch (e) {
           console.warn('Uploading custom narration failed, saving without a separate audio file', e)
-        }
-      } else {
-        try {
-          const { url } = await blink.ai.generateSpeech({
-            text: script,
-            voice: 'nova'
-          })
-          audioUrl = url
-        } catch (e) {
-          console.warn('TTS generation failed, saving without audio', e)
         }
       }
 
       // Save recap to database
       setStage('saving')
       await recapStorageService.saveRecap({
-        // recapStorageService.saveRecap resolves the real userId itself
-        // (signed-in user, or a per-browser anonymous ID) - this is ignored.
-        userId: '',
         title,
         genre: genre || '',
         description: description || '',

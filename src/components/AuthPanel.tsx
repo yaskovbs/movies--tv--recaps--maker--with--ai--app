@@ -2,21 +2,23 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { User, LogOut, AlertCircle, Loader2 } from 'lucide-react'
-import { blink, type BlinkUser } from '../lib/blink'
+import { supabase, ensureSession, isPermanentUser, type SupabaseUser } from '../lib/supabase'
 import { Button } from './ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog'
 import { Input } from './ui/input'
 
 // Optional sign-in - a simple email + password form (no Google/social
-// buttons, per an explicit request to keep it minimal and not push people
-// toward a Google account). Nothing else in the app requires signing in:
-// saving/rating recaps works anonymously via a per-browser ID (see
-// getEffectiveUserId in lib/blink.ts) either way. Signing in only makes
-// that history/rating data follow the same account across devices, and is
-// required for the personalized fine-tuning feature in History.
+// buttons, per an explicit request to keep it minimal). Nothing else in the
+// app requires signing in: every visitor already has a real, if anonymous,
+// Supabase session (see ensureSession in lib/supabase.ts), so saving/rating
+// recaps always works. "Signing up" here upgrades that same anonymous
+// session in place (supabase.auth.updateUser) rather than creating a
+// separate account, so existing history carries over automatically instead
+// of being orphaned. Signing in only matters for following that account
+// across devices, and is required for the personalized fine-tuning feature.
 const AuthPanel = () => {
   const { t } = useTranslation()
-  const [user, setUser] = useState<BlinkUser | null>(null)
+  const [user, setUser] = useState<SupabaseUser | null>(null)
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [email, setEmail] = useState('')
@@ -25,11 +27,11 @@ const AuthPanel = () => {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    setUser(blink.auth.currentUser())
-    const unsubscribe = blink.auth.onAuthStateChanged((state) => {
-      setUser(state.user)
+    ensureSession().then(setUser)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
     })
-    return unsubscribe
+    return () => subscription.unsubscribe()
   }, [])
 
   const resetForm = () => {
@@ -43,9 +45,13 @@ const AuthPanel = () => {
     setError('')
     try {
       if (mode === 'signup') {
-        await blink.auth.signUp({ email, password })
+        // Upgrades the current anonymous session to a real account in place -
+        // same user ID, so anything already saved under it stays attached.
+        const { error: err } = await supabase.auth.updateUser({ email, password })
+        if (err) throw err
       } else {
-        await blink.auth.signInWithEmail(email, password)
+        const { error: err } = await supabase.auth.signInWithPassword({ email, password })
+        if (err) throw err
       }
       setOpen(false)
       resetForm()
@@ -56,18 +62,21 @@ const AuthPanel = () => {
     }
   }
 
-  const handleLogout = () => {
-    blink.auth.logout()
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    // Immediately re-establish an anonymous session so saving/rating keeps
+    // working without forcing anyone back through the sign-in form.
+    setUser(await ensureSession())
   }
 
-  if (user) {
+  if (isPermanentUser(user)) {
     return (
       <div className="flex items-center gap-1.5">
         <span
           className="hidden sm:inline text-xs text-gray-300 max-w-[140px] truncate"
-          title={user.email}
+          title={user!.email}
         >
-          {user.email}
+          {user!.email}
         </span>
         <Button
           variant="ghost"
