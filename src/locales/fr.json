@@ -220,7 +220,18 @@
     "rateGoodHint": "Noter comme bon - les futurs scripts s'inspireront de celui-ci",
     "rateBad": "Noter comme mauvais",
     "delete": "Supprimer",
-    "loading": "Chargement de votre historique..."
+    "loading": "Chargement de votre historique...",
+    "tuning": {
+      "title": "Modèle d'IA personnalisé",
+      "description": "Une fois que vous avez noté suffisamment de résumés \"bon\", vous pouvez entraîner un modèle Gemini affiné sur vos propres scripts réussis - les futurs résumés l'utiliseront alors automatiquement au lieu du modèle de base (pour les résumés sans fichier vidéo/audio joint).",
+      "progress": "{{count}}/{{min}} résumés notés \"bon\" nécessaires pour démarrer l'entraînement.",
+      "startButton": "Démarrer l'entraînement",
+      "apiKeyRequired": "Entrez d'abord votre clé API Gemini (en haut à droite).",
+      "startError": "Impossible de démarrer l'entraînement.",
+      "training": "Entraînement en cours - cela peut prendre du temps. Revenez plus tard.",
+      "ready": "Prêt ! Votre modèle personnalisé est désormais utilisé automatiquement pour les nouveaux résumés.",
+      "failed": "L'entraînement a échoué"
+    }
   },
   "contactPage": {
     "title": "Contact",

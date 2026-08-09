@@ -33,7 +33,7 @@ function App() {
       <main className="flex-grow">
         <Routes>
           <Route path="/" element={<HomePage apiKey={apiKey} />} />
-          <Route path="/history" element={<HistoryPage />} />
+          <Route path="/history" element={<HistoryPage apiKey={apiKey} />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/faq" element={<FAQPage />} />
           <Route path="/terms" element={<TermsOfServicePage />} />

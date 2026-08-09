@@ -12,6 +12,7 @@ import StatsSection from './StatsSection'
 import ResultsSection from './ResultsSection'
 import { localStorageService } from '../lib/localStorage'
 import { recapStorageService } from '../lib/recapStorage'
+import { getLatestTuningJob } from '../lib/geminiTuning'
 import type { RecapRecord } from '../lib/blink'
 import type { VideoFile, AudioFile, RecapSettings as RecapSettingsType, ProcessingStatus as ProcessingStatusType, RecapOutput } from '../types'
 
@@ -225,9 +226,16 @@ async function generateScriptWithGemini(
   scriptLanguage: string,
   webSearchResults?: string,
   fileRefs?: GeminiFileRef[],
-  goodExamples?: RecapRecord[]
+  goodExamples?: RecapRecord[],
+  // A personally fine-tuned model (e.g. "tunedModels/xxx" - see
+  // src/lib/geminiTuning.ts), used instead of the base model when the user
+  // has one ready. Only used when there are no file attachments, since the
+  // tuned model comes from a text-only training pipeline and isn't expected
+  // to support multimodal file_data parts.
+  tunedModelName?: string
 ): Promise<string> {
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+  const modelName = (tunedModelName && !fileRefs?.length) ? tunedModelName : 'models/gemini-3.6-flash';
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/${modelName}:generateContent?key=${apiKey}`;
 
   let contextInfo = '';
   if (webSearchResults) {
@@ -545,7 +553,19 @@ const HomePage = ({ apiKey }: HomePageProps) => {
       // that succeeded) rather than uploading it to Gemini a second time.
       const scriptFileRefs = [videoFileRef, audioFileRef].filter((ref): ref is GeminiFileRef => !!ref);
       const goodExamples = await recapStorageService.getGoodExamples(settings.genre);
-      const generatedScript = await generateScriptWithGemini(settings, apiKey, scriptLanguage, webSearchResults, scriptFileRefs, goodExamples);
+      // Non-fatal: if a personally fine-tuned model exists and is ready, use
+      // it; any failure here (not signed in, no job yet, network hiccup)
+      // just means generateScriptWithGemini falls back to the base model.
+      let tunedModelName: string | undefined;
+      try {
+        const tuningJob = await getLatestTuningJob();
+        if (tuningJob?.status === 'ready' && tuningJob.tunedModelName) {
+          tunedModelName = tuningJob.tunedModelName;
+        }
+      } catch (e) {
+        console.warn('Could not check for a personalized tuned model, using the base model', e);
+      }
+      const generatedScript = await generateScriptWithGemini(settings, apiKey, scriptLanguage, webSearchResults, scriptFileRefs, goodExamples, tunedModelName);
 
       setProcessingStatus({
         stage: 'generating_script',

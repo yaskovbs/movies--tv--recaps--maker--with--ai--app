@@ -25,3 +25,18 @@ export interface RecapRecord {
   // usage over time without needing to retrain the underlying model.
   rating?: 'up' | 'down';
 }
+
+// Tracks a Gemini fine-tuning job for a given user/API key, so the app can
+// check back on long-running training across sessions instead of blocking
+// on it. See src/lib/geminiTuning.ts.
+export interface TuningJobRecord {
+  id: string;
+  userId: string;
+  operationName: string; // e.g. "tunedModels/xxx/operations/yyy", used to poll status
+  baseModel: string;
+  exampleCount: number;
+  status: 'training' | 'ready' | 'failed';
+  tunedModelName?: string; // e.g. "tunedModels/xxx", set once status is "ready"
+  errorMessage?: string;
+  createdAt: string;
+}
