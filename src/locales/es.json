@@ -62,6 +62,7 @@
       "writingFile": "Escribiendo el archivo en el sistema...",
       "cutting": "Cortando segmentos del video... {{percent}}%",
       "generatingScript": "Creando guion con Gemini AI...",
+      "analyzingAudio": "Enviando tu narración a Gemini para que la escuche...",
       "searchingWeb": "Buscando información en internet sobre la película/serie...",
       "generatingCustomScript": "Creando un guion personalizado...",
       "scriptDone": "El guion se creó correctamente.",
@@ -91,7 +92,7 @@
   "audioUploader": {
     "title": "Añade audio de narración (opcional)",
     "subtitle": "Arrastra y suelta un archivo MP3, o haz clic para seleccionarlo",
-    "hint": "Si lo subes, se usará como la narración del video del resumen en lugar de dejarlo en silencio.",
+    "hint": "Si lo subes, se usará como la narración del video del resumen, y Gemini también la escuchará al escribir el guion.",
     "supportedFormats": "Archivos compatibles:",
     "maxSize": "Tamaño máximo:",
     "readingTitle": "Leyendo el archivo de audio...",

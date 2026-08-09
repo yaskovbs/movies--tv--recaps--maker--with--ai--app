@@ -62,6 +62,7 @@
       "writingFile": "Writing the file to the system...",
       "cutting": "Cutting segments from the video... {{percent}}%",
       "generatingScript": "Creating a script with Gemini AI...",
+      "analyzingAudio": "Sending your narration to Gemini to listen to...",
       "searchingWeb": "Searching the internet for information about the movie/series...",
       "generatingCustomScript": "Creating a custom script...",
       "scriptDone": "The script was created successfully.",
@@ -91,7 +92,7 @@
   "audioUploader": {
     "title": "Add voice-over audio (optional)",
     "subtitle": "Drag and drop an MP3 file, or click to select",
-    "hint": "If provided, it will be used as the recap video's narration instead of leaving it silent.",
+    "hint": "If provided, it will be used as the recap video's narration, and Gemini will listen to it when writing the script.",
     "supportedFormats": "Supported files:",
     "maxSize": "Maximum size:",
     "readingTitle": "Reading the audio file...",
