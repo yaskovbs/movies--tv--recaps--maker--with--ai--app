@@ -201,6 +201,8 @@
     "cancel": "Cancelar",
     "save": "Guardar resumen",
     "savingVideo": "Guardando el video...",
+    "videoReadError": "No se pudo leer el video generado desde esta pestaña. Intenta crear el resumen de nuevo.",
+    "videoUploadError": "No se pudo subir el video al almacenamiento. Verifica tu conexión e inténtalo de nuevo.",
     "generatingAudio": "Creando audio...",
     "uploadingAudio": "Subiendo tu narración...",
     "saving": "Guardando...",
