@@ -16,6 +16,9 @@
     "apiKeyLabel": "מפתח Gemini AI API",
     "apiKeyPlaceholder": "הכנס את מפתח ה-API שלך...",
     "apiKeyHint": "קבל מפתח API בחינם מ-Google AI Studio",
+    "apiKeyChecking": "בודק את המפתח...",
+    "apiKeyStatusValid": "מפתח ה-API תקין",
+    "apiKeyStatusInvalid": "מפתח ה-API אינו תקין",
     "language": "שפה"
   },
   "footer": {

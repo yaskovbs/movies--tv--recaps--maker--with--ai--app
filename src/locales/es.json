@@ -16,6 +16,9 @@
     "apiKeyLabel": "Clave API de Gemini AI",
     "apiKeyPlaceholder": "Ingresa tu clave API...",
     "apiKeyHint": "Obtén una clave API gratuita en Google AI Studio",
+    "apiKeyChecking": "Comprobando la clave...",
+    "apiKeyStatusValid": "La clave API es válida",
+    "apiKeyStatusInvalid": "La clave API no es válida",
     "language": "Idioma"
   },
   "footer": {

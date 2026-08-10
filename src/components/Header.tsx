@@ -1,21 +1,51 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { Film, Key, Menu, X, FileText, Shield, HelpCircle } from 'lucide-react'
+import { Film, Key, Menu, X, FileText, Shield, HelpCircle, Loader2, CheckCircle2, XCircle } from 'lucide-react'
 import LanguageSwitcher from './LanguageSwitcher'
 import AuthPanel from './AuthPanel'
+import { validateGeminiApiKey } from '../lib/gemini'
 
 interface HeaderProps {
   apiKey: string
   onApiKeyChange: (key: string) => void
 }
 
+type KeyStatus = 'idle' | 'checking' | 'valid' | 'invalid'
+
 const Header = ({ apiKey, onApiKeyChange }: HeaderProps) => {
   const { t } = useTranslation()
   const [showApiInput, setShowApiInput] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [keyStatus, setKeyStatus] = useState<KeyStatus>('idle')
+  const [keyError, setKeyError] = useState('')
   const location = useLocation();
+
+  // Automatically checks the entered Gemini API key against a lightweight,
+  // quota-free endpoint (listing models, not generating anything) so users
+  // find out it's invalid right away instead of only after a recap fails
+  // partway through. Debounced so it doesn't fire on every keystroke, and
+  // guards against a slow, stale check overwriting a newer one.
+  useEffect(() => {
+    if (!apiKey.trim()) {
+      setKeyStatus('idle')
+      setKeyError('')
+      return
+    }
+    setKeyStatus('checking')
+    let cancelled = false
+    const timeout = setTimeout(async () => {
+      const result = await validateGeminiApiKey(apiKey)
+      if (cancelled) return
+      setKeyStatus(result.valid ? 'valid' : 'invalid')
+      setKeyError(result.error || '')
+    }, 800)
+    return () => {
+      cancelled = true
+      clearTimeout(timeout)
+    }
+  }, [apiKey])
 
   const menuItems = [
     { path: '/', label: t('header.nav.home'), icon: Film },
@@ -68,12 +98,23 @@ const Header = ({ apiKey, onApiKeyChange }: HeaderProps) => {
             <AuthPanel />
             <motion.button
               onClick={() => setShowApiInput(!showApiInput)}
-              className="flex items-center px-3 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+              className="relative flex items-center px-3 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              title={
+                keyStatus === 'valid' ? t('header.apiKeyStatusValid')
+                  : keyStatus === 'invalid' ? t('header.apiKeyStatusInvalid')
+                  : undefined
+              }
             >
               <Key className="h-4 w-4 sm:ml-2" />
               <span className="hidden sm:inline text-sm">{t('header.apiKeyButton')}</span>
+              {keyStatus === 'valid' && (
+                <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-green-400 border-2 border-gray-950" />
+              )}
+              {keyStatus === 'invalid' && (
+                <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-400 border-2 border-gray-950" />
+              )}
             </motion.button>
 
             {/* תפריט מובייל */}
@@ -106,6 +147,24 @@ const Header = ({ apiKey, onApiKeyChange }: HeaderProps) => {
                 className="w-full px-3 py-2 glass-input rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 dir="ltr"
               />
+              {keyStatus === 'checking' && (
+                <p className="flex items-center gap-1.5 text-xs text-gray-400 mt-2">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  {t('header.apiKeyChecking')}
+                </p>
+              )}
+              {keyStatus === 'valid' && (
+                <p className="flex items-center gap-1.5 text-xs text-green-400 mt-2">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  {t('header.apiKeyStatusValid')}
+                </p>
+              )}
+              {keyStatus === 'invalid' && (
+                <p className="flex items-center gap-1.5 text-xs text-red-400 mt-2">
+                  <XCircle className="h-3.5 w-3.5 shrink-0" />
+                  <span>{t('header.apiKeyStatusInvalid')}{keyError ? `: ${keyError}` : ''}</span>
+                </p>
+              )}
               <p className="text-xs text-gray-400 mt-1">
                 {t('header.apiKeyHint')}
               </p>
