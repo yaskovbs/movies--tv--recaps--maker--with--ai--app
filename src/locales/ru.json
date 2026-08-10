@@ -16,6 +16,9 @@
     "apiKeyLabel": "API-ключ Gemini AI",
     "apiKeyPlaceholder": "Введите ваш API-ключ...",
     "apiKeyHint": "Получите бесплатный API-ключ в Google AI Studio",
+    "apiKeyChecking": "Проверка ключа...",
+    "apiKeyStatusValid": "API-ключ действителен",
+    "apiKeyStatusInvalid": "API-ключ недействителен",
     "language": "Язык"
   },
   "footer": {

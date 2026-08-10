@@ -112,6 +112,13 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - Hebrew and Arabic are registered as RTL languages — `document.documentElement.dir`/`lang` flip automatically on language change, mirroring the entire layout correctly (verified visually).
 - `index.html`'s static `<title>`/meta tags/`lang`/`dir` were updated to English defaults (these render before the JS app mounts, so they can't be driven by i18next).
 
+## Automatic Gemini API key validation
+
+- The header's API key panel now checks whether the entered Gemini key is actually valid, automatically — no need to click "Create Recap" and wait for it to fail partway through.
+- Added `src/lib/gemini.ts` with `validateGeminiApiKey()`, which calls the quota-free `GET /v1beta/models` list endpoint (never `generateContent`), so checking a key costs no generation tokens.
+- `Header.tsx` debounces the check 800ms after the user stops typing, guards against a slow/stale check overwriting a newer one if the key changes again mid-request, and shows three states: a spinner while checking, a green checkmark + message when valid, and a red X + Google's actual error message when invalid (e.g. "API key not valid. Please pass a valid API key."). The collapsed header button also gets a small green/red status dot so the state is visible even with the panel closed.
+- Verified via the real endpoint directly (`curl`) that Google returns a structured `{error: {message: "..."}}` body for an invalid key, matching what the parsing code expects; verified live in the browser that the debounced "checking" state renders correctly with no console errors.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.
