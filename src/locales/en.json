@@ -178,7 +178,8 @@
     "selectVoice": "Select voice:",
     "audioDownloadUnsupported": "Downloading the audio file is not currently supported.",
     "smartSelectionBadge": "Gemini watched the video and picked these moments",
-    "smartSelectionBadgeNo": "Gemini did not watch the video - moments picked by fixed interval"
+    "smartSelectionBadgeNo": "Gemini did not watch the video - moments picked by fixed interval",
+    "smartSelectionBadgeWatchedNotUsed": "Gemini watched the video, but its picks could not be used - moments picked by fixed interval instead"
   },
   "statsSection": {
     "loading": "Loading data...",

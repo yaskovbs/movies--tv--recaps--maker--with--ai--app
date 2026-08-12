@@ -178,7 +178,8 @@
     "selectVoice": "בחר קול:",
     "audioDownloadUnsupported": "הורדת קובץ האודיו אינה נתמכת כרגע.",
     "smartSelectionBadge": "Gemini צפה בווידאו ובחר את הרגעים האלה",
-    "smartSelectionBadgeNo": "Gemini לא צפה בווידאו - הרגעים נבחרו לפי מרווח קבוע"
+    "smartSelectionBadgeNo": "Gemini לא צפה בווידאו - הרגעים נבחרו לפי מרווח קבוע",
+    "smartSelectionBadgeWatchedNotUsed": "Gemini צפה בווידאו, אך לא היה ניתן להשתמש בבחירתו - הרגעים נבחרו לפי מרווח קבוע"
   },
   "statsSection": {
     "loading": "טוען נתונים...",

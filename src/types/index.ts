@@ -64,7 +64,13 @@ export interface RecapOutput {
   // into videoUrl, and kept here so saving can upload the original file as
   // the recap's audioUrl too instead of generating text-to-speech audio.
   customAudioFile?: File;
-  // True when Gemini watched the source video and picked the recap's segments
-  // itself, instead of the fallback periodic "every N seconds" sampling.
+  // True when Gemini received/looked at the source video at all (the File API
+  // upload succeeded) - independent of whether that then produced usable cuts,
+  // see usedSmartSelection.
+  watchedVideo?: boolean;
+  // True when Gemini's own picks were actually used to cut the recap, instead
+  // of the fallback periodic "every N seconds" sampling. Can be false even
+  // when watchedVideo is true, if it watched but its analysis didn't return
+  // anything usable.
   usedSmartSelection?: boolean;
 }

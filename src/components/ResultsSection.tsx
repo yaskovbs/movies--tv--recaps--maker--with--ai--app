@@ -145,6 +145,11 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
               <Eye className="h-3 w-3" />
               {t('resultsSection.smartSelectionBadge')}
             </span>
+          ) : output.watchedVideo ? (
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-300 bg-amber-500/15 border border-amber-400/30 rounded-full px-2.5 py-1">
+              <Eye className="h-3 w-3" />
+              {t('resultsSection.smartSelectionBadgeWatchedNotUsed')}
+            </span>
           ) : (
             <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-400 bg-gray-500/15 border border-gray-400/30 rounded-full px-2.5 py-1">
               <EyeOff className="h-3 w-3" />
