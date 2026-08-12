@@ -177,7 +177,8 @@
     "selectLanguage": "Selecciona idioma:",
     "selectVoice": "Selecciona voz:",
     "audioDownloadUnsupported": "La descarga del archivo de audio no es compatible actualmente.",
-    "smartSelectionBadge": "Gemini vio el video y eligió estos momentos"
+    "smartSelectionBadge": "Gemini vio el video y eligió estos momentos",
+    "smartSelectionBadgeNo": "Gemini no vio el video - momentos elegidos por intervalo fijo"
   },
   "statsSection": {
     "loading": "Cargando datos...",

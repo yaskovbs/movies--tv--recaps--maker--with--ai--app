@@ -126,6 +126,11 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - Added `src/lib/stats.ts` as the new client-side wrapper (replacing the deleted `src/lib/localStorage.ts`), used by `StatsSection.tsx` and `HomePage.tsx`. Each browser still keeps a locally-cached visitor UUID and a `hasRated` flag (so `App.tsx` only calls `register_visitor` once per browser and a visitor can't vote twice), but the actual counts now live in Supabase and are the same for every visitor.
 - Degrades the same way the rest of the Supabase integration does: if `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` aren't set, stats silently show `0` instead of crashing (verified live with Supabase unconfigured - zero page errors).
 
+## Always show whether Gemini actually watched the video
+
+- The "Gemini watched the video and picked these moments" badge only ever appeared when it was true - when video analysis was skipped (file over the 2GB Gemini cap) or failed and the recap fell back to plain periodic sampling, there was no indication at all, leaving it ambiguous whether Gemini had watched it or the badge had simply been forgotten.
+- `ResultsSection.tsx` now always shows one of two badges: the existing blue "watched" badge when `usedSmartSelection` is true, or a new gray "Gemini did not watch the video - moments picked by fixed interval" badge when it's false. Added the `resultsSection.smartSelectionBadgeNo` translation key across all 6 locales.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.
