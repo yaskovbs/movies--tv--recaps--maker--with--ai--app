@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Header from './components/Header'
 import HomePage from './components/HomePage'
@@ -7,11 +7,18 @@ import FAQPage from './components/FAQPage'
 import Footer from './components/Footer'
 import TermsOfServicePage from './components/TermsOfServicePage'
 import PrivacyPolicyPage from './components/PrivacyPolicyPage'
+import { registerVisitor } from './lib/stats'
 
 import HistoryPage from './components/HistoryPage'
 
 function App() {
   const [apiKey, setApiKey] = useState('')
+
+  // Registers this browser as a unique visitor in the shared, global stats
+  // (once per browser - registerVisitor dedupes via a locally-cached UUID).
+  useEffect(() => {
+    registerVisitor()
+  }, [])
 
   return (
     <div className="relative isolate min-h-screen bg-gray-950 flex flex-col">

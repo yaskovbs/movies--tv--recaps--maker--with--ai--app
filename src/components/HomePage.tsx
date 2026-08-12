@@ -10,7 +10,7 @@ import RecapSettings from './RecapSettings'
 import ProcessingStatus from './ProcessingStatus'
 import StatsSection from './StatsSection'
 import ResultsSection from './ResultsSection'
-import { localStorageService } from '../lib/localStorage'
+import { incrementRecapsCreated } from '../lib/stats'
 import { recapStorageService } from '../lib/recapStorage'
 import { getLatestTuningJob } from '../lib/geminiTuning'
 import type { RecapRecord } from '../lib/supabase'
@@ -596,8 +596,8 @@ const HomePage = ({ apiKey }: HomePageProps) => {
         usedSmartSelection: !!(smartSegments && smartSegments.length > 0),
       });
 
-      // Increment the counter locally
-      await localStorageService.incrementRecapsCreated();
+      // Increment the shared, global counter in Supabase
+      await incrementRecapsCreated();
 
       await ffmpeg.deleteFile(selectedFile.name);
       if (audioFile) {
