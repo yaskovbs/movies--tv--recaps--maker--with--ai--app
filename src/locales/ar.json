@@ -177,7 +177,8 @@
     "selectLanguage": "اختر اللغة:",
     "selectVoice": "اختر الصوت:",
     "audioDownloadUnsupported": "تنزيل ملف الصوت غير مدعوم حاليًا.",
-    "smartSelectionBadge": "شاهد Gemini الفيديو واختار هذه اللحظات"
+    "smartSelectionBadge": "شاهد Gemini الفيديو واختار هذه اللحظات",
+    "smartSelectionBadgeNo": "لم يشاهد Gemini الفيديو - تم اختيار اللحظات بفاصل زمني ثابت"
   },
   "statsSection": {
     "loading": "جارٍ تحميل البيانات...",

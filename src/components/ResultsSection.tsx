@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { Download, Copy, Play, Pause, Square, PlayCircle, Save, Eye } from 'lucide-react'
+import { Download, Copy, Play, Pause, Square, PlayCircle, Save, Eye, EyeOff } from 'lucide-react'
 import type { RecapOutput } from '../types'
 import { RecapSaver } from './RecapSaver'
 
@@ -140,10 +140,15 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
       <div className="glass rounded-lg p-6">
         <div className="flex items-center gap-2 mb-4 flex-wrap">
           <h3 className="text-xl font-semibold text-white">{t('resultsSection.videoTitle')}</h3>
-          {output.usedSmartSelection && (
+          {output.usedSmartSelection ? (
             <span className="inline-flex items-center gap-1 text-xs font-medium text-blue-300 bg-blue-500/15 border border-blue-400/30 rounded-full px-2.5 py-1">
               <Eye className="h-3 w-3" />
               {t('resultsSection.smartSelectionBadge')}
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-400 bg-gray-500/15 border border-gray-400/30 rounded-full px-2.5 py-1">
+              <EyeOff className="h-3 w-3" />
+              {t('resultsSection.smartSelectionBadgeNo')}
             </span>
           )}
         </div>
