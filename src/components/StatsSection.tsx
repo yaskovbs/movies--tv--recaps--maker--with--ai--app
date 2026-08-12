@@ -2,14 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { BarChart3, Users, Zap, Star, Loader2 } from 'lucide-react'
-import { localStorageService } from '../lib/localStorage'
-
-interface AppStats {
-  recaps_created: number;
-  total_rating_sum: number;
-  rating_count: number;
-  active_users: number;
-}
+import { getPublicStats, addRating, hasRated as checkHasRated, type AppStats } from '../lib/stats'
 
 const StatsSection = () => {
   const { t } = useTranslation();
@@ -17,15 +10,13 @@ const StatsSection = () => {
   const [loading, setLoading] = useState(true);
   const [userRating, setUserRating] = useState<number>(0);
   const [isRating, setIsRating] = useState(false);
-  const [hasRated, setHasRated] = useState<boolean>(() => {
-    return localStorage.getItem('hasRated') === 'true';
-  });
+  const [hasRated, setHasRated] = useState<boolean>(() => checkHasRated());
 
   const fetchStats = useCallback(async () => {
     try {
-      const data = await localStorageService.getPublicStats();
-      if (data && data.length > 0) {
-        setStats(data[0]);
+      const data = await getPublicStats();
+      if (data) {
+        setStats(data);
       }
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -36,7 +27,6 @@ const StatsSection = () => {
 
   useEffect(() => {
     fetchStats();
-    // No real-time updates needed for local storage
   }, [fetchStats]);
 
   const handleRating = async (rating: number) => {
@@ -45,9 +35,8 @@ const StatsSection = () => {
     setUserRating(rating);
 
     try {
-      await localStorageService.addRating(rating);
+      await addRating(rating);
       setHasRated(true);
-      localStorage.setItem('hasRated', 'true');
       // Refresh stats to show updated rating
       fetchStats();
     } catch (error) {

@@ -119,6 +119,13 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - `Header.tsx` debounces the check 800ms after the user stops typing, guards against a slow/stale check overwriting a newer one if the key changes again mid-request, and shows three states: a spinner while checking, a green checkmark + message when valid, and a red X + Google's actual error message when invalid (e.g. "API key not valid. Please pass a valid API key."). The collapsed header button also gets a small green/red status dot so the state is visible even with the panel closed.
 - Verified via the real endpoint directly (`curl`) that Google returns a structured `{error: {message: "..."}}` body for an invalid key, matching what the parsing code expects; verified live in the browser that the debounced "checking" state renders correctly with no console errors.
 
+## Moved global usage stats from localStorage to Supabase
+
+- The homepage's stats section (recaps created, active users, average rating) was reading and writing `localStorage` only - every number was per-browser, reset on any new device/incognito session, and never actually shared across real visitors, even though it looked like a live global counter.
+- Added `supabase/migrations/20260812130000_app_stats.sql`: a single-row `app_stats` table (recap count, rating sum/count) and a `stats_visitors` table (one row per unique visitor UUID), both with RLS enabled. All writes go through `SECURITY DEFINER` RPC functions (`increment_recaps_created`, `add_app_rating`, `register_visitor`, `get_public_stats`) instead of direct table access, so a client can only move the numbers in valid atomic ways (e.g. "+1") and can never overwrite them to an arbitrary value.
+- Added `src/lib/stats.ts` as the new client-side wrapper (replacing the deleted `src/lib/localStorage.ts`), used by `StatsSection.tsx` and `HomePage.tsx`. Each browser still keeps a locally-cached visitor UUID and a `hasRated` flag (so `App.tsx` only calls `register_visitor` once per browser and a visitor can't vote twice), but the actual counts now live in Supabase and are the same for every visitor.
+- Degrades the same way the rest of the Supabase integration does: if `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` aren't set, stats silently show `0` instead of crashing (verified live with Supabase unconfigured - zero page errors).
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.
