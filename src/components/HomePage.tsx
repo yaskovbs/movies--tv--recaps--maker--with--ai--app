@@ -593,6 +593,12 @@ const HomePage = ({ apiKey }: HomePageProps) => {
         videoBlob: videoBlob,
         script: generatedScript,
         customAudioFile: audioFile?.file,
+        // watchedVideo tracks whether Gemini actually received/looked at the
+        // video (the upload succeeded), independent of whether its analysis
+        // then produced usable segments - it can watch and still fail to
+        // return anything the cuts could be based on (bad/empty JSON, no
+        // segments after filtering, etc).
+        watchedVideo: !!videoFileRef,
         usedSmartSelection: !!(smartSegments && smartSegments.length > 0),
       });
 

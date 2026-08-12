@@ -131,6 +131,12 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - The "Gemini watched the video and picked these moments" badge only ever appeared when it was true - when video analysis was skipped (file over the 2GB Gemini cap) or failed and the recap fell back to plain periodic sampling, there was no indication at all, leaving it ambiguous whether Gemini had watched it or the badge had simply been forgotten.
 - `ResultsSection.tsx` now always shows one of two badges: the existing blue "watched" badge when `usedSmartSelection` is true, or a new gray "Gemini did not watch the video - moments picked by fixed interval" badge when it's false. Added the `resultsSection.smartSelectionBadgeNo` translation key across all 6 locales.
 
+## Distinguish "watched but couldn't use it" from "never watched"
+
+- The watched/not-watched badge previously collapsed two different situations into one "did not watch" message: (1) Gemini genuinely never received the video (too large for the 2GB File API cap, or the upload itself failed), and (2) Gemini's upload succeeded and it did look at the video, but the analysis call afterwards failed or returned no usable segments (bad JSON, empty result after filtering, etc). Case 2 was being reported as "did not watch," which wasn't accurate - it had watched, its output just couldn't be used.
+- Added a `watchedVideo` flag to `RecapOutput` (`src/types/index.ts`), set from whether the Gemini File API upload itself succeeded, independent of `usedSmartSelection` (whether its picks were actually used to cut the recap). `HomePage.tsx` now threads this through even when the video-analysis step throws.
+- `ResultsSection.tsx` now shows three distinct badges: blue "watched and cuts based on it" (`usedSmartSelection`), amber "watched, but its picks couldn't be used" (`watchedVideo` true, `usedSmartSelection` false), or gray "did not watch at all" (`watchedVideo` false). Added the `resultsSection.smartSelectionBadgeWatchedNotUsed` translation key across all 6 locales.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.
