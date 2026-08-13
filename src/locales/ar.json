@@ -64,6 +64,7 @@
       "loadingEngine": "جارٍ تحميل محرك الفيديو...",
       "uploadingVideoForGemini": "جارٍ رفع الفيديو إلى Gemini ليتمكن من مشاهدته...",
       "uploadingVideoForGeminiElapsed": "لا يزال Gemini يعالج الفيديو ({{time}}) - قد يستغرق هذا بضع دقائق للفيديوهات الطويلة...",
+      "analyzingVideoElapsed": "لا يزال Gemini يشاهد الفيديو ويختار اللحظات ({{time}}) - قد يستغرق هذا وقتًا للفيديوهات الطويلة...",
       "analyzingVideo": "يشاهد Gemini الفيديو ويختار أفضل اللحظات...",
       "writingFile": "جارٍ كتابة الملف إلى النظام...",
       "cutting": "جارٍ قص المقاطع من الفيديو... {{percent}}%",

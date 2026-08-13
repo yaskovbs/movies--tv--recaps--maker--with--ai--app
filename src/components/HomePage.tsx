@@ -151,7 +151,13 @@ async function analyzeVideoSegmentsWithGemini(
   apiKey: string,
   targetDurationSeconds: number,
   videoDurationSeconds: number | undefined,
-  description: string
+  description: string,
+  // Actually watching/analyzing a long movie can itself take a long time to
+  // respond (not just the earlier upload+processing step) - budget the same
+  // 22 minutes here, with periodic elapsed-time feedback so a long wait
+  // doesn't look frozen, and a clean timeout instead of hanging forever.
+  maxWaitMs = 22 * 60 * 1000,
+  onWaiting?: (elapsedMs: number) => void
 ): Promise<VideoSegment[]> {
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
 
@@ -169,18 +175,35 @@ async function analyzeVideoSegmentsWithGemini(
     - Use HH:MM:SS timestamps that fall within the actual video${videoDurationSeconds ? ` (it is about ${Math.round(videoDurationSeconds)} seconds long)` : ''}.
   `;
 
-  const response = await fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{
-        parts: [
-          { file_data: { mime_type: videoFileRef.mimeType, file_uri: videoFileRef.uri } },
-          { text: prompt },
-        ],
-      }],
-    }),
-  });
+  const startTime = Date.now();
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), maxWaitMs);
+  const intervalId = onWaiting ? setInterval(() => onWaiting(Date.now() - startTime), 2000) : undefined;
+
+  let response: Response;
+  try {
+    response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { file_data: { mime_type: videoFileRef.mimeType, file_uri: videoFileRef.uri } },
+            { text: prompt },
+          ],
+        }],
+      }),
+      signal: controller.signal,
+    });
+  } catch (e) {
+    if (controller.signal.aborted) {
+      throw new Error('Gemini video analysis timed out.');
+    }
+    throw e;
+  } finally {
+    clearTimeout(timeoutId);
+    if (intervalId) clearInterval(intervalId);
+  }
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);
@@ -502,7 +525,20 @@ const HomePage = ({ apiKey }: HomePageProps) => {
             apiKey,
             settings.duration,
             selectedFile.duration,
-            settings.description
+            settings.description,
+            22 * 60 * 1000,
+            (elapsedMs) => {
+              const totalSeconds = Math.round(elapsedMs / 1000);
+              const minutes = Math.floor(totalSeconds / 60);
+              const seconds = totalSeconds % 60;
+              setProcessingStatus({
+                stage: 'analyzing_video',
+                progress: 60,
+                message: t('home.status.analyzingVideoElapsed', {
+                  time: `${minutes}:${seconds.toString().padStart(2, '0')}`
+                })
+              });
+            }
           );
         } catch (e) {
           console.warn('Gemini video analysis failed, falling back to standard periodic sampling', e);
