@@ -71,11 +71,18 @@ npm run dev
    - **אוטומטית דרך GitHub:** Dashboard → Project Settings → Integrations → GitHub → חברו את הריפו הזה, Working directory = `.`, הפעילו **Deploy to production** עם הענף `main`. **חשוב: השאירו את "Automatic branching" כבוי** — זו תכונה שיוצרת מסד נתונים נפרד לכל Pull Request ועלולה לגבות כסף (Supabase מציגים על כך אזהרה מפורשת: "Branching Compute is not covered by your organization's Spend Cap"). בלי branching, כל push ל-`main` פשוט מריץ את קובצי ה-migrations ב-`supabase/migrations/` על מסד הייצור, בחינם.
 
    שתי הדרכים יוצרות את אותו הדבר: טבלאות `recaps`, `tuning_jobs`, `app_stats` ו-`stats_visitors` + bucket אחסון ציבורי בשם `recaps`, כולל כל מדיניות ה-RLS ופונקציות ה-RPC הנדרשות (הסטטיסטיקות הגלובליות בעמוד הבית - כמות סיכומים שנוצרו, משתמשים ייחודיים, דירוג ממוצע - מתעדכנות רק דרך פונקציות אלה, לא ישירות מהלקוח).
-4. העתיקו את ה-URL ומפתח ה-anon של הפרויקט (Dashboard → Settings → API) לקובץ `.env.local` (העתיקו מ-`.env.example`):
+4. העתיקו את ה-URL ומפתח ה-anon (או "publishable key" - זה השם החדש ל-anon key ב-Supabase) של הפרויקט (Dashboard → Settings → API) לקובץ `.env.local` (העתיקו מ-`.env.example`). שתי צורות השמות הבאות נתמכות (הקוד בודק את שתיהן) - אין צורך להגדיר את שתיהן, רק אחת:
 
 ```env
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+או, אם אלה השמות שכבר יש לכם (למשל מהעתקה של הוראות ה-"Connect" של Supabase עצמו, שכתובות עבור Next.js):
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-supabase-publishable-key
 ```
 
 מפתח ה-Gemini AI **לא** מוגדר כמשתנה סביבה — הוא מוזן ישירות על ידי כל משתמש דרך ממשק האתר ונשמר רק בזיכרון הדפדפן שלו.
@@ -90,11 +97,16 @@ VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 - **Build output directory:** `dist`
 - **Node version:** 20 (מוגדר ב-`.node-version`)
 
-משתני הסביבה הנדרשים (בלוח הבקרה של Cloudflare Pages, תחת Settings → Environment variables):
+משתני הסביבה הנדרשים (בלוח הבקרה של Cloudflare Pages, תחת Settings → Environment variables, בטאב **Production**) - אחת משתי הצורות הבאות, לא חובה שתיהן:
 
 ```env
 VITE_SUPABASE_URL=...
 VITE_SUPABASE_ANON_KEY=...
+```
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
 ```
 
 לפריסה משורת הפקודה, לאחר `npm install`:
