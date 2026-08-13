@@ -234,9 +234,11 @@ export default function HistoryPage({ apiKey }: HistoryPageProps) {
                     <p className="text-sm text-gray-400 mb-4 line-clamp-2">{recap.description}</p>
                   )}
 
-                  <div className="bg-black/20 backdrop-blur-sm rounded-lg p-4 mb-4 border border-white/10">
-                    <p className="text-sm text-gray-300 line-clamp-3 italic">"{recap.scriptText}"</p>
-                  </div>
+                  {recap.scriptText && (
+                    <div className="bg-black/20 backdrop-blur-sm rounded-lg p-4 mb-4 border border-white/10">
+                      <p className="text-sm text-gray-300 line-clamp-3 italic">"{recap.scriptText}"</p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="px-6 py-4 bg-black/10 border-t border-white/10 flex gap-2 justify-between items-center flex-wrap">

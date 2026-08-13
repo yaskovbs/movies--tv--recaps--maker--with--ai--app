@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { Settings, Clock, Scissors, FileVideo, Film, Youtube, Globe } from 'lucide-react'
+import { Settings, Clock, Scissors, FileVideo, Film } from 'lucide-react'
 import type { RecapSettings } from '../types'
 import { formatVideoLength } from '../lib/utils'
 
@@ -280,90 +280,6 @@ const RecapSettingsComponent = ({
           <p className="text-xs text-gray-400 mt-1">
             {t('recapSettings.descriptionHint')}
           </p>
-        </div>
-
-        {/* YouTube Data API v3 Key */}
-        <div>
-          <label className="flex items-center text-sm font-medium text-gray-300 mb-2">
-            <Youtube className="h-4 w-4 ml-2" />
-            {t('recapSettings.youtubeApiKeyLabel')}
-          </label>
-          <input
-            type="text"
-            value={settings.youtubeApiKey}
-            onChange={(e) => handleChange('youtubeApiKey', e.target.value)}
-            placeholder={t('recapSettings.youtubeApiKeyPlaceholder')}
-            className="w-full px-3 py-2 glass-input rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <a
-            href="https://developers.google.com/youtube/v3/getting-started"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-blue-400 hover:text-blue-300 mt-1 inline-block"
-          >
-            {t('recapSettings.youtubeApiKeyHelp')}
-          </a>
-        </div>
-
-        {/* קישור יוטיוב ללמידה */}
-        <div>
-          <label className="flex items-center text-sm font-medium text-gray-300 mb-2">
-            <Youtube className="h-4 w-4 ml-2" />
-            {t('recapSettings.youtubeLinkLabel')}
-          </label>
-          <div className="flex space-x-2 space-x-reverse mb-2">
-            <button
-              onClick={() => handleChange('linkType', 'single')}
-              className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                settings.linkType === 'single'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
-              }`}
-            >
-              {t('recapSettings.youtubeLinkSingle')}
-            </button>
-            <button
-              onClick={() => handleChange('linkType', 'channel')}
-              className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                settings.linkType === 'channel'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
-              }`}
-            >
-              {t('recapSettings.youtubeLinkChannel')}
-            </button>
-          </div>
-          <input
-            type="text"
-            value={settings.youtubeLink}
-            onChange={(e) => handleChange('youtubeLink', e.target.value)}
-            placeholder={t('recapSettings.youtubeLinkPlaceholder')}
-            className="w-full px-3 py-2 glass-input rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <p className="text-xs text-gray-400 mt-1">
-            {t('recapSettings.youtubeLinkHint')}
-          </p>
-        </div>
-
-        {/* חיפוש באינטרנט */}
-        <div className="glass-subtle rounded-lg p-4">
-          <label className="flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={settings.webSearch}
-              onChange={(e) => handleChange('webSearch', e.target.checked)}
-              className="w-5 h-5 rounded bg-white/10 border-white/20 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 ml-3"
-            />
-            <div className="flex items-center flex-1">
-              <Globe className="h-4 w-4 ml-2 text-blue-400" />
-              <div>
-                <span className="text-sm font-medium text-white">{t('recapSettings.webSearchLabel')}</span>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  {t('recapSettings.webSearchHint')}
-                </p>
-              </div>
-            </div>
-          </label>
         </div>
 
         {/* סיכום הגדרות */}
