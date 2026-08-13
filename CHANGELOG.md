@@ -204,6 +204,11 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - Per explicit request, Gemini's smart segment selection can still choose *which* moments matter, but each individual clip it picks is now hard-capped to `RecapSettings.captureSeconds` (1 second by default - the same "1 second every N seconds" style the periodic fallback already used), instead of the previous "roughly 1-4 seconds" the prompt allowed. Brief, widely-spaced flashes of the source rather than longer continuous clips are meaningfully safer with respect to copyright, regardless of how "important" a given moment is.
 - This is enforced client-side by trimming every segment Gemini returns down to the cap (`analyzeVideoSegmentsWithGemini`'s new `maxClipSeconds` parameter) - the prompt asks for it too, but the model's reply is never trusted to comply on its own, so it's a hard constraint rather than a suggestion. Verified the clamping logic directly: segments up to 4 seconds long in the input are all trimmed to exactly the cap in the output.
 
+## Brought back a like/dislike button on the result (without script generation)
+
+- Removing script generation also removed the local few-shot rating UI that used to sit under the (now-gone) script text - leaving no way to react to a freshly created recap at all, which a user then flagged as missing.
+- Added a simple thumbs up/down back to `ResultsSection.tsx`, right under the video's action buttons. Rather than reintroducing the old script-learning machinery (there's nothing left to learn from), it reuses the existing global rating already wired up in `src/lib/stats.ts` (`addRating`/`hasRated` - the same mechanism behind the homepage's own 5-star "rate our service" widget). It's a one-time signal per browser: whichever comes first, this button or the homepage widget, "uses up" the rating and both then show a thank-you state - avoids asking the same visitor to rate twice while still giving a way to react to each recap.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.

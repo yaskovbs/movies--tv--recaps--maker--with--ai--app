@@ -156,7 +156,11 @@
     "saveRecap": "שמור סיכום",
     "smartSelectionBadge": "Gemini צפה בווידאו ובחר את הרגעים האלה",
     "smartSelectionBadgeNo": "Gemini לא צפה בווידאו - הרגעים נבחרו לפי מרווח קבוע",
-    "smartSelectionBadgeWatchedNotUsed": "Gemini צפה בווידאו, אך לא היה ניתן להשתמש בבחירתו - הרגעים נבחרו לפי מרווח קבוע"
+    "smartSelectionBadgeWatchedNotUsed": "Gemini צפה בווידאו, אך לא היה ניתן להשתמש בבחירתו - הרגעים נבחרו לפי מרווח קבוע",
+    "rateThisRecap": "אהבתם את הסיכום הזה?",
+    "rateGood": "טוב",
+    "rateBad": "לא משהו",
+    "rateThanks": "תודה על המשוב!"
   },
   "statsSection": {
     "loading": "טוען נתונים...",
