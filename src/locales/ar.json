@@ -180,7 +180,11 @@
     "audioDownloadUnsupported": "تنزيل ملف الصوت غير مدعوم حاليًا.",
     "smartSelectionBadge": "شاهد Gemini الفيديو واختار هذه اللحظات",
     "smartSelectionBadgeNo": "لم يشاهد Gemini الفيديو - تم اختيار اللحظات بفاصل زمني ثابت",
-    "smartSelectionBadgeWatchedNotUsed": "شاهد Gemini الفيديو، لكن تعذر استخدام اختياره - تم اختيار اللحظات بفاصل زمني ثابت بدلاً من ذلك"
+    "smartSelectionBadgeWatchedNotUsed": "شاهد Gemini الفيديو، لكن تعذر استخدام اختياره - تم اختيار اللحظات بفاصل زمني ثابت بدلاً من ذلك",
+    "localRatingPrompt": "هل كان هذا النص جيدًا؟ هذا يساعد Gemini على التحسن بمرور الوقت، مباشرة على هذا الجهاز:",
+    "localRatingUp": "نص جيد",
+    "localRatingDown": "ليس رائعًا",
+    "localRatingThanks": "شكرًا! سيساعد هذا في تحسين النصوص المستقبلية على هذا الجهاز."
   },
   "statsSection": {
     "loading": "جارٍ تحميل البيانات...",

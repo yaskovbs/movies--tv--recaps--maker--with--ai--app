@@ -73,4 +73,8 @@ export interface RecapOutput {
   // when watchedVideo is true, if it watched but its analysis didn't return
   // anything usable.
   usedSmartSelection?: boolean;
+  // Id of this script's entry in local, browser-only "learn from usage"
+  // storage (see src/lib/localLearning.ts) - lets the UI attach an immediate
+  // thumbs up/down rating without depending on Supabase recap-saving.
+  localExampleId?: string;
 }

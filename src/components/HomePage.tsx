@@ -13,7 +13,7 @@ import ResultsSection from './ResultsSection'
 import { incrementRecapsCreated } from '../lib/stats'
 import { recapStorageService } from '../lib/recapStorage'
 import { getLatestTuningJob } from '../lib/geminiTuning'
-import type { RecapRecord } from '../lib/supabase'
+import { recordLocalExample, getGoodLocalExamples } from '../lib/localLearning'
 import type { VideoFile, AudioFile, RecapSettings as RecapSettingsType, ProcessingStatus as ProcessingStatusType, RecapOutput } from '../types'
 
 interface HomePageProps {
@@ -128,6 +128,16 @@ interface VideoSegment {
   end: number
 }
 
+// Common shape for a few-shot script example, satisfied structurally by both
+// Supabase's RecapRecord (recapStorageService.getGoodExamples) and the local,
+// browser-only fallback (src/lib/localLearning.ts) - lets the two sources be
+// merged into one array regardless of whether saving to Supabase works.
+interface ScriptExample {
+  title: string
+  genre?: string
+  scriptText: string
+}
+
 // Gemini's File API caps individual files at 2GB - beyond that, skip video
 // analysis entirely rather than waste time on an upload that will just fail.
 const GEMINI_VIDEO_SIZE_CAP = 2 * 1024 * 1024 * 1024;
@@ -235,7 +245,7 @@ async function generateScriptWithGemini(
   scriptLanguage: string,
   webSearchResults?: string,
   fileRefs?: GeminiFileRef[],
-  goodExamples?: RecapRecord[],
+  goodExamples?: ScriptExample[],
   // A personally fine-tuned model (e.g. "tunedModels/xxx" - see
   // src/lib/geminiTuning.ts), used instead of the base model when the user
   // has one ready. Only used when there are no file attachments, since the
@@ -583,7 +593,15 @@ const HomePage = ({ apiKey }: HomePageProps) => {
       // Reuse the same video file already uploaded for segment analysis (if
       // that succeeded) rather than uploading it to Gemini a second time.
       const scriptFileRefs = [videoFileRef, audioFileRef].filter((ref): ref is GeminiFileRef => !!ref);
-      const goodExamples = await recapStorageService.getGoodExamples(settings.genre);
+      // Few-shot examples from two independent sources: this user's own
+      // "up"-rated saved recaps in Supabase (if saving works and they're
+      // signed in), and a local, browser-only fallback that's recorded after
+      // every generation regardless of whether saving/Supabase works at all
+      // (see src/lib/localLearning.ts). Either source alone can be empty
+      // without breaking this - both already degrade to [] quietly.
+      const supabaseExamples = await recapStorageService.getGoodExamples(settings.genre);
+      const localExamples = getGoodLocalExamples(settings.genre);
+      const goodExamples: ScriptExample[] = [...supabaseExamples, ...localExamples].slice(0, 3);
       // Non-fatal: if a personally fine-tuned model exists and is ready, use
       // it; any failure here (not signed in, no job yet, network hiccup)
       // just means generateScriptWithGemini falls back to the base model.
@@ -597,6 +615,15 @@ const HomePage = ({ apiKey }: HomePageProps) => {
         console.warn('Could not check for a personalized tuned model, using the base model', e);
       }
       const generatedScript = await generateScriptWithGemini(settings, apiKey, scriptLanguage, webSearchResults, scriptFileRefs, goodExamples, tunedModelName);
+
+      // Record this generation in local, browser-only learning storage right
+      // away - independent of whether the user ever saves this recap (to
+      // Supabase) or signs in, so future generations can still learn from it.
+      const localExampleId = recordLocalExample({
+        title: settings.title,
+        genre: settings.genre,
+        scriptText: generatedScript,
+      });
 
       setProcessingStatus({
         stage: 'generating_script',
@@ -630,6 +657,7 @@ const HomePage = ({ apiKey }: HomePageProps) => {
         // segments after filtering, etc).
         watchedVideo: !!videoFileRef,
         usedSmartSelection: !!(smartSegments && smartSegments.length > 0),
+        localExampleId,
       });
 
       // Increment the shared, global counter in Supabase

@@ -180,7 +180,11 @@
     "audioDownloadUnsupported": "Downloading the audio file is not currently supported.",
     "smartSelectionBadge": "Gemini watched the video and picked these moments",
     "smartSelectionBadgeNo": "Gemini did not watch the video - moments picked by fixed interval",
-    "smartSelectionBadgeWatchedNotUsed": "Gemini watched the video, but its picks could not be used - moments picked by fixed interval instead"
+    "smartSelectionBadgeWatchedNotUsed": "Gemini watched the video, but its picks could not be used - moments picked by fixed interval instead",
+    "localRatingPrompt": "Was this script good? It helps Gemini improve over time, right on this device:",
+    "localRatingUp": "Good script",
+    "localRatingDown": "Not great",
+    "localRatingThanks": "Thanks! This will help shape future scripts on this device."
   },
   "statsSection": {
     "loading": "Loading data...",
