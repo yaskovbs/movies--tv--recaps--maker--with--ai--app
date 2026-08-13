@@ -63,6 +63,7 @@
       "preparing": "Подготовка к обработке...",
       "loadingEngine": "Загрузка видеодвижка...",
       "uploadingVideoForGemini": "Загрузка видео в Gemini, чтобы он мог его посмотреть...",
+      "uploadingVideoForGeminiElapsed": "Gemini всё ещё обрабатывает видео ({{time}}) - для длинных видео это может занять несколько минут...",
       "analyzingVideo": "Gemini просматривает видео и выбирает лучшие моменты...",
       "writingFile": "Запись файла в систему...",
       "cutting": "Нарезка сегментов видео... {{percent}}%",
