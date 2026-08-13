@@ -182,6 +182,12 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - The 22-minute budget previously only covered the upload+server-side-processing step. The actual "watch the video and pick moments" call (`analyzeVideoSegmentsWithGemini`'s `generateContent` request) had no explicit timeout at all - it would wait on the browser's default (effectively indefinite) behavior, with no elapsed-time feedback, so a long analysis looked frozen with no indication of how long it might still take.
 - Added the same pattern here: an `AbortController`-based 22-minute timeout (so it fails cleanly and falls back to periodic sampling instead of hanging indefinitely) plus a periodic elapsed-time status callback, matching the upload step. Added the `home.status.analyzingVideoElapsed` translation key across all 6 locales.
 
+## Loosened Gemini's safety thresholds for legitimate movie/TV content
+
+- A user hit `Gemini blocked the response (reason: PROHIBITED_CONTENT)` on an ordinary recap request. Movies/TV shows legitimately involve violence, crime, horror and other dark themes as part of the genre itself, and Gemini's default safety thresholds (`BLOCK_MEDIUM_AND_ABOVE`) routinely false-positive on completely ordinary plot descriptions and video content that's just describing/showing an existing, already-published work rather than generating original harmful content.
+- Added `safetySettings` (all four adjustable categories set to `BLOCK_ONLY_HIGH` instead of the default) to every Gemini `generateContent` call in `HomePage.tsx` (script generation, video segment analysis, web search) and the desktop app's equivalent code, to cut down on these false-positive `SAFETY` blocks.
+- **Important limitation, confirmed via Google's own docs**: this does *not* fix `PROHIBITED_CONTENT` blocks specifically - that's a separate, non-adjustable built-in protection (core-harm filters like child safety) with no API setting able to override it, unlike the four adjustable harm categories. Added `describeGeminiBlockReason()` so the app now gives accurate, distinct guidance for that case ("cannot be adjusted via settings... try rephrasing the title/description") instead of implying a settings change could help.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.

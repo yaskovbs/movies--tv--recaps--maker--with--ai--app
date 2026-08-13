@@ -34,6 +34,38 @@ interface GeminiFileRef {
   mimeType: string
 }
 
+// Movies/TV shows legitimately involve violence, crime, horror and other
+// dark themes as part of the genre itself - Gemini's default safety
+// thresholds (BLOCK_MEDIUM_AND_ABOVE) routinely false-positive on ordinary
+// plot descriptions and video content that's just describing/showing an
+// existing, already-published work, not generating original harmful
+// content. Loosened to BLOCK_ONLY_HIGH (still blocks clearly extreme
+// content) across every Gemini call in this file to cut down on SAFETY
+// blocks on completely ordinary recap requests. Note: this does NOT affect
+// PROHIBITED_CONTENT blocks - that's a separate, non-adjustable built-in
+// protection (Google's own core-harm filter, e.g. child safety) with no API
+// setting able to override it; see describeGeminiBlockReason() below.
+const GEMINI_SAFETY_SETTINGS = [
+  { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_ONLY_HIGH' },
+  { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH' },
+  { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_ONLY_HIGH' },
+  { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' },
+]
+
+// Builds a user-facing message for a Gemini promptFeedback.blockReason.
+// PROHIBITED_CONTENT gets distinct guidance since - unlike SAFETY - no
+// safetySettings adjustment can affect it; the only fix is changing what was
+// actually submitted (title/description text, or the video itself).
+function describeGeminiBlockReason(blockReason: string | undefined): string {
+  if (blockReason === 'PROHIBITED_CONTENT') {
+    return 'Gemini blocked this content for policy reasons that cannot be adjusted via settings (reason: PROHIBITED_CONTENT). Try rephrasing the title/description to remove extreme, graphic, or otherwise sensitive details.';
+  }
+  if (blockReason) {
+    return `Gemini blocked the response (reason: ${blockReason}). Try adjusting the description.`;
+  }
+  return 'Failed to extract script from API response.';
+}
+
 // Uploads a file (audio narration or the source video) to Gemini's File API
 // so the model can actually see/hear it, not just read a text description of
 // it. Inline base64 media in generateContent is capped around 20MB per
@@ -192,6 +224,7 @@ async function analyzeVideoSegmentsWithGemini(
             { text: prompt },
           ],
         }],
+        safetySettings: GEMINI_SAFETY_SETTINGS,
       }),
       signal: controller.signal,
     });
@@ -213,7 +246,7 @@ async function analyzeVideoSegmentsWithGemini(
   const data = await response.json();
   const text: string | undefined = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) {
-    throw new Error('Gemini returned no video analysis.');
+    throw new Error(describeGeminiBlockReason(data.promptFeedback?.blockReason));
   }
 
   const cleaned = text.trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
@@ -337,7 +370,7 @@ async function generateScriptWithGemini(
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts }] })
+      body: JSON.stringify({ contents: [{ parts }], safetySettings: GEMINI_SAFETY_SETTINGS })
     });
 
     if (response.status === 503) {
@@ -362,12 +395,7 @@ async function generateScriptWithGemini(
       // safety filters on the description/video content) - candidates comes
       // back empty/missing instead of containing text, and promptFeedback
       // explains why. Surface that reason instead of a generic message.
-      const blockReason = data.promptFeedback?.blockReason;
-      throw new Error(
-        blockReason
-          ? `Gemini blocked the response (reason: ${blockReason}). Try adjusting the description.`
-          : 'Failed to extract script from API response.'
-      );
+      throw new Error(describeGeminiBlockReason(data.promptFeedback?.blockReason));
     }
     return script.trim();
   }
@@ -385,7 +413,7 @@ async function searchWebForMovieInfo(title: string, genre: string, apiKey: strin
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], safetySettings: GEMINI_SAFETY_SETTINGS })
     });
 
     if (!response.ok) return '';

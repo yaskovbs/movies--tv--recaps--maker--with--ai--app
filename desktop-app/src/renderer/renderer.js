@@ -162,7 +162,19 @@ async function generateScriptWithGemini(apiKey, scriptLanguage, webSearchResults
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        // Movie/TV plot descriptions legitimately involve violence, crime,
+        // horror etc. as part of the genre itself - loosen Gemini's default
+        // safety thresholds to cut down on false-positive blocks on
+        // ordinary recap requests.
+        safetySettings: [
+          { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_ONLY_HIGH' },
+          { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH' },
+          { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_ONLY_HIGH' },
+          { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' },
+        ],
+      }),
     })
 
     if (response.status === 503) {
