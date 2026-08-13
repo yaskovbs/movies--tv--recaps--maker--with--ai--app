@@ -64,6 +64,7 @@
       "loadingEngine": "טוען את מנוע הווידאו...",
       "uploadingVideoForGemini": "מעלה את הווידאו ל-Gemini כדי שיוכל לצפות בו...",
       "uploadingVideoForGeminiElapsed": "Gemini עדיין מעבד את הווידאו ({{time}}) - זה יכול לקחת כמה דקות בווידאו ארוך...",
+      "analyzingVideoElapsed": "Gemini עדיין צופה בווידאו ובוחר רגעים ({{time}}) - זה יכול לקחת זמן בווידאו ארוך...",
       "analyzingVideo": "Gemini צופה בווידאו ובוחר את הרגעים הטובים ביותר...",
       "writingFile": "כותב קובץ למערכת...",
       "cutting": "חותך קטעים מהווידאו... {{percent}}%",

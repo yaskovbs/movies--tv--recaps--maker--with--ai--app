@@ -177,6 +177,11 @@ Summary of the work done on this branch, in the order it happened. This is a run
 
 - Raised the video upload's processing wait budget (see "Fixed the real reason Gemini 'watching' the video almost always failed" above) from 10 to **22 minutes**, for very long movies where Gemini's server-side processing still hadn't finished within 10 minutes.
 
+## The video-watching/analysis step also gets up to 22 minutes now
+
+- The 22-minute budget previously only covered the upload+server-side-processing step. The actual "watch the video and pick moments" call (`analyzeVideoSegmentsWithGemini`'s `generateContent` request) had no explicit timeout at all - it would wait on the browser's default (effectively indefinite) behavior, with no elapsed-time feedback, so a long analysis looked frozen with no indication of how long it might still take.
+- Added the same pattern here: an `AbortController`-based 22-minute timeout (so it fails cleanly and falls back to periodic sampling instead of hanging indefinitely) plus a periodic elapsed-time status callback, matching the upload step. Added the `home.status.analyzingVideoElapsed` translation key across all 6 locales.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.
