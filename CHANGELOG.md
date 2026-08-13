@@ -143,6 +143,14 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - `uploadFileToGemini()` (`src/components/HomePage.tsx`) now takes a time budget (`maxWaitMs`) instead of a small fixed attempt count. The video call site now budgets up to **10 minutes** instead of 90 seconds; the audio call site (narration files are short, so this was never the bottleneck there) keeps the same effective ~30 second budget as before.
 - Added an `onWaiting` progress callback so the status message updates with elapsed time (`Gemini is still processing the video (2:15) - this can take a few minutes for longer videos...`) instead of sitting on a static message for up to 10 minutes, which would otherwise look frozen. Added the `home.status.uploadingVideoForGeminiElapsed` translation key across all 6 locales.
 
+## Local, browser-only fallback for "learn from usage" - works even when saving is broken
+
+- The existing few-shot learning ("Learning from usage over time (step 1)") only worked through Supabase: it needed a recap to be saved, then rated from the History page - both of which depend on the Supabase save flow actually working. Since that was still failing for this user, the app never had any examples to learn from at all.
+- Added `src/lib/localLearning.ts`: a second, fully independent source of few-shot examples stored directly in this browser's `localStorage` (`recordLocalExample`, `rateLocalExample`, `getGoodLocalExamples`). It doesn't touch Supabase, doesn't require signing in, and doesn't depend on the Save Recap dialog at all.
+- `HomePage.tsx` now records every generated script into local storage immediately after generation (`recordLocalExample`), and merges local "up"-rated examples with any Supabase ones when building the few-shot prompt for the next generation (`generateScriptWithGemini`'s `goodExamples` parameter is now typed as a lightweight `ScriptExample` shape so both sources fit).
+- `ResultsSection.tsx` now shows a quick thumbs up/down right under the generated script, rating that generation in local storage immediately - no save, no sign-in, no trip to the History page required. `RecapOutput` gained a `localExampleId` field to connect the two.
+- This is per-device (it won't follow a user across browsers), but it means the "improves over time" feature now works in every case, not only once Supabase saving is fixed.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.

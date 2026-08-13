@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { Download, Copy, Play, Pause, Square, PlayCircle, Save, Eye, EyeOff } from 'lucide-react'
+import { Download, Copy, Play, Pause, Square, PlayCircle, Save, Eye, EyeOff, ThumbsUp, ThumbsDown } from 'lucide-react'
 import type { RecapOutput } from '../types'
 import { RecapSaver } from './RecapSaver'
+import { rateLocalExample } from '../lib/localLearning'
 
 interface ResultsSectionProps {
   output: RecapOutput
@@ -13,6 +14,7 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
   const { t } = useTranslation()
   const [isCopied, setIsCopied] = useState(false)
   const [showSaver, setShowSaver] = useState(false)
+  const [localRating, setLocalRating] = useState<'up' | 'down' | null>(null)
   
   // Audio state
   const [isAudioPlaying, setIsAudioPlaying] = useState(false)
@@ -56,6 +58,12 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
     navigator.clipboard.writeText(output.script);
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 2000);
+  };
+
+  const handleLocalRating = (rating: 'up' | 'down') => {
+    if (!output.localExampleId || localRating) return;
+    rateLocalExample(output.localExampleId, rating);
+    setLocalRating(rating);
   };
 
   // Audio controls
@@ -222,6 +230,32 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
           <Copy className="h-5 w-5 ml-2" />
           {isCopied ? t('resultsSection.copied') : t('resultsSection.copyScript')}
         </button>
+
+        {output.localExampleId && (
+          <div className="mt-4 flex items-center justify-center gap-3 text-sm text-gray-400">
+            {localRating ? (
+              <span>{t('resultsSection.localRatingThanks')}</span>
+            ) : (
+              <>
+                <span>{t('resultsSection.localRatingPrompt')}</span>
+                <button
+                  onClick={() => handleLocalRating('up')}
+                  className="p-2 rounded-lg text-gray-400 hover:text-green-400 hover:bg-green-500/10 transition-colors"
+                  title={t('resultsSection.localRatingUp')}
+                >
+                  <ThumbsUp className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => handleLocalRating('down')}
+                  className="p-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                  title={t('resultsSection.localRatingDown')}
+                >
+                  <ThumbsDown className="h-4 w-4" />
+                </button>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* 3. Audio Voice-over */}
