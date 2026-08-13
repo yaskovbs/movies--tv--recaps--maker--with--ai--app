@@ -163,6 +163,11 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - Vite only inlines env vars into the client bundle if their name matches a configured prefix (`VITE_` by default) - `NEXT_PUBLIC_*` vars were previously invisible to `import.meta.env` no matter what was set in Cloudflare. Added `NEXT_PUBLIC_` to `envPrefix` in `vite.config.ts`, and `src/lib/supabase.ts` now reads `VITE_SUPABASE_URL || NEXT_PUBLIC_SUPABASE_URL` (and the equivalent for the key). Verified directly by building with only the `NEXT_PUBLIC_*` vars set and confirming both values actually land in the built JS bundle.
 - Updated `.env.example` and the README's Supabase setup section to document both accepted naming options.
 
+## Fixed a real Supabase security advisor warning on the recaps bucket
+
+- Supabase's own security advisor flagged "Clients can list all files in this bucket" on the `recaps` storage bucket - a real issue, not a false positive. The bucket is already public, so fetching a known file by its public URL (all this app ever does, via `getPublicUrl()`) needs zero RLS policies. The broad `"Anyone can view recap files"` SELECT policy this app had been creating on `storage.objects` was only enabling the Storage list/query API (`storage.list()`), which this app never calls - so it did nothing useful while letting any unauthenticated client enumerate every file ever uploaded by every user.
+- Removed that policy creation from `20260809120000_initial_schema.sql` (for fresh installs) and added `20260813120000_drop_public_storage_select_policy.sql` to drop it on databases that already ran the earlier version. Verified the app's actual storage usage (`src/lib/supabase.ts`) only ever calls `.upload()` and `.getPublicUrl()`, neither of which needs this policy - removing it changes nothing the app does.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.
