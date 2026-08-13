@@ -199,6 +199,11 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - `HistoryPage.tsx` now only shows the script-text quote block for older saved recaps that still have one; new recaps save with an empty `scriptText` and just don't show that block. The rating buttons and personal fine-tuning card are left in place since they still operate meaningfully on older recaps that do have real script text - only the *creation* of new AI scripts was removed, not the whole rating/fine-tuning history feature.
 - Swept all 6 locale files for now-fully-dead translation keys (YouTube/web-search settings UI, script/audio result sections, script-related processing stages) - 29 keys removed per locale, verified full key parity across all locales afterward. Verified live that the settings UI no longer shows any YouTube/web-search fields and there are zero page errors.
 
+## Hard cap on smart-selected clip length (copyright safety, non-negotiable)
+
+- Per explicit request, Gemini's smart segment selection can still choose *which* moments matter, but each individual clip it picks is now hard-capped to `RecapSettings.captureSeconds` (1 second by default - the same "1 second every N seconds" style the periodic fallback already used), instead of the previous "roughly 1-4 seconds" the prompt allowed. Brief, widely-spaced flashes of the source rather than longer continuous clips are meaningfully safer with respect to copyright, regardless of how "important" a given moment is.
+- This is enforced client-side by trimming every segment Gemini returns down to the cap (`analyzeVideoSegmentsWithGemini`'s new `maxClipSeconds` parameter) - the prompt asks for it too, but the model's reply is never trusted to comply on its own, so it's a hard constraint rather than a suggestion. Verified the clamping logic directly: segments up to 4 seconds long in the input are all trimmed to exactly the cap in the output.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.

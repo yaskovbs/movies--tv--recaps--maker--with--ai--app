@@ -162,6 +162,15 @@ async function analyzeVideoSegmentsWithGemini(
   targetDurationSeconds: number,
   videoDurationSeconds: number | undefined,
   description: string,
+  // Hard cap on each individual clip's length, in seconds - matches
+  // RecapSettings.captureSeconds (the same "1 second every N seconds" style
+  // used by the periodic fallback). Kept short and non-negotiable
+  // deliberately: brief, widely-spaced flashes of the source rather than
+  // longer continuous clips are a lot safer with respect to copyright,
+  // regardless of how "important" Gemini thinks a moment is. Enforced below
+  // by trimming, not just requested in the prompt - Gemini's actual reply is
+  // not trusted to respect it on its own.
+  maxClipSeconds: number,
   // Actually watching/analyzing a long movie can itself take a long time to
   // respond (not just the earlier upload+processing step) - budget the same
   // 22 minutes here, with periodic elapsed-time feedback so a long wait
@@ -180,7 +189,7 @@ async function analyzeVideoSegmentsWithGemini(
     Rules:
     - Each segment must capture a genuinely important, representative moment (key plot beats, turning points, standout visuals or lines) - not arbitrary evenly-spaced clips.
     - Segments must be listed in chronological order and must not overlap.
-    - Each segment should be roughly 1-4 seconds long.
+    - Each segment must be at most ${maxClipSeconds} second${maxClipSeconds === 1 ? '' : 's'} long - brief flashes of the moment, not longer continuous clips.
     - The segments' combined total duration should add up to approximately ${targetDurationSeconds} seconds.
     - Use HH:MM:SS timestamps that fall within the actual video${videoDurationSeconds ? ` (it is about ${Math.round(videoDurationSeconds)} seconds long)` : ''}.
   `;
@@ -241,10 +250,19 @@ async function analyzeVideoSegmentsWithGemini(
   const segments = parsed
     .map(({ start, end }) => ({ start: toSeconds(start), end: toSeconds(end) }))
     .filter(({ start, end }) => Number.isFinite(start) && Number.isFinite(end) && end > start)
-    .map(({ start, end }) => ({
-      start: Math.max(0, start),
-      end: videoDurationSeconds ? Math.min(end, videoDurationSeconds) : end,
-    }))
+    .map(({ start, end }) => {
+      const clampedStart = Math.max(0, start);
+      return {
+        start: clampedStart,
+        // Hard-capped to maxClipSeconds regardless of what Gemini returned -
+        // the prompt asks for this too, but it's not trusted to comply on
+        // its own; this is the actual, non-negotiable enforcement.
+        end: Math.min(
+          clampedStart + maxClipSeconds,
+          videoDurationSeconds ? Math.min(end, videoDurationSeconds) : end
+        ),
+      };
+    })
     .filter(({ start, end }) => end > start)
     .sort((a, b) => a.start - b.start);
 
@@ -397,6 +415,7 @@ const HomePage = ({ apiKey }: HomePageProps) => {
             settings.duration,
             selectedFile.duration,
             settings.description,
+            settings.captureSeconds,
             22 * 60 * 1000,
             (elapsedMs) => {
               const totalSeconds = Math.round(elapsedMs / 1000);
