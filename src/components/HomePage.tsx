@@ -44,7 +44,8 @@ async function uploadFileToGemini(
   file: File,
   apiKey: string,
   mimeType: string,
-  maxPollAttempts = 20
+  maxWaitMs = 30_000,
+  onWaiting?: (elapsedMs: number) => void
 ): Promise<GeminiFileRef> {
   const startResponse = await fetch(
     `https://generativelanguage.googleapis.com/upload/v1beta/files?key=${apiKey}`,
@@ -86,10 +87,18 @@ async function uploadFileToGemini(
     throw new Error('Gemini upload response is missing the file URI.');
   }
 
-  // Audio/video files go through a PROCESSING step (longer for video) before
-  // they can be referenced in generateContent - poll until Gemini marks it ACTIVE.
-  for (let attempt = 0; attempt < maxPollAttempts && fileInfo.state === 'PROCESSING'; attempt++) {
-    await new Promise(resolve => setTimeout(resolve, 1500));
+  // Audio/video files go through a PROCESSING step before they can be
+  // referenced in generateContent - poll until Gemini marks it ACTIVE.
+  // Processing time scales with video length, not file size: a real
+  // movie/episode routinely takes several minutes even well under the 2GB
+  // cap, so this is budgeted by elapsed time rather than a small fixed
+  // attempt count (a previous 90-second budget meant real videos almost
+  // always timed out here and silently fell back to periodic sampling).
+  const pollIntervalMs = 2000;
+  const deadline = Date.now() + maxWaitMs;
+  while (fileInfo.state === 'PROCESSING' && Date.now() < deadline) {
+    await new Promise(resolve => setTimeout(resolve, pollIntervalMs));
+    onWaiting?.(Date.now() - (deadline - maxWaitMs));
     const statusResponse = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/${fileInfo.name}?key=${apiKey}`
     );
@@ -442,7 +451,28 @@ const HomePage = ({ apiKey }: HomePageProps) => {
           message: t('home.status.uploadingVideoForGemini')
         });
         try {
-          videoFileRef = await uploadFileToGemini(selectedFile.file, apiKey, guessVideoMimeType(selectedFile.name), 60);
+          // Real movies/episodes can take several minutes for Gemini to finish
+          // processing server-side, well beyond typical upload time - budget
+          // up to 10 minutes and keep the status message moving so it doesn't
+          // look frozen during the wait.
+          videoFileRef = await uploadFileToGemini(
+            selectedFile.file,
+            apiKey,
+            guessVideoMimeType(selectedFile.name),
+            10 * 60 * 1000,
+            (elapsedMs) => {
+              const totalSeconds = Math.round(elapsedMs / 1000);
+              const minutes = Math.floor(totalSeconds / 60);
+              const seconds = totalSeconds % 60;
+              setProcessingStatus({
+                stage: 'analyzing_video',
+                progress: 30,
+                message: t('home.status.uploadingVideoForGeminiElapsed', {
+                  time: `${minutes}:${seconds.toString().padStart(2, '0')}`
+                })
+              });
+            }
+          );
           setProcessingStatus({
             stage: 'analyzing_video',
             progress: 60,

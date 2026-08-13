@@ -137,6 +137,12 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - Added a `watchedVideo` flag to `RecapOutput` (`src/types/index.ts`), set from whether the Gemini File API upload itself succeeded, independent of `usedSmartSelection` (whether its picks were actually used to cut the recap). `HomePage.tsx` now threads this through even when the video-analysis step throws.
 - `ResultsSection.tsx` now shows three distinct badges: blue "watched and cuts based on it" (`usedSmartSelection`), amber "watched, but its picks couldn't be used" (`watchedVideo` true, `usedSmartSelection` false), or gray "did not watch at all" (`watchedVideo` false). Added the `resultsSection.smartSelectionBadgeWatchedNotUsed` translation key across all 6 locales.
 
+## Fixed the real reason Gemini "watching" the video almost always failed
+
+- Root cause: after uploading a video to Gemini's File API, the file spends time in a `PROCESSING` state server-side before it can be analyzed. That processing time scales with the video's *length*, not its file size - a real movie or episode routinely takes several minutes, even when it's nowhere near the 2GB cap. The polling loop that waits for `ACTIVE` was budgeted for only 60 attempts × 1.5s = 90 seconds total, so almost any real movie/episode timed out here, threw, and silently fell back to plain periodic sampling - which is exactly what was being reported as "it almost always fails."
+- `uploadFileToGemini()` (`src/components/HomePage.tsx`) now takes a time budget (`maxWaitMs`) instead of a small fixed attempt count. The video call site now budgets up to **10 minutes** instead of 90 seconds; the audio call site (narration files are short, so this was never the bottleneck there) keeps the same effective ~30 second budget as before.
+- Added an `onWaiting` progress callback so the status message updates with elapsed time (`Gemini is still processing the video (2:15) - this can take a few minutes for longer videos...`) instead of sitting on a static message for up to 10 minutes, which would otherwise look frozen. Added the `home.status.uploadingVideoForGeminiElapsed` translation key across all 6 locales.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.
