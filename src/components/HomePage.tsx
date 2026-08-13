@@ -11,22 +11,10 @@ import ProcessingStatus from './ProcessingStatus'
 import StatsSection from './StatsSection'
 import ResultsSection from './ResultsSection'
 import { incrementRecapsCreated } from '../lib/stats'
-import { recapStorageService } from '../lib/recapStorage'
-import { getLatestTuningJob } from '../lib/geminiTuning'
-import { recordLocalExample, getGoodLocalExamples } from '../lib/localLearning'
 import type { VideoFile, AudioFile, RecapSettings as RecapSettingsType, ProcessingStatus as ProcessingStatusType, RecapOutput } from '../types'
 
 interface HomePageProps {
   apiKey: string
-}
-
-// Human-readable name sent to Gemini so the generated script/search results
-// come back in the same language the UI is currently showing.
-const scriptLanguageNames: Record<string, string> = {
-  en: 'English',
-  he: 'Hebrew',
-  es: 'Spanish',
-  fr: 'French',
 }
 
 interface GeminiFileRef {
@@ -63,7 +51,7 @@ function describeGeminiBlockReason(blockReason: string | undefined): string {
   if (blockReason) {
     return `Gemini blocked the response (reason: ${blockReason}). Try adjusting the description.`;
   }
-  return 'Failed to extract script from API response.';
+  return 'Gemini returned no video analysis.';
 }
 
 // Uploads a file (audio narration or the source video) to Gemini's File API
@@ -158,16 +146,6 @@ function guessVideoMimeType(fileName: string): string {
 interface VideoSegment {
   start: number
   end: number
-}
-
-// Common shape for a few-shot script example, satisfied structurally by both
-// Supabase's RecapRecord (recapStorageService.getGoodExamples) and the local,
-// browser-only fallback (src/lib/localLearning.ts) - lets the two sources be
-// merged into one array regardless of whether saving to Supabase works.
-interface ScriptExample {
-  title: string
-  genre?: string
-  scriptText: string
 }
 
 // Gemini's File API caps individual files at 2GB - beyond that, skip video
@@ -295,139 +273,8 @@ async function analyzeVideoSegmentsWithGemini(
   return trimmed;
 }
 
-async function generateScriptWithGemini(
-  settings: RecapSettingsType,
-  apiKey: string,
-  scriptLanguage: string,
-  webSearchResults?: string,
-  fileRefs?: GeminiFileRef[],
-  goodExamples?: ScriptExample[],
-  // A personally fine-tuned model (e.g. "tunedModels/xxx" - see
-  // src/lib/geminiTuning.ts), used instead of the base model when the user
-  // has one ready. Only used when there are no file attachments, since the
-  // tuned model comes from a text-only training pipeline and isn't expected
-  // to support multimodal file_data parts.
-  tunedModelName?: string
-): Promise<string> {
-  const modelName = (tunedModelName && !fileRefs?.length) ? tunedModelName : 'models/gemini-3.6-flash';
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/${modelName}:generateContent?key=${apiKey}`;
-
-  let contextInfo = '';
-  if (webSearchResults) {
-    contextInfo += `\n\nWeb Search Results:\n${webSearchResults}`;
-  }
-
-  const genreText = settings.genre ? ` (Genre: ${settings.genre})` : '';
-  const youtubeContext = settings.youtubeLink
-    ? `\n\nThe style should be similar to this ${settings.linkType === 'channel' ? 'channel' : 'video'}'s recaps: ${settings.youtubeLink}`
-    : '';
-  const hasVideo = fileRefs?.some(f => f.mimeType.startsWith('video/'));
-  const hasAudio = fileRefs?.some(f => f.mimeType.startsWith('audio/'));
-  const attachedSources = [hasVideo && 'the source video', hasAudio && 'an audio narration file'].filter(Boolean).join(' and ');
-  const attachmentsContext = attachedSources
-    ? `\n\nYou have also been given ${attachedSources} - use what you actually see/hear in them (visuals, dialogue, names, specific details, tone) as an additional, highly reliable source alongside the description below.`
-    : '';
-
-  // Few-shot examples pulled from this same user's own "up"-rated past
-  // recaps (see recapStorageService.getGoodExamples) - a lightweight way for
-  // the app to actually improve from real usage over time without needing
-  // to fine-tune or retrain Gemini itself.
-  const examplesContext = goodExamples && goodExamples.length > 0
-    ? `\n\nHere are examples of scripts that worked well for this user's past recaps - match their tone, pacing, and style where it fits:\n${goodExamples.map((ex, i) => `\n    Example ${i + 1} (Title: ${ex.title}${ex.genre ? `, Genre: ${ex.genre}` : ''}):\n    """\n    ${ex.scriptText}\n    """`).join('\n')}`
-    : '';
-
-  const prompt = `
-    You are a professional video scriptwriter creating voice-over scripts for movie/TV show recaps in ${scriptLanguage}.
-
-    Title: ${settings.title}${genreText}${youtubeContext}${contextInfo}${attachmentsContext}${examplesContext}
-
-    User-provided description (this is the primary and most important source - rely on it much more heavily than you normally would as a scriptwriter):
-    """
-    ${settings.description}
-    """
-
-    Create an engaging, cinematic voice-over script in ${scriptLanguage} for a video recap.
-    The script should be:
-    - Grounded almost entirely in the user-provided description above${attachedSources ? ` and the attached ${attachedSources}` : ''} - stick closely to their wording, facts, and details, and rely on them far more than on general or prior knowledge about the title
-    - Do not invent plot points, characters, or events that are not in the description${attachedSources ? ' or attachments' : ''} and do not contradict them
-    - Only use general knowledge to fill in minor gaps that source doesn't cover, and keep that to a minimum
-    - Exciting and dramatic
-    - Concise (3-4 sentences, matching the video duration of ${settings.duration} seconds)
-    - In natural, fluent ${scriptLanguage}
-    - Capture the essence and key moments described above
-    ${settings.youtubeLink ? '- Match the style and tone of the reference YouTube content' : ''}
-
-    Return ONLY the ${scriptLanguage} script text, no additional commentary.
-  `;
-
-  const parts: Array<Record<string, unknown>> = [{ text: prompt }];
-  for (const ref of fileRefs || []) {
-    parts.push({ file_data: { mime_type: ref.mimeType, file_uri: ref.uri } });
-  }
-
-  const maxRetries = 3;
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts }], safetySettings: GEMINI_SAFETY_SETTINGS })
-    });
-
-    if (response.status === 503) {
-      if (attempt === maxRetries) {
-        break;
-      }
-      const delay = Math.pow(2, attempt) * 1000;
-      console.warn(`Gemini API overloaded. Retrying in ${delay / 1000}s (Attempt ${attempt}/${maxRetries})`);
-      await new Promise(resolve => setTimeout(resolve, delay));
-      continue;
-    }
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error?.message || 'An unknown API error occurred.');
-    }
-
-    const data = await response.json();
-    const script = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!script) {
-      // Most commonly happens when Gemini blocks the response outright (e.g.
-      // safety filters on the description/video content) - candidates comes
-      // back empty/missing instead of containing text, and promptFeedback
-      // explains why. Surface that reason instead of a generic message.
-      throw new Error(describeGeminiBlockReason(data.promptFeedback?.blockReason));
-    }
-    return script.trim();
-  }
-
-  throw new Error('The model is currently overloaded. Please try again in a few moments.');
-}
-
-async function searchWebForMovieInfo(title: string, genre: string, apiKey: string): Promise<string> {
-  try {
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
-
-    const prompt = `Search and provide a brief summary about the movie/TV show: "${title}" ${genre ? `(Genre: ${genre})` : ''}.
-    Include: plot overview, key characters, main themes, and interesting facts. Keep it concise (2-3 paragraphs max).`;
-
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], safetySettings: GEMINI_SAFETY_SETTINGS })
-    });
-
-    if (!response.ok) return '';
-
-    const data = await response.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  } catch (error) {
-    console.error('Web search failed:', error);
-    return '';
-  }
-}
-
 const HomePage = ({ apiKey }: HomePageProps) => {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const [selectedFile, setSelectedFile] = useState<VideoFile | null>(null)
   const [audioFile, setAudioFile] = useState<AudioFile | null>(null)
   const [settings, setSettings] = useState<RecapSettingsType>({
@@ -437,10 +284,6 @@ const HomePage = ({ apiKey }: HomePageProps) => {
     title: '',
     genre: '',
     description: '',
-    youtubeApiKey: '',
-    youtubeLink: '',
-    linkType: 'single',
-    webSearch: false,
     apiKey: ''
   })
   const [processingStatus, setProcessingStatus] = useState<ProcessingStatusType | null>(null)
@@ -623,96 +466,6 @@ const HomePage = ({ apiKey }: HomePageProps) => {
       const videoUrl = URL.createObjectURL(videoBlob);
 
       setProcessingStatus({
-        stage: 'generating_script',
-        progress: 0,
-        message: t('home.status.generatingScript')
-      });
-
-      // Perform web search if enabled
-      let webSearchResults = '';
-      if (settings.webSearch) {
-        setProcessingStatus({
-          stage: 'generating_script',
-          progress: 30,
-          message: t('home.status.searchingWeb')
-        });
-        webSearchResults = await searchWebForMovieInfo(settings.title, settings.genre, apiKey);
-      }
-
-      // If the user attached a narration MP3, upload it to Gemini's File API
-      // so the model actually listens to it instead of only reading text
-      // about it - non-fatal if it fails, the script still generates from
-      // the description (and the audio is still muxed into the video either way).
-      let audioFileRef: GeminiFileRef | undefined;
-      if (audioFile) {
-        setProcessingStatus({
-          stage: 'generating_script',
-          progress: 45,
-          message: t('home.status.analyzingAudio')
-        });
-        try {
-          audioFileRef = await uploadFileToGemini(audioFile.file, apiKey, audioFile.file.type || 'audio/mpeg');
-        } catch (e) {
-          console.warn('Uploading narration audio to Gemini failed, generating script from text only', e);
-        }
-      }
-
-      setProcessingStatus({
-        stage: 'generating_script',
-        progress: settings.webSearch ? 60 : 50,
-        message: t('home.status.generatingCustomScript')
-      });
-      const scriptLanguage = scriptLanguageNames[i18n.resolvedLanguage || 'en'] || 'English';
-      // Reuse the same video file already uploaded for segment analysis (if
-      // that succeeded) rather than uploading it to Gemini a second time.
-      const scriptFileRefs = [videoFileRef, audioFileRef].filter((ref): ref is GeminiFileRef => !!ref);
-      // Few-shot examples from two independent sources: this user's own
-      // "up"-rated saved recaps in Supabase (if saving works and they're
-      // signed in), and a local, browser-only fallback that's recorded after
-      // every generation regardless of whether saving/Supabase works at all
-      // (see src/lib/localLearning.ts). Either source alone can be empty
-      // without breaking this - both already degrade to [] quietly.
-      const supabaseExamples = await recapStorageService.getGoodExamples(settings.genre);
-      const localExamples = getGoodLocalExamples(settings.genre);
-      const goodExamples: ScriptExample[] = [...supabaseExamples, ...localExamples].slice(0, 3);
-      // Non-fatal: if a personally fine-tuned model exists and is ready, use
-      // it; any failure here (not signed in, no job yet, network hiccup)
-      // just means generateScriptWithGemini falls back to the base model.
-      let tunedModelName: string | undefined;
-      try {
-        const tuningJob = await getLatestTuningJob();
-        if (tuningJob?.status === 'ready' && tuningJob.tunedModelName) {
-          tunedModelName = tuningJob.tunedModelName;
-        }
-      } catch (e) {
-        console.warn('Could not check for a personalized tuned model, using the base model', e);
-      }
-      const generatedScript = await generateScriptWithGemini(settings, apiKey, scriptLanguage, webSearchResults, scriptFileRefs, goodExamples, tunedModelName);
-
-      // Record this generation in local, browser-only learning storage right
-      // away - independent of whether the user ever saves this recap (to
-      // Supabase) or signs in, so future generations can still learn from it.
-      const localExampleId = recordLocalExample({
-        title: settings.title,
-        genre: settings.genre,
-        scriptText: generatedScript,
-      });
-
-      setProcessingStatus({
-        stage: 'generating_script',
-        progress: 100,
-        message: t('home.status.scriptDone')
-      });
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      setProcessingStatus({
-        stage: 'generating_audio',
-        progress: 50,
-        message: t('home.status.preparingAudio')
-      });
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      setProcessingStatus({
         stage: 'completed',
         progress: 100,
         message: t('home.status.completed')
@@ -721,7 +474,7 @@ const HomePage = ({ apiKey }: HomePageProps) => {
       setRecapOutput({
         videoUrl: videoUrl,
         videoBlob: videoBlob,
-        script: generatedScript,
+        durationSeconds: settings.duration,
         customAudioFile: audioFile?.file,
         // watchedVideo tracks whether Gemini actually received/looked at the
         // video (the upload succeeded), independent of whether its analysis
@@ -730,7 +483,6 @@ const HomePage = ({ apiKey }: HomePageProps) => {
         // segments after filtering, etc).
         watchedVideo: !!videoFileRef,
         usedSmartSelection: !!(smartSegments && smartSegments.length > 0),
-        localExampleId,
       });
 
       // Increment the shared, global counter in Supabase

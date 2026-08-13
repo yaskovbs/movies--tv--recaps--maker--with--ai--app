@@ -23,15 +23,11 @@ export interface RecapSettings {
   title: string // כותרת הסרט/סדרה
   genre: string // ז'אנר
   description: string // תיאור נוסף
-  youtubeApiKey: string // YouTube Data API v3 Key
-  youtubeLink: string // קישור יוטיוב ללמידה
-  linkType: 'single' | 'channel' // סוג הקישור - סרטון יחיד או ערוץ שלם
-  webSearch: boolean // חיפוש באינטרנט לסיכום מדויק יותר
   apiKey: string
 }
 
 export interface ProcessingStatus {
-  stage: 'loading_engine' | 'analyzing_video' | 'cutting_video' | 'generating_script' | 'generating_audio' | 'completed' | 'error'
+  stage: 'loading_engine' | 'analyzing_video' | 'cutting_video' | 'completed' | 'error'
   progress: number
   message: string
   generatedVideoUrl?: string
@@ -59,7 +55,10 @@ export interface RecapOutput {
   // JS object itself would be garbage-collected. Holding the Blob directly
   // sidesteps that whole failure class.
   videoBlob: Blob;
-  script: string;
+  // The recap's length in seconds, as requested in RecapSettings.duration -
+  // needed by RecapSaver when saving, since there's no script text to
+  // estimate a spoken duration from.
+  durationSeconds: number;
   // Set when the user supplied their own MP3 narration - it's already muxed
   // into videoUrl, and kept here so saving can upload the original file as
   // the recap's audioUrl too instead of generating text-to-speech audio.
@@ -73,8 +72,4 @@ export interface RecapOutput {
   // when watchedVideo is true, if it watched but its analysis didn't return
   // anything usable.
   usedSmartSelection?: boolean;
-  // Id of this script's entry in local, browser-only "learn from usage"
-  // storage (see src/lib/localLearning.ts) - lets the UI attach an immediate
-  // thumbs up/down rating without depending on Supabase recap-saving.
-  localExampleId?: string;
 }

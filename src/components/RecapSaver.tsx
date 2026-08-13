@@ -9,14 +9,14 @@ import { Textarea } from './ui/textarea'
 import { AlertCircle, Loader2 } from 'lucide-react'
 
 interface RecapSaverProps {
-  script: string
   videoBlob: Blob
+  durationSeconds: number
   customAudioFile?: File
   open: boolean
   onClose: () => void
 }
 
-export function RecapSaver({ script, videoBlob, customAudioFile, open, onClose }: RecapSaverProps) {
+export function RecapSaver({ videoBlob, durationSeconds, customAudioFile, open, onClose }: RecapSaverProps) {
   const { t } = useTranslation()
   const [title, setTitle] = useState('')
   const [genre, setGenre] = useState('')
@@ -80,10 +80,10 @@ export function RecapSaver({ script, videoBlob, customAudioFile, open, onClose }
         title,
         genre: genre || '',
         description: description || '',
-        scriptText: script,
+        scriptText: '',
         audioUrl,
         videoUrl: savedVideoUrl,
-        duration: Math.round(script.split(' ').length / 2.5),
+        duration: durationSeconds,
         cutInterval: 0,
       })
 

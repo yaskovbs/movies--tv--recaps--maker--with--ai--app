@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { Download, Copy, Play, Pause, Square, PlayCircle, Save, Eye, EyeOff, ThumbsUp, ThumbsDown } from 'lucide-react'
+import { Download, Play, Pause, PlayCircle, Save, Eye, EyeOff } from 'lucide-react'
 import type { RecapOutput } from '../types'
 import { RecapSaver } from './RecapSaver'
-import { rateLocalExample } from '../lib/localLearning'
 
 interface ResultsSectionProps {
   output: RecapOutput
@@ -12,84 +11,11 @@ interface ResultsSectionProps {
 
 const ResultsSection = ({ output }: ResultsSectionProps) => {
   const { t } = useTranslation()
-  const [isCopied, setIsCopied] = useState(false)
   const [showSaver, setShowSaver] = useState(false)
-  const [localRating, setLocalRating] = useState<'up' | 'down' | null>(null)
-  
-  // Audio state
-  const [isAudioPlaying, setIsAudioPlaying] = useState(false)
-  const [allVoices, setAllVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [languages, setLanguages] = useState<string[]>([]);
-  const [filteredVoices, setFilteredVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('');
-  const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null);
 
   // Video state
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    const loadVoices = () => {
-      const availableVoices = window.speechSynthesis.getVoices();
-      if (availableVoices.length === 0) return;
-
-      setAllVoices(availableVoices);
-
-      const uniqueLangs = [...new Set(availableVoices.map(v => v.lang))];
-      setLanguages(uniqueLangs);
-
-      const defaultLang = uniqueLangs.find(lang => lang.startsWith('he')) || uniqueLangs[0];
-      setSelectedLanguage(defaultLang || '');
-    };
-    
-    window.speechSynthesis.onvoiceschanged = loadVoices;
-    loadVoices();
-  }, []);
-
-  useEffect(() => {
-    if (selectedLanguage) {
-      const voicesForLang = allVoices.filter(v => v.lang === selectedLanguage);
-      setFilteredVoices(voicesForLang);
-      setSelectedVoice(voicesForLang[0] || null);
-    }
-  }, [selectedLanguage, allVoices]);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(output.script);
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2000);
-  };
-
-  const handleLocalRating = (rating: 'up' | 'down') => {
-    if (!output.localExampleId || localRating) return;
-    rateLocalExample(output.localExampleId, rating);
-    setLocalRating(rating);
-  };
-
-  // Audio controls
-  const handleAudioPlayPause = () => {
-    if (isAudioPlaying) {
-      window.speechSynthesis.pause();
-      setIsAudioPlaying(false);
-    } else {
-      if (window.speechSynthesis.paused) {
-        window.speechSynthesis.resume();
-      } else {
-        const utterance = new SpeechSynthesisUtterance(output.script);
-        if (selectedVoice) {
-          utterance.voice = selectedVoice;
-        }
-        utterance.onend = () => setIsAudioPlaying(false);
-        window.speechSynthesis.speak(utterance);
-      }
-      setIsAudioPlaying(true);
-    }
-  };
-
-  const handleAudioStop = () => {
-    window.speechSynthesis.cancel();
-    setIsAudioPlaying(false);
-  };
 
   // Video controls
   const handleVideoPlayPause = () => {
@@ -121,20 +47,11 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
     }
   }, []);
 
-  const getDisplayLanguage = (langCode: string) => {
-    try {
-      const languageName = new Intl.DisplayNames(['en'], { type: 'language' }).of(langCode.split('-')[0]);
-      return `${languageName} (${langCode})`;
-    } catch {
-      return langCode;
-    }
-  };
-
   return (
     <>
       <RecapSaver
-        script={output.script}
         videoBlob={output.videoBlob}
+        durationSeconds={output.durationSeconds}
         customAudioFile={output.customAudioFile}
         open={showSaver}
         onClose={() => setShowSaver(false)}
@@ -144,7 +61,7 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-      {/* 1. Video Recap */}
+      {/* Video Recap */}
       <div className="glass rounded-lg p-6">
         <div className="flex items-center gap-2 mb-4 flex-wrap">
           <h3 className="text-xl font-semibold text-white">{t('resultsSection.videoTitle')}</h3>
@@ -167,14 +84,14 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
         </div>
 
         <div className="relative w-full rounded-lg overflow-hidden group mb-4">
-          <video 
+          <video
             ref={videoRef}
-            src={output.videoUrl} 
+            src={output.videoUrl}
             className="w-full cursor-pointer"
             onClick={handleVideoPlayPause}
           />
           {!isVideoPlaying && (
-            <div 
+            <div
               className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 cursor-pointer transition-opacity duration-300 group-hover:bg-opacity-50"
               onClick={handleVideoPlayPause}
             >
@@ -184,7 +101,7 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
         </div>
 
         <div className="flex items-center justify-center gap-4 flex-wrap">
-          <motion.button 
+          <motion.button
             onClick={handleVideoPlayPause}
             className="flex items-center justify-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
             whileHover={{ scale: 1.05 }}
@@ -213,94 +130,6 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
             <span>{t('resultsSection.saveRecap')}</span>
           </motion.button>
         </div>
-      </div>
-
-      {/* 2. Generated Script */}
-      <div className="glass rounded-lg p-6">
-        <h3 className="text-xl font-semibold text-white mb-4">{t('resultsSection.scriptTitle')}</h3>
-        <textarea
-          readOnly
-          value={output.script}
-          className="w-full h-48 glass-bg text-gray-300 p-3 rounded-lg border border-white/10 resize-none"
-        />
-        <button
-          onClick={handleCopy}
-          className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center"
-        >
-          <Copy className="h-5 w-5 ml-2" />
-          {isCopied ? t('resultsSection.copied') : t('resultsSection.copyScript')}
-        </button>
-
-        {output.localExampleId && (
-          <div className="mt-4 flex items-center justify-center gap-3 text-sm text-gray-400">
-            {localRating ? (
-              <span>{t('resultsSection.localRatingThanks')}</span>
-            ) : (
-              <>
-                <span>{t('resultsSection.localRatingPrompt')}</span>
-                <button
-                  onClick={() => handleLocalRating('up')}
-                  className="p-2 rounded-lg text-gray-400 hover:text-green-400 hover:bg-green-500/10 transition-colors"
-                  title={t('resultsSection.localRatingUp')}
-                >
-                  <ThumbsUp className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => handleLocalRating('down')}
-                  className="p-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                  title={t('resultsSection.localRatingDown')}
-                >
-                  <ThumbsDown className="h-4 w-4" />
-                </button>
-              </>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* 3. Audio Voice-over */}
-      <div className="glass rounded-lg p-6">
-        <h3 className="text-xl font-semibold text-white mb-4">{t('resultsSection.audioTitle')}</h3>
-        
-        <div className="space-y-4">
-          <div>
-            <label className="text-sm text-gray-400 block mb-2">{t('resultsSection.selectLanguage')}</label>
-            <select 
-                value={selectedLanguage}
-                onChange={(e) => setSelectedLanguage(e.target.value)}
-                className="w-full px-3 py-2 glass-input rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-                {languages.map(lang => (
-                    <option key={lang} value={lang}>{getDisplayLanguage(lang)}</option>
-                ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="text-sm text-gray-400 block mb-2">{t('resultsSection.selectVoice')}</label>
-            <select 
-                value={selectedVoice?.name || ''}
-                onChange={(e) => setSelectedVoice(allVoices.find(v => v.name === e.target.value) || null)}
-                disabled={filteredVoices.length === 0}
-                className="w-full px-3 py-2 glass-input rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-                {filteredVoices.map(voice => (
-                    <option key={voice.name} value={voice.name}>{voice.name}</option>
-                ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4 mt-6">
-            <button onClick={handleAudioPlayPause} className="p-4 bg-blue-600 rounded-full text-white hover:bg-blue-700 transition-colors">
-                {isAudioPlaying ? <Pause size={24} /> : <Play size={24} />}
-            </button>
-            <button onClick={handleAudioStop} className="p-4 bg-red-600 rounded-full text-white hover:bg-red-700 transition-colors">
-                <Square size={24} />
-            </button>
-        </div>
-        
-        <p className="text-xs text-gray-500 mt-4 text-center">{t('resultsSection.audioDownloadUnsupported')}</p>
       </div>
     </motion.div>
     </>
