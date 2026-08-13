@@ -67,7 +67,7 @@ npm run dev
 1. צרו פרויקט חינמי ב-[supabase.com](https://supabase.com).
 2. **הפעילו התחברות אנונימית** (חובה): Dashboard → Authentication → Sign In / Providers → Anonymous Sign-Ins → Enable. זה מה שנותן לכל מבקר זהות אמיתית לשמירה בלי להירשם.
 3. הריצו את הסכמה — שתי דרכים אפשריות, בוחרים אחת:
-   - **ידנית (הכי פשוט):** העתיקו את התוכן של כל הקבצים ב-[`supabase/migrations/`](supabase/migrations/) **לפי סדר השמות** (`20260809120000_initial_schema.sql` ואז `20260812130000_app_stats.sql`) והריצו כל אחד בנפרד דרך Dashboard → SQL Editor → New query.
+   - **ידנית (הכי פשוט):** העתיקו את התוכן של כל הקבצים ב-[`supabase/migrations/`](supabase/migrations/) **לפי סדר השמות** (`20260809120000_initial_schema.sql`, `20260812130000_app_stats.sql`, `20260813120000_drop_public_storage_select_policy.sql`) והריצו כל אחד בנפרד דרך Dashboard → SQL Editor → New query.
    - **אוטומטית דרך GitHub:** Dashboard → Project Settings → Integrations → GitHub → חברו את הריפו הזה, Working directory = `.`, הפעילו **Deploy to production** עם הענף `main`. **חשוב: השאירו את "Automatic branching" כבוי** — זו תכונה שיוצרת מסד נתונים נפרד לכל Pull Request ועלולה לגבות כסף (Supabase מציגים על כך אזהרה מפורשת: "Branching Compute is not covered by your organization's Spend Cap"). בלי branching, כל push ל-`main` פשוט מריץ את קובצי ה-migrations ב-`supabase/migrations/` על מסד הייצור, בחינם.
 
    שתי הדרכים יוצרות את אותו הדבר: טבלאות `recaps`, `tuning_jobs`, `app_stats` ו-`stats_visitors` + bucket אחסון ציבורי בשם `recaps`, כולל כל מדיניות ה-RLS ופונקציות ה-RPC הנדרשות (הסטטיסטיקות הגלובליות בעמוד הבית - כמות סיכומים שנוצרו, משתמשים ייחודיים, דירוג ממוצע - מתעדכנות רק דרך פונקציות אלה, לא ישירות מהלקוח).

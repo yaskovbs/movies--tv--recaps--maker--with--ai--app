@@ -98,15 +98,20 @@ create index if not exists tuning_jobs_user_id_created_at_idx
 -- === storage ====================================================================
 -- A public bucket for generated recap videos/audio - public so saved recaps can be
 -- played back and downloaded via a plain URL, same as before.
+--
+-- Deliberately no SELECT policy on storage.objects for this bucket: it's
+-- already public, so fetching a known file by its public URL (what this app
+-- actually does, via getPublicUrl()) works with zero RLS policies. A SELECT
+-- policy here would only be needed to allow the Storage list/query API
+-- (storage.list()), which this app never calls - adding one would let any
+-- anonymous client enumerate every file ever uploaded by every user, which
+-- Supabase's own security advisor flags ("Clients can list all files in this
+-- bucket"). See 20260813_drop_public_storage_select_policy.sql for the
+-- matching fix on databases that already ran an earlier version of this file.
 
 insert into storage.buckets (id, name, public)
 values ('recaps', 'recaps', true)
 on conflict (id) do nothing;
-
-drop policy if exists "Anyone can view recap files" on storage.objects;
-create policy "Anyone can view recap files"
-  on storage.objects for select
-  using (bucket_id = 'recaps');
 
 drop policy if exists "Signed-in users can upload recap files" on storage.objects;
 create policy "Signed-in users can upload recap files"
