@@ -1,13 +1,19 @@
 import { createClient, type User } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+// Accepts either naming convention so whichever names are actually set in
+// the hosting environment work without renaming anything: this app's own
+// VITE_* convention, or NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+// (the names Supabase's own dashboard "Connect" instructions suggest, written
+// for Next.js - "publishable key" is Supabase's newer name for the anon key).
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 
 export const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey)
 
 if (!isSupabaseConfigured) {
   console.error(
-    'Missing VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY. Set them in .env.local (see .env.example) ' +
+    'Missing Supabase URL/key. Set VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY, or ' +
+    'NEXT_PUBLIC_SUPABASE_URL + NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, in .env.local (see .env.example) ' +
     'or your host\'s environment variables - see README.md for full Supabase setup instructions. ' +
     'The site will still work for creating recaps, but saving/history/auth are disabled until this is set.'
   )

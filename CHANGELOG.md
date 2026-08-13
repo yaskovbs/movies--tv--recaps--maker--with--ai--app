@@ -157,6 +157,12 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - `src/lib/stats.ts` now always keeps a local, per-device fallback counter in `localStorage` (`local_app_stats_fallback`) alongside every Supabase write, and `getPublicStats()` reads from Supabase when it's configured and the request succeeds, falling back to the local counter otherwise - it no longer returns `null`. `incrementRecapsCreated`/`addRating` no longer throw or silently no-op when Supabase fails; the local count always lands.
 - This local fallback is inherently per-device (it can't reflect what other visitors are doing), but it means the homepage always shows real, non-zero numbers instead of stalling on Supabase setup being finished first.
 
+## Accept Supabase's own NEXT_PUBLIC_* env var names too
+
+- Supabase's dashboard "Connect" page hands out setup snippets written for Next.js (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` - "publishable key" is Supabase's newer name for the anon key), which don't match this app's own `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` convention. Rather than requiring everything to be renamed in Cloudflare Pages, the app now accepts either set directly.
+- Vite only inlines env vars into the client bundle if their name matches a configured prefix (`VITE_` by default) - `NEXT_PUBLIC_*` vars were previously invisible to `import.meta.env` no matter what was set in Cloudflare. Added `NEXT_PUBLIC_` to `envPrefix` in `vite.config.ts`, and `src/lib/supabase.ts` now reads `VITE_SUPABASE_URL || NEXT_PUBLIC_SUPABASE_URL` (and the equivalent for the key). Verified directly by building with only the `NEXT_PUBLIC_*` vars set and confirming both values actually land in the built JS bundle.
+- Updated `.env.example` and the README's Supabase setup section to document both accepted naming options.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.
