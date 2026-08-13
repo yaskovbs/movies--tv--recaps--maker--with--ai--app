@@ -156,7 +156,11 @@
     "saveRecap": "Сохранить пересказ",
     "smartSelectionBadge": "Gemini посмотрел видео и выбрал эти моменты",
     "smartSelectionBadgeNo": "Gemini не смотрел видео - моменты выбраны с фиксированным интервалом",
-    "smartSelectionBadgeWatchedNotUsed": "Gemini посмотрел видео, но его выбор нельзя было использовать - моменты выбраны с фиксированным интервалом"
+    "smartSelectionBadgeWatchedNotUsed": "Gemini посмотрел видео, но его выбор нельзя было использовать - моменты выбраны с фиксированным интервалом",
+    "rateThisRecap": "Вам понравился этот ролик?",
+    "rateGood": "Хорошо",
+    "rateBad": "Не очень",
+    "rateThanks": "Спасибо за отзыв!"
   },
   "statsSection": {
     "loading": "Загрузка данных...",

@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { Download, Play, Pause, PlayCircle, Save, Eye, EyeOff } from 'lucide-react'
+import { Download, Play, Pause, PlayCircle, Save, Eye, EyeOff, ThumbsUp, ThumbsDown } from 'lucide-react'
 import type { RecapOutput } from '../types'
 import { RecapSaver } from './RecapSaver'
+import { addRating, hasRated as checkHasRated } from '../lib/stats'
 
 interface ResultsSectionProps {
   output: RecapOutput
@@ -12,6 +13,8 @@ interface ResultsSectionProps {
 const ResultsSection = ({ output }: ResultsSectionProps) => {
   const { t } = useTranslation()
   const [showSaver, setShowSaver] = useState(false)
+  const [hasRated, setHasRated] = useState(() => checkHasRated())
+  const [isRating, setIsRating] = useState(false)
 
   // Video state
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
@@ -46,6 +49,22 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
       };
     }
   }, []);
+
+  // Quick like/dislike feedback on this recap, right where it's shown - no
+  // save or sign-in required. Feeds the same shared, global rating shown in
+  // the homepage's stats section (src/lib/stats.ts), so it's a one-time
+  // signal per browser rather than per-recap: whichever comes first, this or
+  // the homepage's own star widget, "uses up" the rating.
+  const handleRating = async (liked: boolean) => {
+    if (hasRated || isRating) return;
+    setIsRating(true);
+    try {
+      await addRating(liked ? 5 : 1);
+      setHasRated(true);
+    } finally {
+      setIsRating(false);
+    }
+  };
 
   return (
     <>
@@ -129,6 +148,32 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
             <Save className="h-5 w-5" />
             <span>{t('resultsSection.saveRecap')}</span>
           </motion.button>
+        </div>
+
+        <div className="flex items-center justify-center gap-3 mt-4 text-sm text-gray-400">
+          {hasRated ? (
+            <span>{t('resultsSection.rateThanks')}</span>
+          ) : (
+            <>
+              <span>{t('resultsSection.rateThisRecap')}</span>
+              <button
+                onClick={() => handleRating(true)}
+                disabled={isRating}
+                className="p-2 rounded-lg text-gray-400 hover:text-green-400 hover:bg-green-500/10 transition-colors disabled:opacity-50"
+                title={t('resultsSection.rateGood')}
+              >
+                <ThumbsUp className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => handleRating(false)}
+                disabled={isRating}
+                className="p-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                title={t('resultsSection.rateBad')}
+              >
+                <ThumbsDown className="h-4 w-4" />
+              </button>
+            </>
+          )}
         </div>
       </div>
     </motion.div>

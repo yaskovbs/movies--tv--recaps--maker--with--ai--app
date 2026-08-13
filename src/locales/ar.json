@@ -156,7 +156,11 @@
     "saveRecap": "حفظ الملخص",
     "smartSelectionBadge": "شاهد Gemini الفيديو واختار هذه اللحظات",
     "smartSelectionBadgeNo": "لم يشاهد Gemini الفيديو - تم اختيار اللحظات بفاصل زمني ثابت",
-    "smartSelectionBadgeWatchedNotUsed": "شاهد Gemini الفيديو، لكن تعذر استخدام اختياره - تم اختيار اللحظات بفاصل زمني ثابت بدلاً من ذلك"
+    "smartSelectionBadgeWatchedNotUsed": "شاهد Gemini الفيديو، لكن تعذر استخدام اختياره - تم اختيار اللحظات بفاصل زمني ثابت بدلاً من ذلك",
+    "rateThisRecap": "هل أعجبك هذا الملخص؟",
+    "rateGood": "جيد",
+    "rateBad": "ليس رائعًا",
+    "rateThanks": "شكرًا على ملاحظاتك!"
   },
   "statsSection": {
     "loading": "جارٍ تحميل البيانات...",

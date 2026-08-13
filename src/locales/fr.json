@@ -156,7 +156,11 @@
     "saveRecap": "Enregistrer le résumé",
     "smartSelectionBadge": "Gemini a regardé la vidéo et choisi ces moments",
     "smartSelectionBadgeNo": "Gemini n'a pas regardé la vidéo - moments choisis à intervalle fixe",
-    "smartSelectionBadgeWatchedNotUsed": "Gemini a regardé la vidéo, mais son choix n'a pas pu être utilisé - moments choisis à intervalle fixe à la place"
+    "smartSelectionBadgeWatchedNotUsed": "Gemini a regardé la vidéo, mais son choix n'a pas pu être utilisé - moments choisis à intervalle fixe à la place",
+    "rateThisRecap": "Avez-vous aimé ce récapitulatif ?",
+    "rateGood": "Bien",
+    "rateBad": "Pas terrible",
+    "rateThanks": "Merci pour votre avis !"
   },
   "statsSection": {
     "loading": "Chargement des données...",
