@@ -333,9 +333,18 @@ async function generateScriptWithGemini(
     }
 
     const data = await response.json();
-    const script = data.candidates[0]?.content?.parts[0]?.text;
+    const script = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!script) {
-      throw new Error('Failed to extract script from API response.');
+      // Most commonly happens when Gemini blocks the response outright (e.g.
+      // safety filters on the description/video content) - candidates comes
+      // back empty/missing instead of containing text, and promptFeedback
+      // explains why. Surface that reason instead of a generic message.
+      const blockReason = data.promptFeedback?.blockReason;
+      throw new Error(
+        blockReason
+          ? `Gemini blocked the response (reason: ${blockReason}). Try adjusting the description.`
+          : 'Failed to extract script from API response.'
+      );
     }
     return script.trim();
   }
@@ -359,7 +368,7 @@ async function searchWebForMovieInfo(title: string, genre: string, apiKey: strin
     if (!response.ok) return '';
 
     const data = await response.json();
-    return data.candidates[0]?.content?.parts[0]?.text || '';
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
   } catch (error) {
     console.error('Web search failed:', error);
     return '';
