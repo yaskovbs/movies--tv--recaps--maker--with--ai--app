@@ -209,6 +209,10 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - Removing script generation also removed the local few-shot rating UI that used to sit under the (now-gone) script text - leaving no way to react to a freshly created recap at all, which a user then flagged as missing.
 - Added a simple thumbs up/down back to `ResultsSection.tsx`, right under the video's action buttons. Rather than reintroducing the old script-learning machinery (there's nothing left to learn from), it reuses the existing global rating already wired up in `src/lib/stats.ts` (`addRating`/`hasRated` - the same mechanism behind the homepage's own 5-star "rate our service" widget). It's a one-time signal per browser: whichever comes first, this button or the homepage widget, "uses up" the rating and both then show a thank-you state - avoids asking the same visitor to rate twice while still giving a way to react to each recap.
 
+## Added ARCHITECTURE.md
+
+- Added `ARCHITECTURE.md`: a full technical walkthrough of how the system actually works - the step-by-step recap creation flow, Gemini's role and safety settings, the Supabase data layer (auth, tables, RLS, storage, RPC functions), every fallback/resilience mechanism built up over this project's history, video processing constraints, i18n, deployment, and the `desktop-app/` folder's status. Linked from `README.md`.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.
