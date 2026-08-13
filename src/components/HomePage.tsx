@@ -472,13 +472,13 @@ const HomePage = ({ apiKey }: HomePageProps) => {
         try {
           // Real movies/episodes can take several minutes for Gemini to finish
           // processing server-side, well beyond typical upload time - budget
-          // up to 10 minutes and keep the status message moving so it doesn't
+          // up to 22 minutes and keep the status message moving so it doesn't
           // look frozen during the wait.
           videoFileRef = await uploadFileToGemini(
             selectedFile.file,
             apiKey,
             guessVideoMimeType(selectedFile.name),
-            10 * 60 * 1000,
+            22 * 60 * 1000,
             (elapsedMs) => {
               const totalSeconds = Math.round(elapsedMs / 1000);
               const minutes = Math.floor(totalSeconds / 60);

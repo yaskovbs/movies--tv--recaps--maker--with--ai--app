@@ -173,6 +173,10 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - Root cause found: `generateScriptWithGemini`'s response parsing did `data.candidates[0]?.content?.parts[0]?.text` - optional chaining on everything *except* `candidates[0]` itself. When Gemini returns a response with no `candidates` array at all (most commonly because it blocked the response outright, e.g. safety filters triggered by the movie's description/content), `data.candidates` is `undefined` and indexing `[0]` into it throws exactly this raw `TypeError`, which then surfaced verbatim as the error shown to the user (`שגיאה בעיבוד`) instead of anything explaining what actually happened.
 - Fixed the optional chaining (`data.candidates?.[0]?.content?.parts?.[0]?.text`) and, when there's still no script, now reads `data.promptFeedback?.blockReason` and surfaces it in the thrown error (e.g. "Gemini blocked the response (reason: SAFETY). Try adjusting the description.") instead of a generic failure. Applied the same fix to `searchWebForMovieInfo` (same pattern, already caught so it wasn't crash-visible, but was silently swallowing the same information) and to the desktop app's equivalent code in `desktop-app/src/renderer/renderer.js`.
 
+## Extended the Gemini video-processing wait budget to 22 minutes
+
+- Raised the video upload's processing wait budget (see "Fixed the real reason Gemini 'watching' the video almost always failed" above) from 10 to **22 minutes**, for very long movies where Gemini's server-side processing still hadn't finished within 10 minutes.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.
