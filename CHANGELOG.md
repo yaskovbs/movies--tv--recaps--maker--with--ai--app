@@ -151,6 +151,12 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - `ResultsSection.tsx` now shows a quick thumbs up/down right under the generated script, rating that generation in local storage immediately - no save, no sign-in, no trip to the History page required. `RecapOutput` gained a `localExampleId` field to connect the two.
 - This is per-device (it won't follow a user across browsers), but it means the "improves over time" feature now works in every case, not only once Supabase saving is fixed.
 
+## Local fallback for the global stats too (recaps created / active users)
+
+- Same problem as the few-shot learning fallback above, applied to the homepage's stats section: `getPublicStats`/`incrementRecapsCreated`/`addRating` only ever worked through Supabase, so while its migration/RPC functions weren't set up yet (or any single request just failed), the stats section had nothing to show and displayed zeros.
+- `src/lib/stats.ts` now always keeps a local, per-device fallback counter in `localStorage` (`local_app_stats_fallback`) alongside every Supabase write, and `getPublicStats()` reads from Supabase when it's configured and the request succeeds, falling back to the local counter otherwise - it no longer returns `null`. `incrementRecapsCreated`/`addRating` no longer throw or silently no-op when Supabase fails; the local count always lands.
+- This local fallback is inherently per-device (it can't reflect what other visitors are doing), but it means the homepage always shows real, non-zero numbers instead of stalling on Supabase setup being finished first.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.
