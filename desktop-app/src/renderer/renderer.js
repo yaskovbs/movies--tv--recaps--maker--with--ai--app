@@ -178,8 +178,15 @@ async function generateScriptWithGemini(apiKey, scriptLanguage, webSearchResults
     }
 
     const data = await response.json()
-    const script = data.candidates[0]?.content?.parts[0]?.text
-    if (!script) throw new Error('Failed to extract script from API response.')
+    const script = data.candidates?.[0]?.content?.parts?.[0]?.text
+    if (!script) {
+      const blockReason = data.promptFeedback?.blockReason
+      throw new Error(
+        blockReason
+          ? `Gemini blocked the response (reason: ${blockReason}). Try adjusting the description.`
+          : 'Failed to extract script from API response.'
+      )
+    }
     return script.trim()
   }
 
