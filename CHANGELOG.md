@@ -213,6 +213,10 @@ Summary of the work done on this branch, in the order it happened. This is a run
 
 - Added `ARCHITECTURE.md`: a full technical walkthrough of how the system actually works - the step-by-step recap creation flow, Gemini's role and safety settings, the Supabase data layer (auth, tables, RLS, storage, RPC functions), every fallback/resilience mechanism built up over this project's history, video processing constraints, i18n, deployment, and the `desktop-app/` folder's status. Linked from `README.md`.
 
+## Switched the model to gemini-3.7-flash
+
+- Updated the model used for video segment analysis from `gemini-3.6-flash` to `gemini-3.7-flash` in `src/components/HomePage.tsx` and the desktop app's equivalent code.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.

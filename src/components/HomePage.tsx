@@ -178,7 +178,7 @@ async function analyzeVideoSegmentsWithGemini(
   maxWaitMs = 22 * 60 * 1000,
   onWaiting?: (elapsedMs: number) => void
 ): Promise<VideoSegment[]> {
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent?key=${apiKey}`;
 
   const prompt = `
     You are given a movie/TV episode video file. Watch it and select the most important, representative moments to include in a short recap.
