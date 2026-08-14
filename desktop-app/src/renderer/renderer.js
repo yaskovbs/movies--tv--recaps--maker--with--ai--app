@@ -121,7 +121,7 @@ function showResult(videoPath, script) {
 }
 
 async function generateScriptWithGemini(apiKey, scriptLanguage, webSearchResults) {
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent?key=${apiKey}`
 
   const title = el.title.value.trim()
   const genre = el.genre.value
