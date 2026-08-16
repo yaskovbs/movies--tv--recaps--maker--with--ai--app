@@ -217,6 +217,13 @@ Summary of the work done on this branch, in the order it happened. This is a run
 
 - Updated the model used for video segment analysis from `gemini-3.6-flash` to `gemini-3.7-flash` in `src/components/HomePage.tsx` and the desktop app's equivalent code.
 
+## Chat with the video
+
+- Added a real chat interface for asking Gemini questions about the source video, right in the results view. Reuses the same Gemini File API upload already done for smart segment selection (`videoFileRef`) instead of uploading the video a second time - no extra wait, no extra upload cost.
+- New `RecapOutput.geminiVideoFileRef` field (typed `GeminiFileRef`, moved from a local `HomePage.tsx` interface into `src/types/index.ts` so it can be shared) carries the uploaded file's reference through to `ResultsSection`, which only renders the chat when it's actually present (i.e. Gemini successfully received the video - same condition the watched/not-watched badge already reflects, so there's no redundant explanation needed when it's unavailable).
+- New `src/components/VideoChat.tsx`: a standard chat UI (message bubbles, input box, Enter-to-send) backed by `gemini-3.7-flash`. Gemini's REST API is stateless, so every turn resends the full conversation history so far - the video file is attached only once, on the very first user turn, and every later turn is plain text (verified this exact behavior directly with a standalone test of the history-building logic).
+- Moved `GEMINI_SAFETY_SETTINGS` and `describeGeminiBlockReason()` out of `HomePage.tsx` into `src/lib/gemini.ts` so both the recap-creation flow and the new chat feature share the same loosened safety thresholds and block-reason messaging instead of duplicating them.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.

@@ -162,6 +162,14 @@
     "rateBad": "Pas terrible",
     "rateThanks": "Merci pour votre avis !"
   },
+  "videoChat": {
+    "title": "Discuter avec la vidéo",
+    "subtitle": "Demandez à Gemini tout ce qui se passe réellement dans la vidéo source.",
+    "placeholder": "Aucune question pour le moment - demandez à propos d'une scène, d'un personnage ou d'autre chose dans la vidéo.",
+    "thinking": "Réflexion en cours...",
+    "inputPlaceholder": "Posez une question sur la vidéo...",
+    "error": "Une erreur s'est produite. Veuillez réessayer."
+  },
   "statsSection": {
     "loading": "Chargement des données...",
     "heading": "Les chiffres parlent d'eux-mêmes",
