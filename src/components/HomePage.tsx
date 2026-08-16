@@ -11,110 +11,18 @@ import ProcessingStatus from './ProcessingStatus'
 import StatsSection from './StatsSection'
 import ResultsSection from './ResultsSection'
 import { incrementRecapsCreated } from '../lib/stats'
+import FullVideoSummary from './FullVideoSummary'
 import type { VideoFile, AudioFile, RecapSettings as RecapSettingsType, ProcessingStatus as ProcessingStatusType, RecapOutput, GeminiFileRef } from '../types'
-import { GEMINI_SAFETY_SETTINGS, describeGeminiBlockReason } from '../lib/gemini'
+import { GEMINI_SAFETY_SETTINGS, describeGeminiBlockReason, uploadFileToGemini, guessVideoMimeType, GEMINI_VIDEO_SIZE_CAP } from '../lib/gemini'
 
 interface HomePageProps {
   apiKey: string
-}
-
-// Uploads a file (audio narration or the source video) to Gemini's File API
-// so the model can actually see/hear it, not just read a text description of
-// it. Inline base64 media in generateContent is capped around 20MB per
-// request, which both a multi-minute narration and any real video file can
-// easily exceed, so this uses the resumable upload + file_uri reference flow
-// instead, which is what Google's audio/video inputs are designed around.
-async function uploadFileToGemini(
-  file: File,
-  apiKey: string,
-  mimeType: string,
-  maxWaitMs = 30_000,
-  onWaiting?: (elapsedMs: number) => void
-): Promise<GeminiFileRef> {
-  const startResponse = await fetch(
-    `https://generativelanguage.googleapis.com/upload/v1beta/files?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: {
-        'X-Goog-Upload-Protocol': 'resumable',
-        'X-Goog-Upload-Command': 'start',
-        'X-Goog-Upload-Header-Content-Length': String(file.size),
-        'X-Goog-Upload-Header-Content-Type': mimeType,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ file: { display_name: file.name } }),
-    }
-  );
-  if (!startResponse.ok) {
-    throw new Error('Failed to start the file upload to Gemini.');
-  }
-  const uploadUrl = startResponse.headers.get('X-Goog-Upload-URL');
-  if (!uploadUrl) {
-    throw new Error('Gemini did not return an upload URL.');
-  }
-
-  const uploadResponse = await fetch(uploadUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Length': String(file.size),
-      'X-Goog-Upload-Offset': '0',
-      'X-Goog-Upload-Command': 'upload, finalize',
-    },
-    body: file,
-  });
-  if (!uploadResponse.ok) {
-    throw new Error('Failed to upload the file bytes to Gemini.');
-  }
-
-  let fileInfo = (await uploadResponse.json()).file as { uri?: string; name?: string; state?: string };
-  if (!fileInfo?.uri || !fileInfo?.name) {
-    throw new Error('Gemini upload response is missing the file URI.');
-  }
-
-  // Audio/video files go through a PROCESSING step before they can be
-  // referenced in generateContent - poll until Gemini marks it ACTIVE.
-  // Processing time scales with video length, not file size: a real
-  // movie/episode routinely takes several minutes even well under the 2GB
-  // cap, so this is budgeted by elapsed time rather than a small fixed
-  // attempt count (a previous 90-second budget meant real videos almost
-  // always timed out here and silently fell back to periodic sampling).
-  const pollIntervalMs = 2000;
-  const deadline = Date.now() + maxWaitMs;
-  while (fileInfo.state === 'PROCESSING' && Date.now() < deadline) {
-    await new Promise(resolve => setTimeout(resolve, pollIntervalMs));
-    onWaiting?.(Date.now() - (deadline - maxWaitMs));
-    const statusResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/${fileInfo.name}?key=${apiKey}`
-    );
-    if (!statusResponse.ok) break;
-    fileInfo = await statusResponse.json();
-  }
-
-  if (fileInfo.state !== 'ACTIVE' || !fileInfo.uri) {
-    throw new Error('Gemini could not finish processing the file in time.');
-  }
-
-  return { uri: fileInfo.uri, mimeType };
-}
-
-function guessVideoMimeType(fileName: string): string {
-  const ext = fileName.split('.').pop()?.toLowerCase();
-  switch (ext) {
-    case 'mov': return 'video/mov';
-    case 'avi': return 'video/avi';
-    case 'mkv': return 'video/x-matroska';
-    default: return 'video/mp4';
-  }
 }
 
 interface VideoSegment {
   start: number
   end: number
 }
-
-// Gemini's File API caps individual files at 2GB - beyond that, skip video
-// analysis entirely rather than waste time on an upload that will just fail.
-const GEMINI_VIDEO_SIZE_CAP = 2 * 1024 * 1024 * 1024;
 
 // Asks Gemini to actually watch the uploaded video and pick out the moments
 // worth including in the recap, instead of FFmpeg blindly sampling evenly-
@@ -576,6 +484,13 @@ const HomePage = ({ apiKey }: HomePageProps) => {
               onFileSelect={setSelectedFile}
               onRemoveFile={() => setSelectedFile(null)}
             />
+            {selectedFile && (
+              <FullVideoSummary
+                selectedFile={selectedFile}
+                apiKey={apiKey}
+                description={settings.description}
+              />
+            )}
             <AudioUploader
               selectedFile={audioFile}
               onFileSelect={setAudioFile}
