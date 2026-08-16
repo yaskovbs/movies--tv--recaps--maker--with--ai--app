@@ -162,6 +162,14 @@
     "rateBad": "Not great",
     "rateThanks": "Thanks for the feedback!"
   },
+  "videoChat": {
+    "title": "Chat with the video",
+    "subtitle": "Ask Gemini anything about what actually happens in the source video.",
+    "placeholder": "No questions yet - ask about a scene, a character, or anything else in the video.",
+    "thinking": "Thinking...",
+    "inputPlaceholder": "Ask a question about the video...",
+    "error": "Something went wrong. Please try again."
+  },
   "statsSection": {
     "loading": "Loading data...",
     "heading": "The numbers speak for themselves",

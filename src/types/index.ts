@@ -45,6 +45,15 @@ export interface FAQ {
   answer: string
 }
 
+// A file already uploaded to Gemini's File API (see uploadFileToGemini in
+// HomePage.tsx) - the uri stays valid for a limited time (Google's default
+// retention is 48 hours), which is plenty for chatting about it in the same
+// session it was created in.
+export interface GeminiFileRef {
+  uri: string
+  mimeType: string
+}
+
 export interface RecapOutput {
   videoUrl: string;
   // The actual generated video data, kept alongside videoUrl (a blob: URL
@@ -72,4 +81,9 @@ export interface RecapOutput {
   // when watchedVideo is true, if it watched but its analysis didn't return
   // anything usable.
   usedSmartSelection?: boolean;
+  // Set when the source video was successfully uploaded to Gemini's File API
+  // (see watchedVideo) - lets ResultsSection offer a chat about the video
+  // without uploading it a second time. Undefined if the upload never
+  // happened or failed (video over the size cap, network error, etc).
+  geminiVideoFileRef?: GeminiFileRef;
 }

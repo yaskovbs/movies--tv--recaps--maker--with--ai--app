@@ -4,13 +4,15 @@ import { useTranslation } from 'react-i18next'
 import { Download, Play, Pause, PlayCircle, Save, Eye, EyeOff, ThumbsUp, ThumbsDown } from 'lucide-react'
 import type { RecapOutput } from '../types'
 import { RecapSaver } from './RecapSaver'
+import VideoChat from './VideoChat'
 import { addRating, hasRated as checkHasRated } from '../lib/stats'
 
 interface ResultsSectionProps {
   output: RecapOutput
+  apiKey: string
 }
 
-const ResultsSection = ({ output }: ResultsSectionProps) => {
+const ResultsSection = ({ output, apiKey }: ResultsSectionProps) => {
   const { t } = useTranslation()
   const [showSaver, setShowSaver] = useState(false)
   const [hasRated, setHasRated] = useState(() => checkHasRated())
@@ -176,6 +178,10 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
           )}
         </div>
       </div>
+
+      {output.geminiVideoFileRef && (
+        <VideoChat apiKey={apiKey} fileRef={output.geminiVideoFileRef} />
+      )}
     </motion.div>
     </>
   )
