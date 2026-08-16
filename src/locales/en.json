@@ -170,6 +170,20 @@
     "inputPlaceholder": "Ask a question about the video...",
     "error": "Something went wrong. Please try again."
   },
+  "fullVideoSummary": {
+    "title": "Get a full recap",
+    "subtitle": "Before creating anything, ask Gemini to watch the whole video and write a full text recap of what happens in it.",
+    "button": "Get full recap",
+    "uploading": "Uploading the video to Gemini...",
+    "processingElapsed": "Gemini is still processing the video ({{time}})...",
+    "writing": "Writing the full recap...",
+    "copy": "Copy recap",
+    "copied": "Copied!",
+    "regenerate": "Get another recap",
+    "errorNoApiKey": "Please enter your Gemini AI API key first.",
+    "errorTooLarge": "This video is over Gemini's 2GB per-file limit, so a full recap isn't available for it.",
+    "errorGeneric": "Something went wrong. Please try again."
+  },
   "statsSection": {
     "loading": "Loading data...",
     "heading": "The numbers speak for themselves",

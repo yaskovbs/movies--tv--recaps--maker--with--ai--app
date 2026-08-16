@@ -170,6 +170,20 @@
     "inputPlaceholder": "Haz una pregunta sobre el video...",
     "error": "Algo salió mal. Inténtalo de nuevo."
   },
+  "fullVideoSummary": {
+    "title": "Obtén un resumen completo",
+    "subtitle": "Antes de crear algo, pídele a Gemini que vea todo el video y escriba un resumen completo en texto de lo que sucede en él.",
+    "button": "Obtener resumen completo",
+    "uploading": "Subiendo el video a Gemini...",
+    "processingElapsed": "Gemini todavía está procesando el video ({{time}})...",
+    "writing": "Escribiendo el resumen completo...",
+    "copy": "Copiar resumen",
+    "copied": "¡Copiado!",
+    "regenerate": "Obtener otro resumen",
+    "errorNoApiKey": "Primero ingresa tu clave API de Gemini AI.",
+    "errorTooLarge": "Este video supera el límite de 2GB por archivo de Gemini, así que el resumen completo no está disponible para él.",
+    "errorGeneric": "Algo salió mal. Inténtalo de nuevo."
+  },
   "statsSection": {
     "loading": "Cargando datos...",
     "heading": "Los números hablan por sí solos",

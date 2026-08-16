@@ -224,6 +224,13 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - New `src/components/VideoChat.tsx`: a standard chat UI (message bubbles, input box, Enter-to-send) backed by `gemini-3.7-flash`. Gemini's REST API is stateless, so every turn resends the full conversation history so far - the video file is attached only once, on the very first user turn, and every later turn is plain text (verified this exact behavior directly with a standalone test of the history-building logic).
 - Moved `GEMINI_SAFETY_SETTINGS` and `describeGeminiBlockReason()` out of `HomePage.tsx` into `src/lib/gemini.ts` so both the recap-creation flow and the new chat feature share the same loosened safety thresholds and block-reason messaging instead of duplicating them.
 
+## "Get a full recap" button right after uploading, before creating anything
+
+- Added a one-click way to get a complete text recap of a video immediately after uploading it - before touching any recap settings or clicking "Create Recap". Distinct from the two other Gemini video features: segment selection (picks moments to *cut*, only runs during creation) and the video chat (open-ended Q&A, only appears *after* a recap exists). This is a single, complete "what happens in this video" summary, available as early as possible.
+- New `src/components/FullVideoSummary.tsx`, rendered in `HomePage.tsx` right after `VideoUploader` whenever a file is selected. Uploads the video to Gemini itself (independent of the creation flow), shows live elapsed-time progress during the upload+processing wait (same pattern used elsewhere), then displays the full recap text with copy/regenerate actions.
+- New `getFullVideoRecap()` in `src/lib/gemini.ts`. Also moved `uploadFileToGemini`, `guessVideoMimeType`, and `GEMINI_VIDEO_SIZE_CAP` out of `HomePage.tsx` into `src/lib/gemini.ts` so this new component and the recap-creation flow share the same upload logic instead of duplicating it.
+- Verified live: the button renders in the correct position immediately after selecting a video file, and the "enter an API key first" error path works correctly when no key is set.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.

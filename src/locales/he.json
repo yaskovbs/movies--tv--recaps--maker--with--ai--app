@@ -170,6 +170,20 @@
     "inputPlaceholder": "שאלו שאלה על הווידאו...",
     "error": "משהו השתבש. אנא נסו שוב."
   },
+  "fullVideoSummary": {
+    "title": "קבלו תקציר מלא",
+    "subtitle": "לפני שיוצרים משהו, בקשו מ-Gemini לצפות בכל הווידאו ולכתוב תקציר טקסט מלא של מה שקורה בו.",
+    "button": "קבל תקציר מלא",
+    "uploading": "מעלה את הווידאו ל-Gemini...",
+    "processingElapsed": "Gemini עדיין מעבד את הווידאו ({{time}})...",
+    "writing": "כותב את התקציר המלא...",
+    "copy": "העתק תקציר",
+    "copied": "הועתק!",
+    "regenerate": "קבל תקציר נוסף",
+    "errorNoApiKey": "אנא הכניסו קודם את מפתח ה-Gemini AI API שלכם.",
+    "errorTooLarge": "הווידאו הזה חורג ממגבלת 2GB לקובץ של Gemini, אז תקציר מלא לא זמין עבורו.",
+    "errorGeneric": "משהו השתבש. אנא נסו שוב."
+  },
   "statsSection": {
     "loading": "טוען נתונים...",
     "heading": "המספרים מדברים בעד עצמם",
