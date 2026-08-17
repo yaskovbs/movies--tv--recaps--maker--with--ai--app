@@ -5,6 +5,23 @@ import type { GeminiFileRef } from '../types'
 // just fail.
 export const GEMINI_VIDEO_SIZE_CAP = 2 * 1024 * 1024 * 1024;
 
+// Turns a failed fetch Response into a readable message with the actual
+// status + body instead of a generic "it failed" - upload failures were
+// previously reported as one identical message regardless of cause (bad API
+// key, key missing File API access, size/quota limits, CORS, ...), which
+// made it impossible to tell what was actually wrong from the error alone.
+async function describeFailedResponse(response: Response): Promise<string> {
+  const bodyText = await response.text().catch(() => '')
+  let detail = bodyText
+  try {
+    const parsed = JSON.parse(bodyText)
+    detail = parsed?.error?.message || bodyText
+  } catch {
+    // not JSON - use the raw body text as-is
+  }
+  return `HTTP ${response.status}${detail ? ` - ${detail}` : ''}`
+}
+
 // Uploads a file (audio narration or the source video) to Gemini's File API
 // so the model can actually see/hear it, not just read a text description of
 // it. Inline base64 media in generateContent is capped around 20MB per
@@ -33,7 +50,7 @@ export async function uploadFileToGemini(
     }
   );
   if (!startResponse.ok) {
-    throw new Error('Failed to start the file upload to Gemini.');
+    throw new Error(`Failed to start the file upload to Gemini: ${await describeFailedResponse(startResponse)}`);
   }
   const uploadUrl = startResponse.headers.get('X-Goog-Upload-URL');
   if (!uploadUrl) {
@@ -50,7 +67,7 @@ export async function uploadFileToGemini(
     body: file,
   });
   if (!uploadResponse.ok) {
-    throw new Error('Failed to upload the file bytes to Gemini.');
+    throw new Error(`Failed to upload the file bytes to Gemini: ${await describeFailedResponse(uploadResponse)}`);
   }
 
   let fileInfo = (await uploadResponse.json()).file as { uri?: string; name?: string; state?: string };

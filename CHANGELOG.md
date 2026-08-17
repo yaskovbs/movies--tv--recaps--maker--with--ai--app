@@ -236,6 +236,11 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - The video chat previously only appeared after a recap had been fully created (in `ResultsSection`). Added it to `FullVideoSummary.tsx` too, right after the full text recap is generated - reuses the exact same Gemini File API upload already done to write that recap, so no second upload happens.
 - `FullVideoSummary` now keeps the `GeminiFileRef` from its own upload in state and renders `VideoChat` as a sibling card underneath the summary once it's ready. Verified live that the chat stays hidden until a summary actually exists, and that the button/summary UI is unaffected.
 
+## Made Gemini upload failures actually diagnosable
+
+- A user hit "Failed to start the file upload to Gemini." with no further detail, on every retry - the message was hardcoded identically regardless of the actual cause (bad/invalid API key, key missing File API access, quota, file size/type issues, etc), so there was no way to tell what was actually wrong.
+- `uploadFileToGemini()` in `src/lib/gemini.ts` now reads the failed response's actual body and includes it in the thrown error (`Failed to start the file upload to Gemini: HTTP 400 - API key not valid. Please pass a valid API key.`, for example) instead of a generic message. Verified directly against the real endpoint with `curl` that Gemini returns a structured `{error: {message: "..."}}` body on failure, and that the new parsing extracts it correctly. Applies to both the upload-start and the upload-bytes requests, and to every feature that uploads video (segment selection, the video chat, and the full-recap button) since they all share this one function.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.
