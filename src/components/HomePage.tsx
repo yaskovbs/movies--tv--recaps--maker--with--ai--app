@@ -13,7 +13,7 @@ import ResultsSection from './ResultsSection'
 import { incrementRecapsCreated } from '../lib/stats'
 import FullVideoSummary from './FullVideoSummary'
 import type { VideoFile, AudioFile, RecapSettings as RecapSettingsType, ProcessingStatus as ProcessingStatusType, RecapOutput, GeminiFileRef } from '../types'
-import { GEMINI_SAFETY_SETTINGS, describeGeminiBlockReason, uploadFileToGemini, guessVideoMimeType, GEMINI_VIDEO_SIZE_CAP } from '../lib/gemini'
+import { GEMINI_SAFETY_SETTINGS, describeGeminiBlockReason, uploadFileToGemini, guessVideoMimeType, deleteGeminiFile, GEMINI_VIDEO_SIZE_CAP } from '../lib/gemini'
 
 interface HomePageProps {
   apiKey: string
@@ -180,6 +180,19 @@ const HomePage = ({ apiKey }: HomePageProps) => {
   const [recapOutput, setRecapOutput] = useState<RecapOutput | null>(null)
   const ffmpegRef = useRef(new FFmpeg())
 
+  // Deletes the previous recap's uploaded video from Gemini whenever it's
+  // replaced (a new recap created in the same session) or this component
+  // unmounts - every upload counts against a shared, cumulative storage
+  // quota until deleted, so leaving these around silently fills it up.
+  useEffect(() => {
+    const ref = recapOutput?.geminiVideoFileRef
+    return () => {
+      if (ref) {
+        deleteGeminiFile(ref.name, apiKey)
+      }
+    }
+  }, [recapOutput?.geminiVideoFileRef, apiKey])
+
   // Attach ffmpeg listeners once - registering them inside handleCreateRecap
   // would stack a new duplicate listener on every recap created in the same session.
   useEffect(() => {
@@ -223,6 +236,12 @@ const HomePage = ({ apiKey }: HomePageProps) => {
     setRecapOutput(null);
     setProcessingStatus({ stage: 'loading_engine', progress: 0, message: t('home.status.preparing') });
     const ffmpeg = ffmpegRef.current;
+    // Hoisted above the try block so the catch block below can clean this up
+    // from Gemini if cutting/anything after the upload fails - otherwise a
+    // recap that fails partway through would leave an orphaned upload that
+    // never gets deleted (setRecapOutput, which the cleanup effect watches,
+    // is never reached on this path).
+    let videoFileRef: GeminiFileRef | undefined;
 
     try {
       setProcessingStatus({
@@ -245,7 +264,6 @@ const HomePage = ({ apiKey }: HomePageProps) => {
       // the file is over Gemini's per-file cap, or the upload/analysis
       // fails for any reason, this silently falls back to the original
       // periodic sampling further down.
-      let videoFileRef: GeminiFileRef | undefined;
       let smartSegments: VideoSegment[] | undefined;
       if (selectedFile.file.size <= GEMINI_VIDEO_SIZE_CAP) {
         setProcessingStatus({
@@ -388,6 +406,12 @@ const HomePage = ({ apiKey }: HomePageProps) => {
 
     } catch (error: unknown) {
       console.error("An error occurred during recap creation:", error);
+      // The video may have already been uploaded to Gemini before whatever
+      // failed - clean it up here too, since setRecapOutput (which the
+      // cleanup effect above watches) is never reached on this path.
+      if (videoFileRef) {
+        deleteGeminiFile(videoFileRef.name, apiKey);
+      }
       let userMessage = t('home.errors.unknown');
       if (error instanceof Error) {
         if (error.message.includes('overloaded')) {

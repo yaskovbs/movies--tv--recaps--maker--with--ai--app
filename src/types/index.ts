@@ -46,12 +46,16 @@ export interface FAQ {
 }
 
 // A file already uploaded to Gemini's File API (see uploadFileToGemini in
-// HomePage.tsx) - the uri stays valid for a limited time (Google's default
-// retention is 48 hours), which is plenty for chatting about it in the same
-// session it was created in.
+// src/lib/gemini.ts) - the uri stays valid for a limited time (Google's
+// default retention is 48 hours), which is plenty for chatting about it in
+// the same session it was created in. name is the resource path (e.g.
+// "files/abc123") needed to explicitly delete it once it's no longer
+// needed - every upload counts against a shared, cumulative per-key storage
+// quota until it's deleted or auto-expires, so cleaning up promptly matters.
 export interface GeminiFileRef {
   uri: string
   mimeType: string
+  name: string
 }
 
 export interface RecapOutput {

@@ -94,11 +94,29 @@ export async function uploadFileToGemini(
     fileInfo = await statusResponse.json();
   }
 
-  if (fileInfo.state !== 'ACTIVE' || !fileInfo.uri) {
+  if (fileInfo.state !== 'ACTIVE' || !fileInfo.uri || !fileInfo.name) {
     throw new Error('Gemini could not finish processing the file in time.');
   }
 
-  return { uri: fileInfo.uri, mimeType };
+  return { uri: fileInfo.uri, mimeType, name: fileInfo.name };
+}
+
+// Explicitly deletes a file from Gemini's File API once the app is done with
+// it. Every uploaded file counts against a shared, cumulative per-key
+// storage quota (currently 20GB) until it's deleted or auto-expires after
+// ~48 hours - without this, repeated testing/usage in the same window
+// silently fills up that quota and every further upload starts failing with
+// HTTP 429 ("Quota exceeded for metric: file_storage_bytes"). Best-effort:
+// never throws, since failing to clean up shouldn't break whatever the user
+// was actually doing.
+export async function deleteGeminiFile(name: string, apiKey: string): Promise<void> {
+  try {
+    await fetch(`https://generativelanguage.googleapis.com/v1beta/${name}?key=${apiKey}`, {
+      method: 'DELETE',
+    })
+  } catch (e) {
+    console.warn('Failed to delete Gemini file (non-fatal):', name, e)
+  }
 }
 
 export function guessVideoMimeType(fileName: string): string {
