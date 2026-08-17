@@ -231,6 +231,11 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - New `getFullVideoRecap()` in `src/lib/gemini.ts`. Also moved `uploadFileToGemini`, `guessVideoMimeType`, and `GEMINI_VIDEO_SIZE_CAP` out of `HomePage.tsx` into `src/lib/gemini.ts` so this new component and the recap-creation flow share the same upload logic instead of duplicating it.
 - Verified live: the button renders in the correct position immediately after selecting a video file, and the "enter an API key first" error path works correctly when no key is set.
 
+## Chat also available right after getting a full recap
+
+- The video chat previously only appeared after a recap had been fully created (in `ResultsSection`). Added it to `FullVideoSummary.tsx` too, right after the full text recap is generated - reuses the exact same Gemini File API upload already done to write that recap, so no second upload happens.
+- `FullVideoSummary` now keeps the `GeminiFileRef` from its own upload in state and renders `VideoChat` as a sibling card underneath the summary once it's ready. Verified live that the chat stays hidden until a summary actually exists, and that the button/summary UI is unaffected.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.

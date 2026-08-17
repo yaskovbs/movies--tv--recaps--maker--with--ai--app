@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { FileText, Loader2, Copy } from 'lucide-react'
-import type { VideoFile } from '../types'
+import type { VideoFile, GeminiFileRef } from '../types'
 import { uploadFileToGemini, guessVideoMimeType, getFullVideoRecap, GEMINI_VIDEO_SIZE_CAP } from '../lib/gemini'
+import VideoChat from './VideoChat'
 
 interface FullVideoSummaryProps {
   selectedFile: VideoFile
@@ -26,6 +27,9 @@ const FullVideoSummary = ({ selectedFile, apiKey, description }: FullVideoSummar
   const [summary, setSummary] = useState('')
   const [error, setError] = useState('')
   const [isCopied, setIsCopied] = useState(false)
+  // Kept so the chat below can reuse the same Gemini File API upload instead
+  // of uploading the video a second time.
+  const [fileRef, setFileRef] = useState<GeminiFileRef | null>(null)
 
   const handleGetSummary = async () => {
     if (!apiKey) {
@@ -44,7 +48,7 @@ const FullVideoSummary = ({ selectedFile, apiKey, description }: FullVideoSummar
     setStatusMessage(t('fullVideoSummary.uploading'))
 
     try {
-      const fileRef = await uploadFileToGemini(
+      const uploadedFileRef = await uploadFileToGemini(
         selectedFile.file,
         apiKey,
         guessVideoMimeType(selectedFile.name),
@@ -62,8 +66,9 @@ const FullVideoSummary = ({ selectedFile, apiKey, description }: FullVideoSummar
       )
 
       setStatusMessage(t('fullVideoSummary.writing'))
-      const text = await getFullVideoRecap(fileRef, apiKey, description)
+      const text = await getFullVideoRecap(uploadedFileRef, apiKey, description)
 
+      setFileRef(uploadedFileRef)
       setSummary(text)
       setStatus('done')
     } catch (e) {
@@ -79,11 +84,12 @@ const FullVideoSummary = ({ selectedFile, apiKey, description }: FullVideoSummar
   }
 
   return (
-    <motion.div
-      className="glass rounded-lg p-6"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-    >
+    <Fragment>
+      <motion.div
+        className="glass rounded-lg p-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
       <div className="flex items-center gap-2 mb-2">
         <FileText className="h-5 w-5 text-blue-400" />
         <h3 className="text-lg font-semibold text-white">{t('fullVideoSummary.title')}</h3>
@@ -135,7 +141,15 @@ const FullVideoSummary = ({ selectedFile, apiKey, description }: FullVideoSummar
           </div>
         </div>
       )}
+
     </motion.div>
+
+      {status === 'done' && fileRef && (
+        <div className="mt-6">
+          <VideoChat apiKey={apiKey} fileRef={fileRef} />
+        </div>
+      )}
+    </Fragment>
   )
 }
 
