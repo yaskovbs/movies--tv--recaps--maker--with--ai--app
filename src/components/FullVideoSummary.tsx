@@ -1,9 +1,9 @@
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { FileText, Loader2, Copy } from 'lucide-react'
 import type { VideoFile, GeminiFileRef } from '../types'
-import { uploadFileToGemini, guessVideoMimeType, getFullVideoRecap, GEMINI_VIDEO_SIZE_CAP } from '../lib/gemini'
+import { uploadFileToGemini, guessVideoMimeType, getFullVideoRecap, deleteGeminiFile, GEMINI_VIDEO_SIZE_CAP } from '../lib/gemini'
 import VideoChat from './VideoChat'
 
 interface FullVideoSummaryProps {
@@ -30,6 +30,18 @@ const FullVideoSummary = ({ selectedFile, apiKey, description }: FullVideoSummar
   // Kept so the chat below can reuse the same Gemini File API upload instead
   // of uploading the video a second time.
   const [fileRef, setFileRef] = useState<GeminiFileRef | null>(null)
+
+  // Deletes the previous upload from Gemini whenever it's replaced (e.g. the
+  // user clicks "regenerate") or this component unmounts (e.g. they remove
+  // the video or navigate away) - every upload counts against a shared,
+  // cumulative storage quota until deleted, so cleaning up here matters.
+  useEffect(() => {
+    return () => {
+      if (fileRef) {
+        deleteGeminiFile(fileRef.name, apiKey)
+      }
+    }
+  }, [fileRef, apiKey])
 
   const handleGetSummary = async () => {
     if (!apiKey) {
@@ -64,11 +76,14 @@ const FullVideoSummary = ({ selectedFile, apiKey, description }: FullVideoSummar
           )
         }
       )
+      // Set as soon as the upload succeeds, not after the recap text is also
+      // generated - so the cleanup effect above can still delete it from
+      // Gemini even if the recap-writing step below fails.
+      setFileRef(uploadedFileRef)
 
       setStatusMessage(t('fullVideoSummary.writing'))
       const text = await getFullVideoRecap(uploadedFileRef, apiKey, description)
 
-      setFileRef(uploadedFileRef)
       setSummary(text)
       setStatus('done')
     } catch (e) {
