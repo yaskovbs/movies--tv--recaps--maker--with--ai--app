@@ -247,6 +247,12 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - Added `deleteGeminiFile()` to `src/lib/gemini.ts` (best-effort `DELETE /v1beta/{name}`, verified the endpoint path directly against the real API) and a `name` field to `GeminiFileRef` so uploads can actually be cleaned up afterward.
 - Wired cleanup into both places that own an uploaded video's lifetime: `HomePage.tsx` deletes the previous recap's Gemini file whenever a new one replaces it (or the component unmounts), including on the failure path where cutting fails *after* the video was already uploaded; `FullVideoSummary.tsx` does the same for its own upload, and now sets its file reference as soon as the upload succeeds (not after the recap text also finishes) so a failed recap-writing step still gets cleaned up.
 
+## Retry on Gemini's transient "Internal error encountered."
+
+- A user hit `Internal error encountered.` (Gemini's own literal error text, passed straight through by the app) when clicking "Get full recap." This is a known transient server-side error Google's API occasionally returns on large multimodal requests like a full video attachment - a 500, not a 4xx - and simply retrying usually succeeds.
+- Added `fetchGeminiWithRetry()` to `src/lib/gemini.ts`: retries up to 3 times with exponential backoff specifically on 500/503 responses, returning any other status (4xx, blocked content, quota errors, ...) immediately on the first try since those aren't going to succeed by retrying. Verified the retry/no-retry/give-up-after-max-attempts behavior directly with a standalone test against a mocked fetch.
+- Applied to all three places that send the video as a `file_data` attachment and hit this same failure surface: `getFullVideoRecap` (the full-recap button), `analyzeVideoSegmentsWithGemini` (smart segment selection), and `askGeminiAboutVideo` (the video chat). Also switched all three to `describeFailedResponse()` for their non-retryable failure messages, so those now include the actual HTTP status and Gemini's error body instead of just `error.message` with no status context.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.

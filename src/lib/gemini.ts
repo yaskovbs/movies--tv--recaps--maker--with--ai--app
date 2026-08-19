@@ -10,7 +10,7 @@ export const GEMINI_VIDEO_SIZE_CAP = 2 * 1024 * 1024 * 1024;
 // previously reported as one identical message regardless of cause (bad API
 // key, key missing File API access, size/quota limits, CORS, ...), which
 // made it impossible to tell what was actually wrong from the error alone.
-async function describeFailedResponse(response: Response): Promise<string> {
+export async function describeFailedResponse(response: Response): Promise<string> {
   const bodyText = await response.text().catch(() => '')
   let detail = bodyText
   try {
@@ -20,6 +20,37 @@ async function describeFailedResponse(response: Response): Promise<string> {
     // not JSON - use the raw body text as-is
   }
   return `HTTP ${response.status}${detail ? ` - ${detail}` : ''}`
+}
+
+// Gemini occasionally returns a transient server-side error - most
+// recognizably a 500 with the literal body message "Internal error
+// encountered." - on large multimodal requests like a full video file_data
+// attachment. This is not the same as a 503 "model overloaded" (which
+// generateScriptWithGemini used to retry back when it existed), but the
+// same fix applies: retrying with backoff usually succeeds on the next
+// attempt. Non-retryable failures (4xx, blocked content, quota, ...) are
+// returned immediately on the first try, unmodified, for the caller to
+// handle as before.
+export async function fetchGeminiWithRetry(
+  apiUrl: string,
+  body: unknown,
+  signal: AbortSignal,
+  maxAttempts = 3
+): Promise<Response> {
+  let lastResponse: Response
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    lastResponse = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal,
+    })
+    if (lastResponse.ok || attempt === maxAttempts || (lastResponse.status !== 500 && lastResponse.status !== 503)) {
+      return lastResponse
+    }
+    await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000))
+  }
+  return lastResponse!
 }
 
 // Uploads a file (audio narration or the source video) to Gemini's File API
@@ -189,20 +220,15 @@ export async function getFullVideoRecap(
 
   let response: Response;
   try {
-    response = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{
-          parts: [
-            { file_data: { mime_type: fileRef.mimeType, file_uri: fileRef.uri } },
-            { text: prompt },
-          ],
-        }],
-        safetySettings: GEMINI_SAFETY_SETTINGS,
-      }),
-      signal: controller.signal,
-    });
+    response = await fetchGeminiWithRetry(API_URL, {
+      contents: [{
+        parts: [
+          { file_data: { mime_type: fileRef.mimeType, file_uri: fileRef.uri } },
+          { text: prompt },
+        ],
+      }],
+      safetySettings: GEMINI_SAFETY_SETTINGS,
+    }, controller.signal);
   } catch (e) {
     if (controller.signal.aborted) {
       throw new Error('Gemini took too long to write the recap.');
@@ -213,8 +239,7 @@ export async function getFullVideoRecap(
   }
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => null);
-    throw new Error(errorData?.error?.message || 'Gemini full-recap request failed.');
+    throw new Error(`Gemini full-recap request failed: ${await describeFailedResponse(response)}`);
   }
 
   const data = await response.json();
