@@ -182,6 +182,7 @@
     "regenerate": "Obtenir un autre récapitulatif",
     "errorNoApiKey": "Veuillez d'abord entrer votre clé API Gemini AI.",
     "errorTooLarge": "Cette vidéo dépasse la limite de 2GB par fichier de Gemini, donc le récapitulatif complet n'est pas disponible pour elle.",
+    "errorUnsupportedFormat": "Les fichiers MKV ne sont pas pris en charge par la compréhension vidéo de Gemini, donc le récapitulatif complet n'est pas disponible pour ce fichier. Essayez de le convertir en MP4 d'abord.",
     "errorGeneric": "Une erreur s'est produite. Veuillez réessayer."
   },
   "statsSection": {

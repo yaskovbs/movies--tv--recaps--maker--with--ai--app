@@ -182,6 +182,7 @@
     "regenerate": "קבל תקציר נוסף",
     "errorNoApiKey": "אנא הכניסו קודם את מפתח ה-Gemini AI API שלכם.",
     "errorTooLarge": "הווידאו הזה חורג ממגבלת 2GB לקובץ של Gemini, אז תקציר מלא לא זמין עבורו.",
+    "errorUnsupportedFormat": "קבצי MKV אינם נתמכים על ידי הבנת הווידאו של Gemini, אז תקציר מלא לא זמין לקובץ הזה. נסו להמיר אותו ל-MP4 קודם.",
     "errorGeneric": "משהו השתבש. אנא נסו שוב."
   },
   "statsSection": {

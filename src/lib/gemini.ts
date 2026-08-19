@@ -150,14 +150,32 @@ export async function deleteGeminiFile(name: string, apiKey: string): Promise<vo
   }
 }
 
+// Gemini's video understanding only decodes a specific set of container/codec
+// combinations (video/mp4, video/mpeg, video/quicktime, video/avi,
+// video/x-flv, video/mpg, video/webm, video/wmv, video/3gpp - confirmed
+// against Google's own docs). Notably, MKV (Matroska) is NOT in that list:
+// the File API upload itself still succeeds (storage doesn't validate the
+// container), but every generateContent call against it then fails
+// server-side with a generic "Internal error encountered." (HTTP 500) -
+// consistently, not as an occasional transient blip, so retrying doesn't
+// help. video/mov (this app's old mapping) isn't correct either - Google's
+// own MIME type for QuickTime .mov files is video/quicktime.
 export function guessVideoMimeType(fileName: string): string {
   const ext = fileName.split('.').pop()?.toLowerCase();
   switch (ext) {
-    case 'mov': return 'video/mov';
+    case 'mov': return 'video/quicktime';
     case 'avi': return 'video/avi';
-    case 'mkv': return 'video/x-matroska';
     default: return 'video/mp4';
   }
+}
+
+// Whether Gemini can actually watch a video with this file extension at all
+// (as opposed to just accepting the upload bytes) - used to skip attempting
+// the upload entirely for formats known not to work, rather than wasting
+// time on a request that will fail every time regardless of retries.
+export function isGeminiSupportedVideoFormat(fileName: string): boolean {
+  const ext = fileName.split('.').pop()?.toLowerCase();
+  return ext !== 'mkv';
 }
 
 // Movies/TV shows legitimately involve violence, crime, horror and other
