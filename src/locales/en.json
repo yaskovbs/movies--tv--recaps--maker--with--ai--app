@@ -182,6 +182,7 @@
     "regenerate": "Get another recap",
     "errorNoApiKey": "Please enter your Gemini AI API key first.",
     "errorTooLarge": "This video is over Gemini's 2GB per-file limit, so a full recap isn't available for it.",
+    "errorUnsupportedFormat": "MKV files aren't supported by Gemini's video understanding, so a full recap isn't available for this file. Try converting it to MP4 first.",
     "errorGeneric": "Something went wrong. Please try again."
   },
   "statsSection": {

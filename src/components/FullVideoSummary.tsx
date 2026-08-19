@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { FileText, Loader2, Copy } from 'lucide-react'
 import type { VideoFile, GeminiFileRef } from '../types'
-import { uploadFileToGemini, guessVideoMimeType, getFullVideoRecap, deleteGeminiFile, GEMINI_VIDEO_SIZE_CAP } from '../lib/gemini'
+import { uploadFileToGemini, guessVideoMimeType, isGeminiSupportedVideoFormat, getFullVideoRecap, deleteGeminiFile, GEMINI_VIDEO_SIZE_CAP } from '../lib/gemini'
 import VideoChat from './VideoChat'
 
 interface FullVideoSummaryProps {
@@ -51,6 +51,11 @@ const FullVideoSummary = ({ selectedFile, apiKey, description }: FullVideoSummar
     }
     if (selectedFile.file.size > GEMINI_VIDEO_SIZE_CAP) {
       setError(t('fullVideoSummary.errorTooLarge'))
+      setStatus('error')
+      return
+    }
+    if (!isGeminiSupportedVideoFormat(selectedFile.name)) {
+      setError(t('fullVideoSummary.errorUnsupportedFormat'))
       setStatus('error')
       return
     }

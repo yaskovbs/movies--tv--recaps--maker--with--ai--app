@@ -13,7 +13,7 @@ import ResultsSection from './ResultsSection'
 import { incrementRecapsCreated } from '../lib/stats'
 import FullVideoSummary from './FullVideoSummary'
 import type { VideoFile, AudioFile, RecapSettings as RecapSettingsType, ProcessingStatus as ProcessingStatusType, RecapOutput, GeminiFileRef } from '../types'
-import { GEMINI_SAFETY_SETTINGS, describeGeminiBlockReason, describeFailedResponse, fetchGeminiWithRetry, uploadFileToGemini, guessVideoMimeType, deleteGeminiFile, GEMINI_VIDEO_SIZE_CAP } from '../lib/gemini'
+import { GEMINI_SAFETY_SETTINGS, describeGeminiBlockReason, describeFailedResponse, fetchGeminiWithRetry, uploadFileToGemini, guessVideoMimeType, isGeminiSupportedVideoFormat, deleteGeminiFile, GEMINI_VIDEO_SIZE_CAP } from '../lib/gemini'
 
 interface HomePageProps {
   apiKey: string
@@ -259,7 +259,7 @@ const HomePage = ({ apiKey }: HomePageProps) => {
       // fails for any reason, this silently falls back to the original
       // periodic sampling further down.
       let smartSegments: VideoSegment[] | undefined;
-      if (selectedFile.file.size <= GEMINI_VIDEO_SIZE_CAP) {
+      if (selectedFile.file.size <= GEMINI_VIDEO_SIZE_CAP && isGeminiSupportedVideoFormat(selectedFile.name)) {
         setProcessingStatus({
           stage: 'analyzing_video',
           progress: 0,
@@ -319,7 +319,11 @@ const HomePage = ({ apiKey }: HomePageProps) => {
           smartSegments = undefined;
         }
       } else {
-        console.warn('Video is over Gemini\'s 2GB per-file limit - skipping video analysis, using standard periodic sampling.');
+        console.warn(
+          selectedFile.file.size > GEMINI_VIDEO_SIZE_CAP
+            ? 'Video is over Gemini\'s 2GB per-file limit - skipping video analysis, using standard periodic sampling.'
+            : 'MKV is not a Gemini-supported video format - skipping video analysis, using standard periodic sampling.'
+        );
       }
 
       setProcessingStatus({

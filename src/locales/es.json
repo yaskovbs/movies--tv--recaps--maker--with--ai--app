@@ -182,6 +182,7 @@
     "regenerate": "Obtener otro resumen",
     "errorNoApiKey": "Primero ingresa tu clave API de Gemini AI.",
     "errorTooLarge": "Este video supera el límite de 2GB por archivo de Gemini, así que el resumen completo no está disponible para él.",
+    "errorUnsupportedFormat": "Los archivos MKV no son compatibles con la comprensión de video de Gemini, así que el resumen completo no está disponible para este archivo. Intenta convertirlo a MP4 primero.",
     "errorGeneric": "Algo salió mal. Inténtalo de nuevo."
   },
   "statsSection": {
