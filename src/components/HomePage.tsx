@@ -13,7 +13,7 @@ import ResultsSection from './ResultsSection'
 import { incrementRecapsCreated } from '../lib/stats'
 import FullVideoSummary from './FullVideoSummary'
 import type { VideoFile, AudioFile, RecapSettings as RecapSettingsType, ProcessingStatus as ProcessingStatusType, RecapOutput, GeminiFileRef } from '../types'
-import { GEMINI_SAFETY_SETTINGS, describeGeminiBlockReason, uploadFileToGemini, guessVideoMimeType, deleteGeminiFile, GEMINI_VIDEO_SIZE_CAP } from '../lib/gemini'
+import { GEMINI_SAFETY_SETTINGS, describeGeminiBlockReason, describeFailedResponse, fetchGeminiWithRetry, uploadFileToGemini, guessVideoMimeType, deleteGeminiFile, GEMINI_VIDEO_SIZE_CAP } from '../lib/gemini'
 
 interface HomePageProps {
   apiKey: string
@@ -73,20 +73,15 @@ async function analyzeVideoSegmentsWithGemini(
 
   let response: Response;
   try {
-    response = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{
-          parts: [
-            { file_data: { mime_type: videoFileRef.mimeType, file_uri: videoFileRef.uri } },
-            { text: prompt },
-          ],
-        }],
-        safetySettings: GEMINI_SAFETY_SETTINGS,
-      }),
-      signal: controller.signal,
-    });
+    response = await fetchGeminiWithRetry(API_URL, {
+      contents: [{
+        parts: [
+          { file_data: { mime_type: videoFileRef.mimeType, file_uri: videoFileRef.uri } },
+          { text: prompt },
+        ],
+      }],
+      safetySettings: GEMINI_SAFETY_SETTINGS,
+    }, controller.signal);
   } catch (e) {
     if (controller.signal.aborted) {
       throw new Error('Gemini video analysis timed out.');
@@ -98,8 +93,7 @@ async function analyzeVideoSegmentsWithGemini(
   }
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => null);
-    throw new Error(errorData?.error?.message || 'Gemini video analysis request failed.');
+    throw new Error(`Gemini video analysis request failed: ${await describeFailedResponse(response)}`);
   }
 
   const data = await response.json();

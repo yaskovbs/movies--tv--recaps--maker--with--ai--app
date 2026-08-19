@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { Send, Loader2, MessageCircle } from 'lucide-react'
 import type { GeminiFileRef } from '../types'
-import { GEMINI_SAFETY_SETTINGS } from '../lib/gemini'
+import { GEMINI_SAFETY_SETTINGS, describeFailedResponse, fetchGeminiWithRetry } from '../lib/gemini'
 
 interface ChatMessage {
   role: 'user' | 'model'
@@ -41,12 +41,11 @@ async function askGeminiAboutVideo(
 
   let response: Response
   try {
-    response = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents, safetySettings: GEMINI_SAFETY_SETTINGS }),
-      signal: controller.signal,
-    })
+    response = await fetchGeminiWithRetry(
+      API_URL,
+      { contents, safetySettings: GEMINI_SAFETY_SETTINGS },
+      controller.signal
+    )
   } catch (e) {
     if (controller.signal.aborted) {
       throw new Error('Gemini took too long to respond.')
@@ -57,8 +56,7 @@ async function askGeminiAboutVideo(
   }
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => null)
-    throw new Error(errorData?.error?.message || 'Gemini chat request failed.')
+    throw new Error(`Gemini chat request failed: ${await describeFailedResponse(response)}`)
   }
 
   const data = await response.json()
