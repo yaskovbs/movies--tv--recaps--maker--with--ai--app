@@ -24,6 +24,26 @@ interface VideoSegment {
   end: number
 }
 
+// Safe default "cut every N seconds, capture M seconds" pattern - short,
+// widely-spaced flashes of the source are meaningfully safer with respect
+// to copyright than longer/denser clips.
+const SAFE_MIN_INTERVAL_SECONDS = 8;
+const SAFE_MIN_CAPTURE_SECONDS = 1;
+
+// Governs how closely-spaced and how long Gemini's smart-selected clips are
+// allowed to be. Honors the user's own chosen "cut every N seconds" interval
+// (and matching capture length) only when it's at least as sparse as the
+// safe default above - a denser choice (cutting more often than every 8
+// seconds) is silently overridden back to that default instead, since a
+// user preference for denser/more continuous clips isn't a good enough
+// reason to accept the extra copyright risk that comes with it.
+function getEffectiveCutPattern(settings: RecapSettingsType): { intervalSeconds: number; captureSeconds: number } {
+  if (settings.intervalSeconds >= SAFE_MIN_INTERVAL_SECONDS) {
+    return { intervalSeconds: settings.intervalSeconds, captureSeconds: settings.captureSeconds };
+  }
+  return { intervalSeconds: SAFE_MIN_INTERVAL_SECONDS, captureSeconds: SAFE_MIN_CAPTURE_SECONDS };
+}
+
 // Asks Gemini to actually watch the uploaded video and pick out the moments
 // worth including in the recap, instead of FFmpeg blindly sampling evenly-
 // spaced clips. Returns chronological, non-overlapping segments (in seconds)
@@ -34,15 +54,19 @@ async function analyzeVideoSegmentsWithGemini(
   targetDurationSeconds: number,
   videoDurationSeconds: number | undefined,
   description: string,
-  // Hard cap on each individual clip's length, in seconds - matches
-  // RecapSettings.captureSeconds (the same "1 second every N seconds" style
-  // used by the periodic fallback). Kept short and non-negotiable
-  // deliberately: brief, widely-spaced flashes of the source rather than
-  // longer continuous clips are a lot safer with respect to copyright,
-  // regardless of how "important" Gemini thinks a moment is. Enforced below
-  // by trimming, not just requested in the prompt - Gemini's actual reply is
-  // not trusted to respect it on its own.
+  // Hard cap on each individual clip's length, in seconds, and the minimum
+  // spacing enforced between consecutive picked clips' start times - both
+  // derived from RecapSettings.captureSeconds/intervalSeconds (see
+  // getEffectiveCutPattern below): the user's own chosen values are honored
+  // when they're at least as sparse as the safe "8 seconds apart, 1 second
+  // each" default, otherwise that default is enforced instead regardless of
+  // what was configured. Brief, widely-spaced flashes of the source rather
+  // than longer/denser continuous clips are a lot safer with respect to
+  // copyright, no matter how "important" Gemini thinks a moment is - so both
+  // values are enforced below by trimming/filtering, not just requested in
+  // the prompt; Gemini's actual reply is not trusted to respect them alone.
   maxClipSeconds: number,
+  minSpacingSeconds: number,
   // Actually watching/analyzing a long movie can itself take a long time to
   // respond (not just the earlier upload+processing step) - budget the same
   // 22 minutes here, with periodic elapsed-time feedback so a long wait
@@ -62,6 +86,7 @@ async function analyzeVideoSegmentsWithGemini(
     - Each segment must capture a genuinely important, representative moment (key plot beats, turning points, standout visuals or lines) - not arbitrary evenly-spaced clips.
     - Segments must be listed in chronological order and must not overlap.
     - Each segment must be at most ${maxClipSeconds} second${maxClipSeconds === 1 ? '' : 's'} long - brief flashes of the moment, not longer continuous clips.
+    - Consecutive segments must start at least ${minSpacingSeconds} seconds apart.
     - The segments' combined total duration should add up to approximately ${targetDurationSeconds} seconds.
     - Use HH:MM:SS timestamps that fall within the actual video${videoDurationSeconds ? ` (it is about ${Math.round(videoDurationSeconds)} seconds long)` : ''}.
   `;
@@ -130,7 +155,17 @@ async function analyzeVideoSegmentsWithGemini(
       };
     })
     .filter(({ start, end }) => end > start)
-    .sort((a, b) => a.start - b.start);
+    .sort((a, b) => a.start - b.start)
+    // Enforced the same way as the length cap above - drop any segment that
+    // starts too soon after the previous kept one, regardless of what
+    // Gemini returned, instead of just asking for it in the prompt.
+    .reduce<VideoSegment[]>((kept, seg) => {
+      const previous = kept[kept.length - 1];
+      if (!previous || seg.start - previous.start >= minSpacingSeconds) {
+        kept.push(seg);
+      }
+      return kept;
+    }, []);
 
   if (segments.length === 0) {
     throw new Error('Gemini did not return any usable segments.');
@@ -293,13 +328,15 @@ const HomePage = ({ apiKey }: HomePageProps) => {
             progress: 60,
             message: t('home.status.analyzingVideo')
           });
+          const cutPattern = getEffectiveCutPattern(settings);
           smartSegments = await analyzeVideoSegmentsWithGemini(
             videoFileRef,
             apiKey,
             settings.duration,
             selectedFile.duration,
             settings.description,
-            settings.captureSeconds,
+            cutPattern.captureSeconds,
+            cutPattern.intervalSeconds,
             22 * 60 * 1000,
             (elapsedMs) => {
               const totalSeconds = Math.round(elapsedMs / 1000);
