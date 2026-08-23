@@ -232,13 +232,13 @@ export async function getFullVideoRecap(
 
   const durationMinutes = videoDurationSeconds ? Math.round(videoDurationSeconds / 60) : undefined;
   // Per explicit request: four fixed tiers instead of a continuous formula -
-  // a short series episode (up to 30 min) gets 4 paragraphs, a longer episode
+  // a short series episode (5-30 min) gets 2 paragraphs, a longer episode
   // (30-59 min, e.g. a ~40-minute drama) gets 8, a movie under 2 hours gets
   // 12, and a movie of 2 hours or longer gets 16.
   const targetParagraphs = durationMinutes === undefined
     ? undefined
     : durationMinutes <= 30
-    ? 4
+    ? 2
     : durationMinutes < 60
     ? 8
     : durationMinutes < 120
