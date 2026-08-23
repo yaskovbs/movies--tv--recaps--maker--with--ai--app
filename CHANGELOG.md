@@ -294,6 +294,11 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - Also reworded the prompt itself from "a full, detailed recap of everything that happens... be specific... not generic" to explicitly ask for a concise recap that hits only the key plot points instead of exhaustive detail.
 - Verified the new paragraph-count formula with a standalone script across a range of runtimes (1 min, 20 min, 45 min, 90 min, 2h, 3h, 5h) - confirmed it stays within the 3-7 bound in every case.
 
+## Switched the full-recap paragraph target to three fixed tiers
+
+- Per explicit request, refined further from the previous entry's continuous `round(durationMinutes / 15)` formula (capped 3-7) to three fixed tiers in `getFullVideoRecap()`: a short episode (up to 30 minutes) gets 4 paragraphs, a longer episode (30-59 minutes, e.g. a ~40-minute drama) gets 8, and anything an hour or longer (a movie) gets 12 - regardless of how much longer than an hour it actually is, so a 3-hour movie still gets the same 12 paragraphs as a 90-minute one.
+- Verified the tier boundaries directly: 1/15/22/30 minutes all map to 4, 31/40/45/59 minutes all map to 8, and 60/61/90/120/180 minutes all map to 12.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.
