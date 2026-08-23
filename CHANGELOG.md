@@ -260,6 +260,13 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - Added `isGeminiSupportedVideoFormat()` to `src/lib/gemini.ts` and used it to gate every Gemini video feature *before* attempting an upload that's guaranteed to fail: `HomePage.tsx`'s smart segment selection now skips straight to periodic sampling for MKV files (same as it already did for over-2GB files), and `FullVideoSummary.tsx` shows an immediate, specific error ("MKV files aren't supported... try converting it to MP4 first") instead of spending a real upload + 3 retries just to fail identically each time. Verified live: selecting an MKV file and clicking "Get full recap" now shows the error instantly with zero Gemini upload requests attempted.
 - MKV videos still work completely normally for the actual video cutting (FFmpeg.wasm doesn't care about the container format) - only the Gemini-side features (smart selection, full recap, chat) are unavailable for that one format.
 
+## Let Gemini's smart selection follow the user's own cut settings, above a safe floor
+
+- Per explicit request: Gemini's smart segment selection previously always forced every clip down to exactly `RecapSettings.captureSeconds` (1 second) regardless of what the user had actually configured for "cut every N seconds." Now the user's own chosen interval/capture values are honored *only when they're at least as sparse as the safe default* (cutting no more often than every 8 seconds, capturing at most 1 second each time) - a denser choice than that is silently overridden back to the safe default instead, since accepting extra copyright risk isn't worth it just to honor a denser preference.
+- Added `getEffectiveCutPattern()` in `HomePage.tsx`: returns the user's `intervalSeconds`/`captureSeconds` as-is when `intervalSeconds >= 8`, otherwise the safe `8`/`1` floor.
+- `analyzeVideoSegmentsWithGemini()` now also enforces **minimum spacing** between consecutive picked clips (not just each clip's own length) - a filtering pass that drops any Gemini-picked segment starting too soon after the previous kept one, using the same effective interval value. This was a real gap before: only clip *length* was ever capped, nothing constrained how close together clips could be.
+- Verified both pieces directly with standalone tests: the 8-second threshold behaves correctly at, above, and below the boundary, and the spacing filter correctly keeps/drops segments based on a set of synthetic timestamps.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.
