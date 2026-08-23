@@ -222,26 +222,28 @@ export async function getFullVideoRecap(
   apiKey: string,
   description: string,
   // The source video/episode's own actual runtime - used to pick a target
-  // paragraph count (see targetParagraphs below) instead of leaving Gemini
-  // to guess a length on its own. Per explicit feedback that recaps were
-  // coming out longer than needed, this is capped rather than open-ended -
-  // a feature-length movie gets a somewhat longer recap than a 20-minute
-  // episode, but not an ever-growing one for very long runtimes.
+  // paragraph count from three fixed tiers (see targetParagraphs below)
+  // instead of leaving Gemini to guess a length, or scaling continuously
+  // and unboundedly with runtime.
   videoDurationSeconds: number | undefined,
   maxWaitMs = 5 * 60 * 1000
 ): Promise<string> {
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent?key=${apiKey}`;
 
   const durationMinutes = videoDurationSeconds ? Math.round(videoDurationSeconds / 60) : undefined;
-  // Per explicit feedback that the recap was coming out longer than needed:
-  // scale the TARGET PARAGRAPH COUNT itself with runtime, but capped, rather
-  // than an open-ended "one paragraph per N minutes" ratio that keeps
-  // growing without limit for longer movies. One paragraph per ~15 minutes,
-  // floored at 3 (even a short clip gets a real recap) and capped at 7 (a
-  // 3-hour epic still gets a concise recap, not an ever-longer one).
-  const targetParagraphs = durationMinutes
-    ? Math.min(7, Math.max(3, Math.round(durationMinutes / 15)))
-    : undefined;
+  // Per explicit request: three fixed tiers instead of a continuous formula -
+  // a short series episode (up to 30 min) gets 4 paragraphs, a longer episode
+  // (30-59 min, e.g. a ~40-minute drama) gets 8, and anything an hour or
+  // longer (a movie) gets 12 - regardless of how much longer than an hour it
+  // actually is, so a 3-hour movie still gets the same concise 12 paragraphs
+  // as a 90-minute one.
+  const targetParagraphs = durationMinutes === undefined
+    ? undefined
+    : durationMinutes <= 30
+    ? 4
+    : durationMinutes < 60
+    ? 8
+    : 12;
   const lengthGuidance = targetParagraphs
     ? `The video is about ${durationMinutes} minute${durationMinutes === 1 ? '' : 's'} long. Write a concise recap of about ${targetParagraphs} short paragraphs total - cover only the key plot events, not every detail. Do not write more than that just because the video is long; stay concise and hit the highlights.`
     : `Write a concise recap - a handful of short paragraphs covering only the key plot events, not every detail.`;
