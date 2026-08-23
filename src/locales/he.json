@@ -101,7 +101,8 @@
     "unsupportedFormat": "סוג קובץ לא נתמך. קבצים נתמכים: {{formats}}",
     "fileTooLarge": "הקובץ גדול מדי. גודל מקסימלי: 100MB",
     "readError": "לא ניתן לקרוא את קובץ האודיו. אנא נסה שוב.",
-    "readSuccess": "נקרא בהצלחה"
+    "readSuccess": "נקרא בהצלחה",
+    "durationMatchNote": "אורך התקציר יותאם אוטומטית לקובץ השמע הזה, במקום למשך שנקבע למטה."
   },
   "recapSettings": {
     "title": "הגדרות סיכום",
@@ -122,6 +123,7 @@
       "animation": "אנימציה"
     },
     "durationLabel": "אורך הסיכום (עד 3 שעות)",
+    "durationLockedByAudio": "נקבע אוטומטית לפי קובץ ה-MP3 שהעלית: {{length}}",
     "hours": "שעות",
     "minutes": "דקות",
     "seconds": "שניות",

@@ -273,6 +273,14 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - Falls back to a generic "scale to how much actually happens" instruction when duration is unavailable, rather than omitting length guidance entirely.
 - Verified with a standalone script covering a 42-minute episode, a 2-hour movie, a 1-minute edge case (singular "minute", no trailing "s"), and the undefined-duration fallback.
 
+## Recap length always matches an uploaded MP3 narration exactly
+
+- Per explicit request: when the user uploads their own MP3 narration (`AudioUploader`), the recap's actual length now always matches that audio file's real duration exactly, instead of the separately-configured "recap length" setting. Previously a mismatch between the two would either cut the narration off mid-sentence (audio longer than the setting) or leave the video running on in silence after the narration ended (audio shorter than the setting).
+- `AudioUploader` now reads the MP3's duration from the browser's own `<audio>` metadata, the same way `VideoUploader` already reads video duration, and stores it on the new `AudioFile.duration` field.
+- `HomePage.handleCreateRecap` computes `effectiveDuration = audioFile?.duration ?? settings.duration` and uses it everywhere the recap length actually matters: the target duration given to Gemini's smart segment selection, FFmpeg's `-t` output cap, and the saved `RecapOutput.durationSeconds`.
+- `RecapSettings` now shows the MP3's duration as a locked, read-only value (instead of the editable hours/minutes/seconds inputs) whenever an audio file is present, and its cut-interval auto-sync and settings summary both use that same effective duration so the displayed segment count/interval stay accurate.
+- No effect when no MP3 is uploaded - the manual duration setting works exactly as before.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.

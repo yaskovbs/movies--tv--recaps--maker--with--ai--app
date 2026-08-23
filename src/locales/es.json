@@ -101,7 +101,8 @@
     "unsupportedFormat": "Tipo de archivo no compatible. Archivos admitidos: {{formats}}",
     "fileTooLarge": "El archivo es demasiado grande. Tamaño máximo: 100MB",
     "readError": "No se pudo leer el archivo de audio. Inténtalo de nuevo.",
-    "readSuccess": "Leído correctamente"
+    "readSuccess": "Leído correctamente",
+    "durationMatchNote": "La duración del resumen coincidirá automáticamente con este archivo de audio, en lugar de la duración configurada abajo."
   },
   "recapSettings": {
     "title": "Configuración del resumen",
@@ -122,6 +123,7 @@
       "animation": "Animación"
     },
     "durationLabel": "Duración del resumen (hasta 3 horas)",
+    "durationLockedByAudio": "Se ajusta automáticamente a tu archivo MP3 subido: {{length}}",
     "hours": "Horas",
     "minutes": "Minutos",
     "seconds": "Segundos",
