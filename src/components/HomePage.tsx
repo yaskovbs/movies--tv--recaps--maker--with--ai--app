@@ -398,6 +398,15 @@ const HomePage = ({ apiKey }: HomePageProps) => {
       // are large speed wins for a software encoder running in-browser.
       // When the user supplied their own MP3 narration, mux it in as the second
       // input's audio stream instead of leaving the recap silent (-an).
+      // Deliberately no -shortest here: the selected/cut video footage can add
+      // up to less than effectiveDuration (e.g. the safe copyright cap on clip
+      // length/spacing limits how much footage is even available to select),
+      // and -shortest would then end the whole output as soon as that shorter
+      // video stream runs out - cutting the narration off mid-sentence even
+      // though -t already caps the output to the narration's own full length.
+      // Letting the video stream end early (it simply stops appending frames;
+      // players commonly hold the last frame) is far better than truncating
+      // audio the user explicitly uploaded to be heard in full.
       await ffmpeg.exec([
         '-i', selectedFile.name,
         ...(audioFile ? ['-i', audioFile.name] : []),
@@ -408,7 +417,6 @@ const HomePage = ({ apiKey }: HomePageProps) => {
         '-crf', '26',
         '-movflags', '+faststart',
         '-t', `${effectiveDuration}`,
-        ...(audioFile ? ['-shortest'] : []),
         '-y',
         outputFileName
       ]);

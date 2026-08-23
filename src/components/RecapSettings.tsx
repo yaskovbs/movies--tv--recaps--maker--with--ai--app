@@ -12,7 +12,12 @@ interface RecapSettingsProps {
   audioDuration?: number; // משך קובץ ה-MP3 שהועלה, בשניות - כשקיים, הוא קובע את אורך התקציר במקום ההגדרה הידנית
 }
 
-const formatDuration = (totalSeconds: number): string => {
+const formatDuration = (totalSecondsRaw: number): string => {
+  // Rounded up-front - callers can pass a fractional value (e.g. an MP3's
+  // real duration read from browser metadata), and formatting one part
+  // without rounding the whole value first produces garbled output like
+  // "1:23.837" instead of "1:24".
+  const totalSeconds = Math.round(totalSecondsRaw);
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
