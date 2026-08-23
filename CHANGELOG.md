@@ -287,6 +287,13 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - Removed `-shortest`. `-t` alone now governs the output length (equal to the narration's real duration when one is provided), so the audio always plays to its natural end; the video stream simply stops appending frames if it runs out first, which most players handle by holding the last frame rather than cutting playback short.
 - Also fixed `formatDuration()` in `RecapSettings.tsx`, used to display the locked duration when an MP3 is present: it didn't round its input before formatting the seconds portion, so a real (fractional) MP3 duration like `245.837` rendered as a garbled `"4:5.837"` instead of `"4:06"`.
 
+## Capped the full-recap text's length - it was coming out longer than needed
+
+- Per explicit feedback: the recap-length scaling added two entries above used an open-ended "one paragraph per 5-10 minutes of runtime" ratio, which kept growing without limit for longer movies and ended up producing more text than users actually wanted.
+- Replaced it with a capped target paragraph count in `getFullVideoRecap()` (`src/lib/gemini.ts`): `Math.min(7, Math.max(3, Math.round(durationMinutes / 15)))` - so runtime still nudges the length (a 90-minute movie gets more paragraphs than a 20-minute episode), but every recap stays between 3 and 7 short paragraphs, never growing indefinitely for very long movies.
+- Also reworded the prompt itself from "a full, detailed recap of everything that happens... be specific... not generic" to explicitly ask for a concise recap that hits only the key plot points instead of exhaustive detail.
+- Verified the new paragraph-count formula with a standalone script across a range of runtimes (1 min, 20 min, 45 min, 90 min, 2h, 3h, 5h) - confirmed it stays within the 3-7 bound in every case.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.
