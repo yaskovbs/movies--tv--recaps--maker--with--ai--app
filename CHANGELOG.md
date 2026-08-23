@@ -304,6 +304,11 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - Per explicit request: extended the previous entry's three fixed tiers to four in `getFullVideoRecap()` - short episode (≤30min) → 4, longer episode (30-59min) → 8, movie under 2 hours (60-119min) → 12, and movie of 2 hours or more (120min+) → 16.
 - Verified the new boundary directly: 119 minutes still maps to 12, 120 and above all map to 16.
 
+## Shortened the shortest-episode tier from 4 paragraphs to 2
+
+- Per explicit request: the "5-30 minute" tier in `getFullVideoRecap()`'s paragraph-count tiers now targets 2 paragraphs instead of 4. The other three tiers (30-59min → 8, 60-119min → 12, 120min+ → 16) are unchanged.
+- Verified: 1/5/20/30 minutes all map to 2, and the 31-minute boundary still correctly maps to 8.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.
