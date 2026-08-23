@@ -221,14 +221,26 @@ export async function getFullVideoRecap(
   fileRef: GeminiFileRef,
   apiKey: string,
   description: string,
+  // The source video/episode's own actual runtime - the recap's length and
+  // level of detail is explicitly scaled to this (see the prompt below)
+  // instead of being left to a vague "several paragraphs is fine", so a
+  // feature-length movie gets a correspondingly longer, more detailed recap
+  // than a 20-minute episode.
+  videoDurationSeconds: number | undefined,
   maxWaitMs = 5 * 60 * 1000
 ): Promise<string> {
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent?key=${apiKey}`;
 
+  const durationMinutes = videoDurationSeconds ? Math.round(videoDurationSeconds / 60) : undefined;
+  const lengthGuidance = durationMinutes
+    ? `The video is about ${durationMinutes} minute${durationMinutes === 1 ? '' : 's'} long. Scale the recap's length and level of detail to that actual runtime - a longer movie or episode deserves a longer, more detailed recap that covers more distinct plot events, while a short one should get a correspondingly shorter, more concise recap. As a rough guide, aim for roughly one paragraph per 5-10 minutes of runtime, using more paragraphs and more detail for pivotal or complex stretches of the story.`
+    : `Scale the recap's length and level of detail to how much actually happens in the video - more paragraphs and detail for a longer or more eventful video, fewer for a short or simple one.`;
+
   const prompt = `
     You are given a movie/TV episode video file. Watch the entire video carefully, start to finish.
     ${description ? `\n    Context provided by the user:\n    """\n    ${description}\n    """\n` : ''}
-    Write a full, detailed recap of everything that happens in the video - the setup, the key plot events in order, the characters involved, and how it ends. Be specific about what you actually see and hear, not generic. Several paragraphs is fine if the video warrants it.
+    ${lengthGuidance}
+    Write a full, detailed recap of everything that happens in the video - the setup, the key plot events in order, the characters involved, and how it ends. Be specific about what you actually see and hear, not generic.
 
     Return only the recap text, no additional commentary or headings.
   `;

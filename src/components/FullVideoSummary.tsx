@@ -87,7 +87,7 @@ const FullVideoSummary = ({ selectedFile, apiKey, description }: FullVideoSummar
       setFileRef(uploadedFileRef)
 
       setStatusMessage(t('fullVideoSummary.writing'))
-      const text = await getFullVideoRecap(uploadedFileRef, apiKey, description)
+      const text = await getFullVideoRecap(uploadedFileRef, apiKey, description, selectedFile.duration)
 
       setSummary(text)
       setStatus('done')
