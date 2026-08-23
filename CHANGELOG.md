@@ -267,6 +267,12 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - `analyzeVideoSegmentsWithGemini()` now also enforces **minimum spacing** between consecutive picked clips (not just each clip's own length) - a filtering pass that drops any Gemini-picked segment starting too soon after the previous kept one, using the same effective interval value. This was a real gap before: only clip *length* was ever capped, nothing constrained how close together clips could be.
 - Verified both pieces directly with standalone tests: the 8-second threshold behaves correctly at, above, and below the boundary, and the spacing filter correctly keeps/drops segments based on a set of synthetic timestamps.
 
+## Full-recap length now scales with the actual video runtime
+
+- Per explicit request: the "get a full recap" text (`getFullVideoRecap()` in `src/lib/gemini.ts`) previously just told Gemini "several paragraphs is fine if the video warrants it," with no real signal for how much video that actually was. Now the source video's own duration (already read by `VideoUploader` via the browser's `<video>` metadata, passed through as `selectedFile.duration`) is passed into the prompt, which explicitly asks Gemini to scale the recap's length and level of detail to that runtime — roughly one paragraph per 5-10 minutes, with more detail for pivotal or complex stretches — so a feature-length movie gets a longer, more detailed recap than a 20-minute episode instead of both getting a similarly-sized summary.
+- Falls back to a generic "scale to how much actually happens" instruction when duration is unavailable, rather than omitting length guidance entirely.
+- Verified with a standalone script covering a 42-minute episode, a 2-hour movie, a 1-minute edge case (singular "minute", no trailing "s"), and the undefined-duration fallback.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.
