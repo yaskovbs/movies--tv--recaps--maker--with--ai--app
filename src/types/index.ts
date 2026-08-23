@@ -14,6 +14,7 @@ export interface AudioFile {
   size: number
   file: File
   buffer: Uint8Array // pre-read bytes, written into ffmpeg's virtual FS to mux into the output video
+  duration?: number // משך קובץ השמע בשניות, נקרא ממטא-דאטה של הדפדפן - קובע את אורך התקציר כשיש קובץ MP3
 }
 
 export interface RecapSettings {

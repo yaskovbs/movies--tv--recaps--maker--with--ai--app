@@ -271,6 +271,14 @@ const HomePage = ({ apiKey }: HomePageProps) => {
     // never gets deleted (setRecapOutput, which the cleanup effect watches,
     // is never reached on this path).
     let videoFileRef: GeminiFileRef | undefined;
+    // When the user supplied their own MP3 narration, the recap is always
+    // made to match that narration's actual length exactly, instead of the
+    // separately-configured duration setting - otherwise the narration would
+    // get cut off mid-sentence (audio longer than the setting) or the video
+    // would run on in silence after it ends (audio shorter than the
+    // setting). Falls back to settings.duration when there's no audio, or
+    // its duration couldn't be read from metadata.
+    const effectiveDuration = audioFile?.duration ?? settings.duration;
 
     try {
       setProcessingStatus({
@@ -332,7 +340,7 @@ const HomePage = ({ apiKey }: HomePageProps) => {
           smartSegments = await analyzeVideoSegmentsWithGemini(
             videoFileRef,
             apiKey,
-            settings.duration,
+            effectiveDuration,
             selectedFile.duration,
             settings.description,
             cutPattern.captureSeconds,
@@ -399,7 +407,7 @@ const HomePage = ({ apiKey }: HomePageProps) => {
         '-preset', 'veryfast',
         '-crf', '26',
         '-movflags', '+faststart',
-        '-t', `${settings.duration}`,
+        '-t', `${effectiveDuration}`,
         ...(audioFile ? ['-shortest'] : []),
         '-y',
         outputFileName
@@ -418,7 +426,7 @@ const HomePage = ({ apiKey }: HomePageProps) => {
       setRecapOutput({
         videoUrl: videoUrl,
         videoBlob: videoBlob,
-        durationSeconds: settings.duration,
+        durationSeconds: effectiveDuration,
         customAudioFile: audioFile?.file,
         // watchedVideo tracks whether Gemini actually received/looked at the
         // video (the upload succeeded), independent of whether its analysis
@@ -555,7 +563,7 @@ const HomePage = ({ apiKey }: HomePageProps) => {
               onFileSelect={setAudioFile}
               onRemoveFile={() => setAudioFile(null)}
             />
-            <RecapSettings settings={settings} onSettingsChange={setSettings} videoDuration={selectedFile?.duration} />
+            <RecapSettings settings={settings} onSettingsChange={setSettings} videoDuration={selectedFile?.duration} audioDuration={audioFile?.duration} />
             <motion.button
               onClick={handleCreateRecap}
               disabled={!canSubmit}

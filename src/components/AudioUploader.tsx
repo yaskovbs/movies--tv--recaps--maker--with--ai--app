@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { Music, X, Loader2 } from 'lucide-react'
 import type { AudioFile } from '../types'
+import { formatVideoLength } from '../lib/utils'
 
 interface AudioUploaderProps {
   onFileSelect: (file: AudioFile) => void
@@ -21,6 +22,27 @@ const AudioUploader = ({ onFileSelect, selectedFile, onRemoveFile }: AudioUpload
   const inputRef = useRef<HTMLInputElement>(null)
 
   const maxSize = 100 * 1024 * 1024 // 100MB - generous for a voice narration track
+
+  // Reads the MP3's duration from the browser's own metadata parsing, the
+  // same way VideoUploader reads a video's duration. The recap is always
+  // made to match this exact length when a narration is provided (see
+  // HomePage.handleCreateRecap), so it matters that this is accurate.
+  const getAudioDuration = (file: File): Promise<number | undefined> => {
+    return new Promise((resolve) => {
+      const audio = document.createElement('audio')
+      audio.preload = 'metadata'
+      const objectUrl = URL.createObjectURL(file)
+      audio.onloadedmetadata = () => {
+        URL.revokeObjectURL(objectUrl)
+        resolve(Number.isFinite(audio.duration) ? audio.duration : undefined)
+      }
+      audio.onerror = () => {
+        URL.revokeObjectURL(objectUrl)
+        resolve(undefined)
+      }
+      audio.src = objectUrl
+    })
+  }
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault()
@@ -56,13 +78,17 @@ const AudioUploader = ({ onFileSelect, selectedFile, onRemoveFile }: AudioUpload
 
     setReading(true)
     try {
-      const arrayBuffer = await file.arrayBuffer()
+      const [arrayBuffer, duration] = await Promise.all([
+        file.arrayBuffer(),
+        getAudioDuration(file),
+      ])
       const audioFile: AudioFile = {
         id: Date.now().toString(),
         name: file.name,
         size: file.size,
         file,
         buffer: new Uint8Array(arrayBuffer),
+        duration,
       }
       onFileSelect(audioFile)
     } catch (err) {
@@ -110,7 +136,10 @@ const AudioUploader = ({ onFileSelect, selectedFile, onRemoveFile }: AudioUpload
             <Music className="h-6 w-6 text-green-400 flex-shrink-0" />
             <div className="min-w-0">
               <h3 className="text-white text-sm font-medium truncate">{selectedFile.name}</h3>
-              <p className="text-gray-400 text-xs">{formatFileSize(selectedFile.size)}</p>
+              <p className="text-gray-400 text-xs">
+                {formatFileSize(selectedFile.size)}
+                {selectedFile.duration !== undefined && ` • ${formatVideoLength(selectedFile.duration)}`}
+              </p>
             </div>
           </div>
           <button
@@ -120,6 +149,9 @@ const AudioUploader = ({ onFileSelect, selectedFile, onRemoveFile }: AudioUpload
             <X className="h-4 w-4" />
           </button>
         </div>
+        {selectedFile.duration !== undefined && (
+          <p className="text-xs text-blue-300 mt-2">{t('audioUploader.durationMatchNote')}</p>
+        )}
       </motion.div>
     )
   }

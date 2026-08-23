@@ -9,6 +9,7 @@ interface RecapSettingsProps {
   settings: RecapSettings;
   onSettingsChange: (settings: RecapSettings) => void;
   videoDuration?: number; // משך הסרטון שהועלה, בשניות
+  audioDuration?: number; // משך קובץ ה-MP3 שהועלה, בשניות - כשקיים, הוא קובע את אורך התקציר במקום ההגדרה הידנית
 }
 
 const formatDuration = (totalSeconds: number): string => {
@@ -29,9 +30,16 @@ const formatDuration = (totalSeconds: number): string => {
 const RecapSettingsComponent = ({
   settings,
   onSettingsChange,
-  videoDuration
+  videoDuration,
+  audioDuration
 }: RecapSettingsProps) => {
   const { t } = useTranslation()
+
+  // Once an MP3 narration is uploaded, the recap's actual length always
+  // matches that file exactly (see HomePage.handleCreateRecap) instead of
+  // this manually-configured duration - so the interval sync below and the
+  // summary at the bottom should reflect the length that will really be used.
+  const effectiveDuration = audioDuration ?? settings.duration
 
   const handleChange = <K extends keyof RecapSettings>(field: K, value: RecapSettings[K]) => {
     onSettingsChange({
@@ -45,10 +53,10 @@ const RecapSettingsComponent = ({
   // adds up to the requested recap length (interval = video length / recap length,
   // scaled by how many seconds each cut captures).
   useEffect(() => {
-    if (videoDuration === undefined || videoDuration <= 0 || settings.duration <= 0) return
+    if (videoDuration === undefined || videoDuration <= 0 || effectiveDuration <= 0) return
     const idealInterval = Math.max(
       settings.captureSeconds,
-      Math.round((videoDuration * settings.captureSeconds) / settings.duration)
+      Math.round((videoDuration * settings.captureSeconds) / effectiveDuration)
     )
     if (idealInterval !== settings.intervalSeconds) {
       handleChange('intervalSeconds', idealInterval)
@@ -56,7 +64,7 @@ const RecapSettingsComponent = ({
     // Only recompute when the video or the desired recap duration change -
     // not on every render, and not when the user is mid-edit of the interval itself.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [videoDuration, settings.duration, settings.captureSeconds])
+  }, [videoDuration, effectiveDuration, settings.captureSeconds])
 
   const handleDurationChange = (part: 'hours' | 'minutes' | 'seconds', value: string) => {
     const numValue = parseInt(value, 10);
@@ -89,6 +97,8 @@ const RecapSettingsComponent = ({
   const durationHours = Math.floor(settings.duration / 3600);
   const durationMinutes = Math.floor((settings.duration % 3600) / 60);
   const durationSeconds = settings.duration % 60;
+
+  const lockedByAudio = audioDuration !== undefined;
 
   const intervalMinutes = Math.floor(settings.intervalSeconds / 60);
   const intervalRemainingSeconds = settings.intervalSeconds % 60;
@@ -180,43 +190,49 @@ const RecapSettingsComponent = ({
             <Clock className="h-4 w-4 ml-2" />
             {t('recapSettings.durationLabel')}
           </label>
-          <div className="flex items-start space-x-2 space-x-reverse">
-            <div className="flex-1">
-              <input
-                type="number"
-                min="0"
-                max="3"
-                value={String(durationHours).padStart(2, '0')}
-                onChange={(e) => handleDurationChange('hours', e.target.value)}
-                className="w-full px-3 py-2 glass-input rounded-md text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <p className="text-xs text-gray-400 text-center mt-1">{t('recapSettings.hours')}</p>
+          {lockedByAudio ? (
+            <p className="text-xs text-blue-300 glass-subtle rounded-md px-3 py-2">
+              {t('recapSettings.durationLockedByAudio', { length: formatDuration(audioDuration) })}
+            </p>
+          ) : (
+            <div className="flex items-start space-x-2 space-x-reverse">
+              <div className="flex-1">
+                <input
+                  type="number"
+                  min="0"
+                  max="3"
+                  value={String(durationHours).padStart(2, '0')}
+                  onChange={(e) => handleDurationChange('hours', e.target.value)}
+                  className="w-full px-3 py-2 glass-input rounded-md text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p className="text-xs text-gray-400 text-center mt-1">{t('recapSettings.hours')}</p>
+              </div>
+              <span className="text-xl font-bold text-gray-400 pt-2">:</span>
+              <div className="flex-1">
+                <input
+                  type="number"
+                  min="0"
+                  max="59"
+                  value={String(durationMinutes).padStart(2, '0')}
+                  onChange={(e) => handleDurationChange('minutes', e.target.value)}
+                  className="w-full px-3 py-2 glass-input rounded-md text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p className="text-xs text-gray-400 text-center mt-1">{t('recapSettings.minutes')}</p>
+              </div>
+              <span className="text-xl font-bold text-gray-400 pt-2">:</span>
+              <div className="flex-1">
+                <input
+                  type="number"
+                  min="0"
+                  max="59"
+                  value={String(durationSeconds).padStart(2, '0')}
+                  onChange={(e) => handleDurationChange('seconds', e.target.value)}
+                  className="w-full px-3 py-2 glass-input rounded-md text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p className="text-xs text-gray-400 text-center mt-1">{t('recapSettings.seconds')}</p>
+              </div>
             </div>
-            <span className="text-xl font-bold text-gray-400 pt-2">:</span>
-            <div className="flex-1">
-              <input
-                type="number"
-                min="0"
-                max="59"
-                value={String(durationMinutes).padStart(2, '0')}
-                onChange={(e) => handleDurationChange('minutes', e.target.value)}
-                className="w-full px-3 py-2 glass-input rounded-md text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <p className="text-xs text-gray-400 text-center mt-1">{t('recapSettings.minutes')}</p>
-            </div>
-            <span className="text-xl font-bold text-gray-400 pt-2">:</span>
-            <div className="flex-1">
-              <input
-                type="number"
-                min="0"
-                max="59"
-                value={String(durationSeconds).padStart(2, '0')}
-                onChange={(e) => handleDurationChange('seconds', e.target.value)}
-                className="w-full px-3 py-2 glass-input rounded-md text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <p className="text-xs text-gray-400 text-center mt-1">{t('recapSettings.seconds')}</p>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* תדירות חיתוך */}
@@ -286,9 +302,9 @@ const RecapSettingsComponent = ({
         <div className="glass-subtle rounded-lg p-4">
           <h3 className="text-sm font-medium text-gray-300 mb-2">{t('recapSettings.summaryTitle')}</h3>
           <div className="text-sm text-gray-400 space-y-1">
-            <p>• {t('recapSettings.summaryLength', { length: formatDuration(settings.duration) })}</p>
+            <p>• {t('recapSettings.summaryLength', { length: formatDuration(effectiveDuration) })}</p>
             <p>• {t('recapSettings.summaryInterval', { interval: formatDuration(settings.intervalSeconds) })}</p>
-            <p>• {t('recapSettings.summarySegments', { count: settings.intervalSeconds > 0 ? Math.floor(settings.duration / settings.intervalSeconds) : 0 })}</p>
+            <p>• {t('recapSettings.summarySegments', { count: settings.intervalSeconds > 0 ? Math.floor(effectiveDuration / settings.intervalSeconds) : 0 })}</p>
           </div>
         </div>
       </div>

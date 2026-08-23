@@ -101,7 +101,8 @@
     "unsupportedFormat": "Unsupported file type. Supported files: {{formats}}",
     "fileTooLarge": "The file is too large. Maximum size: 100MB",
     "readError": "Unable to read the audio file. Please try again.",
-    "readSuccess": "Read successfully"
+    "readSuccess": "Read successfully",
+    "durationMatchNote": "The recap's length will automatically match this audio file, instead of the duration set below."
   },
   "recapSettings": {
     "title": "Recap Settings",
@@ -122,6 +123,7 @@
       "animation": "Animation"
     },
     "durationLabel": "Recap Length (up to 3 hours)",
+    "durationLockedByAudio": "Set automatically to match your uploaded MP3: {{length}}",
     "hours": "Hours",
     "minutes": "Minutes",
     "seconds": "Seconds",
