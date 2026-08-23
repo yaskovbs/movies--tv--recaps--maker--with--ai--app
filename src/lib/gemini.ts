@@ -210,10 +210,10 @@ export function describeGeminiBlockReason(blockReason: string | undefined): stri
   return 'Gemini returned no video analysis.';
 }
 
-// Asks Gemini to write a full, detailed text recap of everything that
-// happens in an already-uploaded video, start to finish - used by the "get a
-// full recap" button offered right after uploading a video, before the user
-// commits to cutting/creating anything. Separate from both segment selection
+// Asks Gemini to write a concise text recap of what happens in an
+// already-uploaded video, start to finish - used by the "get a full recap"
+// button offered right after uploading a video, before the user commits to
+// cutting/creating anything. Separate from both segment selection
 // (analyzeVideoSegmentsWithGemini in HomePage.tsx, which picks moments to
 // cut) and the open-ended video chat (VideoChat.tsx) - this is a single,
 // complete summary in one shot.
@@ -221,26 +221,36 @@ export async function getFullVideoRecap(
   fileRef: GeminiFileRef,
   apiKey: string,
   description: string,
-  // The source video/episode's own actual runtime - the recap's length and
-  // level of detail is explicitly scaled to this (see the prompt below)
-  // instead of being left to a vague "several paragraphs is fine", so a
-  // feature-length movie gets a correspondingly longer, more detailed recap
-  // than a 20-minute episode.
+  // The source video/episode's own actual runtime - used to pick a target
+  // paragraph count (see targetParagraphs below) instead of leaving Gemini
+  // to guess a length on its own. Per explicit feedback that recaps were
+  // coming out longer than needed, this is capped rather than open-ended -
+  // a feature-length movie gets a somewhat longer recap than a 20-minute
+  // episode, but not an ever-growing one for very long runtimes.
   videoDurationSeconds: number | undefined,
   maxWaitMs = 5 * 60 * 1000
 ): Promise<string> {
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent?key=${apiKey}`;
 
   const durationMinutes = videoDurationSeconds ? Math.round(videoDurationSeconds / 60) : undefined;
-  const lengthGuidance = durationMinutes
-    ? `The video is about ${durationMinutes} minute${durationMinutes === 1 ? '' : 's'} long. Scale the recap's length and level of detail to that actual runtime - a longer movie or episode deserves a longer, more detailed recap that covers more distinct plot events, while a short one should get a correspondingly shorter, more concise recap. As a rough guide, aim for roughly one paragraph per 5-10 minutes of runtime, using more paragraphs and more detail for pivotal or complex stretches of the story.`
-    : `Scale the recap's length and level of detail to how much actually happens in the video - more paragraphs and detail for a longer or more eventful video, fewer for a short or simple one.`;
+  // Per explicit feedback that the recap was coming out longer than needed:
+  // scale the TARGET PARAGRAPH COUNT itself with runtime, but capped, rather
+  // than an open-ended "one paragraph per N minutes" ratio that keeps
+  // growing without limit for longer movies. One paragraph per ~15 minutes,
+  // floored at 3 (even a short clip gets a real recap) and capped at 7 (a
+  // 3-hour epic still gets a concise recap, not an ever-longer one).
+  const targetParagraphs = durationMinutes
+    ? Math.min(7, Math.max(3, Math.round(durationMinutes / 15)))
+    : undefined;
+  const lengthGuidance = targetParagraphs
+    ? `The video is about ${durationMinutes} minute${durationMinutes === 1 ? '' : 's'} long. Write a concise recap of about ${targetParagraphs} short paragraphs total - cover only the key plot events, not every detail. Do not write more than that just because the video is long; stay concise and hit the highlights.`
+    : `Write a concise recap - a handful of short paragraphs covering only the key plot events, not every detail.`;
 
   const prompt = `
     You are given a movie/TV episode video file. Watch the entire video carefully, start to finish.
     ${description ? `\n    Context provided by the user:\n    """\n    ${description}\n    """\n` : ''}
     ${lengthGuidance}
-    Write a full, detailed recap of everything that happens in the video - the setup, the key plot events in order, the characters involved, and how it ends. Be specific about what you actually see and hear, not generic.
+    Cover the setup, the key plot events in order, the main characters involved, and how it ends - but keep it tight and to the point rather than exhaustive. Be specific about what actually happens, not generic, while staying concise.
 
     Return only the recap text, no additional commentary or headings.
   `;
