@@ -281,6 +281,12 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - `RecapSettings` now shows the MP3's duration as a locked, read-only value (instead of the editable hours/minutes/seconds inputs) whenever an audio file is present, and its cut-interval auto-sync and settings summary both use that same effective duration so the displayed segment count/interval stay accurate.
 - No effect when no MP3 is uploaded - the manual duration setting works exactly as before.
 
+## Fixed the MP3 narration actually getting cut off mid-sentence
+
+- Bug in the previous entry's own fix: FFmpeg's `-shortest` flag was still applied whenever an MP3 narration was muxed in, so the moment the *video* stream ran out - which happens well before the narration's full length whenever the safe copyright cap on clip length/spacing (8 seconds apart, 1 second each) limits how much footage is even available to select - the whole output stopped right there, truncating the audio mid-sentence even though `-t` was already set to the narration's own exact duration.
+- Removed `-shortest`. `-t` alone now governs the output length (equal to the narration's real duration when one is provided), so the audio always plays to its natural end; the video stream simply stops appending frames if it runs out first, which most players handle by holding the last frame rather than cutting playback short.
+- Also fixed `formatDuration()` in `RecapSettings.tsx`, used to display the locked duration when an MP3 is present: it didn't round its input before formatting the seconds portion, so a real (fractional) MP3 duration like `245.837` rendered as a garbled `"4:5.837"` instead of `"4:06"`.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.
