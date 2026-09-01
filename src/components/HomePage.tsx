@@ -203,7 +203,8 @@ const HomePage = ({ apiKey }: HomePageProps) => {
     title: '',
     genre: '',
     description: '',
-    apiKey: ''
+    apiKey: '',
+    keepOriginalAudio: false
   })
   const [processingStatus, setProcessingStatus] = useState<ProcessingStatusType | null>(null)
   const [recapOutput, setRecapOutput] = useState<RecapOutput | null>(null)
@@ -389,15 +390,25 @@ const HomePage = ({ apiKey }: HomePageProps) => {
 
       const outputFileName = 'recap.mp4';
       // When Gemini picked out meaningful segments, cut exactly those instead
-      // of the periodic "every N seconds" fallback.
-      const selectFilter = smartSegments && smartSegments.length > 0
-        ? `select='${smartSegments.map(s => `between(t,${s.start.toFixed(2)},${s.end.toFixed(2)})`).join('+')}',setpts=N/FRAME_RATE/TB`
-        : `select='lt(mod(t,${settings.intervalSeconds}),${settings.captureSeconds})',setpts=N/FRAME_RATE/TB`;
+      // of the periodic "every N seconds" fallback. Kept as a bare predicate
+      // (not yet wrapped in select=/aselect=) so the identical timing logic
+      // can drive both the video and, when keepOriginalAudio is on, a
+      // synced audio select filter below - a clip and its own original sound
+      // have to be picked using the exact same time windows.
+      const selectPredicate = smartSegments && smartSegments.length > 0
+        ? smartSegments.map(s => `between(t,${s.start.toFixed(2)},${s.end.toFixed(2)})`).join('+')
+        : `lt(mod(t,${settings.intervalSeconds}),${settings.captureSeconds})`;
       // Cap resolution and use a fast x264 preset - recap clips don't need full
       // source resolution or the default "medium" preset's quality, and both cuts
       // are large speed wins for a software encoder running in-browser.
-      // When the user supplied their own MP3 narration, mux it in as the second
-      // input's audio stream instead of leaving the recap silent (-an).
+      // Three audio modes: a user-supplied MP3 narration (muxed in as the
+      // second input's audio stream) takes priority; otherwise, if the user
+      // asked to keep the movie/show's own original sound, the source
+      // video's own audio track is cut with the exact same select predicate
+      // as the video (so dialogue/sound stays in sync with the picked
+      // clips); otherwise the recap stays silent (-an), same as before this
+      // option existed.
+      const useOriginalAudio = !audioFile && settings.keepOriginalAudio;
       // Deliberately no -shortest here: the selected/cut video footage can add
       // up to less than effectiveDuration (e.g. the safe copyright cap on clip
       // length/spacing limits how much footage is even available to select),
@@ -410,8 +421,13 @@ const HomePage = ({ apiKey }: HomePageProps) => {
       await ffmpeg.exec([
         '-i', selectedFile.name,
         ...(audioFile ? ['-i', audioFile.name] : []),
-        '-vf', `${selectFilter},scale='min(1280,iw)':-2`,
-        ...(audioFile ? ['-map', '0:v', '-map', '1:a', '-c:a', 'aac', '-b:a', '192k'] : ['-an']),
+        '-vf', `select='${selectPredicate}',setpts=N/FRAME_RATE/TB,scale='min(1280,iw)':-2`,
+        ...(useOriginalAudio ? ['-af', `aselect='${selectPredicate}',asetpts=N/SR/TB`] : []),
+        ...(audioFile
+          ? ['-map', '0:v', '-map', '1:a', '-c:a', 'aac', '-b:a', '192k']
+          : useOriginalAudio
+          ? ['-map', '0:v', '-map', '0:a', '-c:a', 'aac', '-b:a', '192k']
+          : ['-an']),
         '-c:v', 'libx264',
         '-preset', 'veryfast',
         '-crf', '26',
@@ -570,6 +586,8 @@ const HomePage = ({ apiKey }: HomePageProps) => {
               selectedFile={audioFile}
               onFileSelect={setAudioFile}
               onRemoveFile={() => setAudioFile(null)}
+              keepOriginalAudio={settings.keepOriginalAudio}
+              onKeepOriginalAudioChange={(value) => setSettings({ ...settings, keepOriginalAudio: value })}
             />
             <RecapSettings settings={settings} onSettingsChange={setSettings} videoDuration={selectedFile?.duration} audioDuration={audioFile?.duration} />
             <motion.button

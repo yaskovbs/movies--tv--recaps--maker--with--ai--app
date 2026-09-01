@@ -313,6 +313,14 @@ Summary of the work done on this branch, in the order it happened. This is a run
 
 - Per explicit request, undoing the previous entry: the 5-30 minute tier in `getFullVideoRecap()` is back to targeting 4 paragraphs (not 2). The other three tiers (30-59min → 8, 60-119min → 12, 120min+ → 16) are unchanged.
 
+## Option to keep the movie/show's own original sound in the recap
+
+- Per explicit request: previously a recap was either silent (no audio at all, `-an`) or used a custom MP3 narration the user uploaded - there was no way to keep the source video's own original sound (dialogue, music, effects). Added a checkbox in `AudioUploader` ("Keep the movie/show's own original sound in the recap") that, when checked and no custom MP3 is uploaded, mixes the *original* video's own audio track into the output instead of leaving it silent.
+- The original audio is cut with the exact same timing predicate as the video - the same Gemini-picked segments or periodic `every N seconds` pattern - via a mirrored FFmpeg `aselect`/`asetpts` audio filter (`HomePage.tsx`), so dialogue/sound stays in sync with whatever clips actually end up in the recap. Refactored the existing video `select` filter construction to share this predicate (`selectPredicate`) instead of building the video-only filter string directly.
+- The three audio modes are mutually exclusive with a clear priority: a custom MP3 narration (if uploaded) always wins; otherwise the checkbox's original-audio mode applies; otherwise the recap stays silent, exactly as before this option existed. The checkbox is disabled in the UI whenever an MP3 is selected, since it wouldn't apply anyway.
+- No new saved-audio file is needed for this mode in `RecapSaver` - unlike a custom MP3 narration, the original audio is already embedded directly in the saved video itself.
+- Verified the three FFmpeg argument branches (silent / custom MP3 / keep-original-audio) directly, including that a selected MP3 always takes priority over the checkbox even if both are set.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.

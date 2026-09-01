@@ -102,7 +102,8 @@
     "fileTooLarge": "El archivo es demasiado grande. Tamaño máximo: 100MB",
     "readError": "No se pudo leer el archivo de audio. Inténtalo de nuevo.",
     "readSuccess": "Leído correctamente",
-    "durationMatchNote": "La duración del resumen coincidirá automáticamente con este archivo de audio, en lugar de la duración configurada abajo."
+    "durationMatchNote": "La duración del resumen coincidirá automáticamente con este archivo de audio, en lugar de la duración configurada abajo.",
+    "keepOriginalAudio": "Mantener el sonido original de la película/serie en el resumen (en lugar de silencio)"
   },
   "recapSettings": {
     "title": "Configuración del resumen",
