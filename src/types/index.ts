@@ -25,6 +25,9 @@ export interface RecapSettings {
   genre: string // ז'אנר
   description: string // תיאור נוסף
   apiKey: string
+  // כשאין קובץ MP3 מותאם אישית - האם לשמור את פס הקול המקורי של הסרט/הסדרה
+  // (מסונכרן לאותם קטעים שנבחרו לחיתוך) במקום שהתקציר יהיה שקט
+  keepOriginalAudio: boolean
 }
 
 export interface ProcessingStatus {

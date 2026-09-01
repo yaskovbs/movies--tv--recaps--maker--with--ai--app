@@ -9,13 +9,19 @@ interface AudioUploaderProps {
   onFileSelect: (file: AudioFile) => void
   selectedFile: AudioFile | null
   onRemoveFile: () => void
+  keepOriginalAudio: boolean
+  onKeepOriginalAudioChange: (value: boolean) => void
 }
 
 // Optional MP3 narration upload, offered before recap creation. When set, it's
 // muxed into the FFmpeg output as the recap video's audio track (HomePage's
 // handleCreateRecap) instead of leaving the video silent, and reused as the
 // saved recap's audioUrl instead of generating text-to-speech (RecapSaver).
-const AudioUploader = ({ onFileSelect, selectedFile, onRemoveFile }: AudioUploaderProps) => {
+// Also offers a plain checkbox alternative - keep the movie/show's own
+// original sound (cut to the same picked clips) instead of a custom
+// narration. The two are mutually exclusive: uploading an MP3 takes
+// priority, so the checkbox is disabled while a file is selected.
+const AudioUploader = ({ onFileSelect, selectedFile, onRemoveFile, keepOriginalAudio, onKeepOriginalAudioChange }: AudioUploaderProps) => {
   const { t } = useTranslation()
   const [dragActive, setDragActive] = useState(false)
   const [reading, setReading] = useState(false)
@@ -111,52 +117,44 @@ const AudioUploader = ({ onFileSelect, selectedFile, onRemoveFile }: AudioUpload
     if (!reading) inputRef.current?.click()
   }
 
-  if (reading) {
-    return (
-      <motion.div
-        className="glass-bg rounded-lg p-4 border-2 border-blue-500/60 text-center"
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-      >
-        <Loader2 className="h-6 w-6 text-blue-400 animate-spin mx-auto mb-2" />
-        <p className="text-white text-sm font-medium">{t('audioUploader.readingTitle')}</p>
-      </motion.div>
-    )
-  }
-
-  if (selectedFile) {
-    return (
-      <motion.div
-        className="glass-bg rounded-lg p-4 border-2 border-green-500/60"
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3 space-x-reverse min-w-0">
-            <Music className="h-6 w-6 text-green-400 flex-shrink-0" />
-            <div className="min-w-0">
-              <h3 className="text-white text-sm font-medium truncate">{selectedFile.name}</h3>
-              <p className="text-gray-400 text-xs">
-                {formatFileSize(selectedFile.size)}
-                {selectedFile.duration !== undefined && ` • ${formatVideoLength(selectedFile.duration)}`}
-              </p>
-            </div>
+  const mainContent = reading ? (
+    <motion.div
+      className="glass-bg rounded-lg p-4 border-2 border-blue-500/60 text-center"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+    >
+      <Loader2 className="h-6 w-6 text-blue-400 animate-spin mx-auto mb-2" />
+      <p className="text-white text-sm font-medium">{t('audioUploader.readingTitle')}</p>
+    </motion.div>
+  ) : selectedFile ? (
+    <motion.div
+      className="glass-bg rounded-lg p-4 border-2 border-green-500/60"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3 space-x-reverse min-w-0">
+          <Music className="h-6 w-6 text-green-400 flex-shrink-0" />
+          <div className="min-w-0">
+            <h3 className="text-white text-sm font-medium truncate">{selectedFile.name}</h3>
+            <p className="text-gray-400 text-xs">
+              {formatFileSize(selectedFile.size)}
+              {selectedFile.duration !== undefined && ` • ${formatVideoLength(selectedFile.duration)}`}
+            </p>
           </div>
-          <button
-            onClick={onRemoveFile}
-            className="p-2 text-gray-400 hover:text-red-400 transition-colors flex-shrink-0"
-          >
-            <X className="h-4 w-4" />
-          </button>
         </div>
-        {selectedFile.duration !== undefined && (
-          <p className="text-xs text-blue-300 mt-2">{t('audioUploader.durationMatchNote')}</p>
-        )}
-      </motion.div>
-    )
-  }
-
-  return (
+        <button
+          onClick={onRemoveFile}
+          className="p-2 text-gray-400 hover:text-red-400 transition-colors flex-shrink-0"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+      {selectedFile.duration !== undefined && (
+        <p className="text-xs text-blue-300 mt-2">{t('audioUploader.durationMatchNote')}</p>
+      )}
+    </motion.div>
+  ) : (
     <motion.div
       className={`relative border-2 border-dashed rounded-lg p-4 text-center transition-colors cursor-pointer ${
         dragActive ? 'border-blue-400 bg-blue-400/10' : 'border-white/20 glass-bg'
@@ -190,6 +188,28 @@ const AudioUploader = ({ onFileSelect, selectedFile, onRemoveFile }: AudioUpload
       </div>
       <p className="text-xs text-gray-500 mt-2">{t('audioUploader.hint')}</p>
     </motion.div>
+  )
+
+  return (
+    <div className="space-y-3">
+      {mainContent}
+      {!reading && (
+        <label
+          className={`flex items-center gap-2 text-sm px-1 ${
+            selectedFile ? 'text-gray-500 cursor-not-allowed' : 'text-gray-300 cursor-pointer'
+          }`}
+        >
+          <input
+            type="checkbox"
+            checked={keepOriginalAudio}
+            disabled={!!selectedFile}
+            onChange={(e) => onKeepOriginalAudioChange(e.target.checked)}
+            className="h-4 w-4 rounded border-white/20 accent-blue-500 disabled:cursor-not-allowed"
+          />
+          {t('audioUploader.keepOriginalAudio')}
+        </label>
+      )}
+    </div>
   )
 }
 
