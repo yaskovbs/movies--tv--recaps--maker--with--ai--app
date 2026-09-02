@@ -321,6 +321,15 @@
     "notFoundSubtitle": "Our team is here to help! Get in touch and we'll get back to you quickly",
     "contactUs": "Contact Us"
   },
+  "notFoundPage": {
+    "title": "404",
+    "heading": "This page doesn't exist",
+    "description": "The link you followed may be broken, or the page may have moved. Here's where you can go instead:",
+    "linkHome": "Home",
+    "linkHistory": "History",
+    "linkFaq": "FAQ",
+    "linkContact": "Contact"
+  },
   "privacyPage": {
     "title": "Privacy Policy",
     "lastUpdated": "Last updated: {{date}}",

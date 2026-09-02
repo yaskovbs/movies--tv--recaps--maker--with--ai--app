@@ -321,6 +321,15 @@
     "notFoundSubtitle": "הצוות שלנו כאן כדי לעזור! צרו קשר איתנו ונחזור אליכם במהירות",
     "contactUs": "צרו קשר איתנו"
   },
+  "notFoundPage": {
+    "title": "404",
+    "heading": "הדף הזה לא קיים",
+    "description": "ייתכן שהקישור שבו לחצתם שבור, או שהדף הועבר. הנה לאן אפשר ללכת במקום:",
+    "linkHome": "דף הבית",
+    "linkHistory": "היסטוריה",
+    "linkFaq": "שאלות נפוצות",
+    "linkContact": "צור קשר"
+  },
   "privacyPage": {
     "title": "מדיניות פרטיות",
     "lastUpdated": "עדכון אחרון: {{date}}",

@@ -1,1 +1,20 @@
-/*    /index.html   200
+# This is a client-side-routed SPA (React Router) - every real page still
+# needs to serve index.html so the JS can take over and render the right
+# route. But a single blanket "/* /index.html 200" rule (the previous
+# version of this file) meant ANY url, including typos, dead links, or bots
+# probing random paths, rendered the app shell with an EMPTY <main> (no
+# matching <Route>, nothing rendered) while still returning HTTP 200 - a
+# real "screen with no publisher content" being served with ads, and served
+# with a success status to crawlers on top of that.
+#
+# Fix: list every real route explicitly with 200, then fall back to 404 for
+# everything else - index.html is still served either way (so the SPA's own
+# NotFoundPage renders a real, helpful page for human visitors), but
+# genuinely unknown paths now correctly report HTTP 404 instead of 200.
+/                 /index.html   200
+/history          /index.html   200
+/contact          /index.html   200
+/faq              /index.html   200
+/terms            /index.html   200
+/privacy          /index.html   200
+/*                /index.html   404
