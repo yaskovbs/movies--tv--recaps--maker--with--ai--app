@@ -321,6 +321,12 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - No new saved-audio file is needed for this mode in `RecapSaver` - unlike a custom MP3 narration, the original audio is already embedded directly in the saved video itself.
 - Verified the three FFmpeg argument branches (silent / custom MP3 / keep-original-audio) directly, including that a selected MP3 always takes priority over the checkbox even if both are set.
 
+## Exposed segment length (captureSeconds) as its own setting
+
+- Per explicit request: "how many seconds to cut" only ever let users choose the *interval* (how often a cut happens) - the *length* of each individual cut (`captureSeconds`) had no UI control at all and was hardcoded to 1 second everywhere. Added a "Segment Length (seconds)" field in `RecapSettings` so users can choose a longer capture per cut, not just a longer/shorter gap between cuts.
+- Still governed by the existing safe-floor rule (`getEffectiveCutPattern` in `HomePage.tsx`, unchanged): the chosen `captureSeconds` is only actually honored when the cut interval is 8 seconds or more; below that, it's silently overridden back to the safe 1-second default regardless of what's set here, for copyright safety. Added a visible amber warning under the new field whenever the current interval is under 8 seconds, so it's clear when the setting won't take effect.
+- Also fixed the interval hint text, which hardcoded "a 1-second segment will be cut" even after `captureSeconds` became configurable - now interpolates the real value. Added the segment length to the settings summary box too.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.

@@ -130,6 +130,19 @@ const RecapSettingsComponent = ({
     handleChange('intervalSeconds', newTotalSeconds);
   };
 
+  // How many seconds each cut captures - previously fixed at 1 second with no
+  // UI control at all. Exposed here per explicit request so users can choose
+  // longer captures too. Still subject to the same safe-floor rule as the
+  // interval above (HomePage.getEffectiveCutPattern): only actually honored
+  // when the chosen interval is at least 8 seconds - with a denser interval,
+  // captureSeconds is silently overridden back to the safe 1-second default
+  // regardless of what's set here, for copyright safety.
+  const handleCaptureChange = (value: string) => {
+    const numValue = parseInt(value, 10);
+    if (isNaN(numValue) || numValue < 1) return;
+    handleChange('captureSeconds', numValue);
+  };
+
   const genreOptions: Array<{ value: string; labelKey: string }> = [
     { value: 'action', labelKey: 'recapSettings.genres.action' },
     { value: 'comedy', labelKey: 'recapSettings.genres.comedy' },
@@ -276,11 +289,35 @@ const RecapSettingsComponent = ({
             />
           </div>
           <p className="text-xs text-gray-400 mt-1">
-            {t('recapSettings.intervalHint', { minutes: intervalMinutes, seconds: intervalRemainingSeconds })}
+            {t('recapSettings.intervalHint', { minutes: intervalMinutes, seconds: intervalRemainingSeconds, captureSeconds: settings.captureSeconds })}
           </p>
           {videoDuration !== undefined && settings.intervalSeconds >= videoDuration && (
             <p className="text-xs text-amber-400 mt-1">
               {t('recapSettings.intervalWarning', { length: formatVideoLength(videoDuration) })}
+            </p>
+          )}
+        </div>
+
+        {/* משך כל קטע */}
+        <div>
+          <label className="flex items-center text-sm font-medium text-gray-300 mb-2">
+            <Scissors className="h-4 w-4 ml-2" />
+            {t('recapSettings.captureLabel')}
+          </label>
+          <input
+            type="number"
+            min="1"
+            value={settings.captureSeconds}
+            onChange={(e) => handleCaptureChange(e.target.value)}
+            className="w-full px-3 py-2 glass-input rounded-md text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="01"
+          />
+          <p className="text-xs text-gray-400 mt-1">
+            {t('recapSettings.captureHint', { seconds: settings.captureSeconds })}
+          </p>
+          {settings.intervalSeconds < 8 && (
+            <p className="text-xs text-amber-400 mt-1">
+              {t('recapSettings.captureSafetyNote')}
             </p>
           )}
         </div>
@@ -309,6 +346,7 @@ const RecapSettingsComponent = ({
           <div className="text-sm text-gray-400 space-y-1">
             <p>• {t('recapSettings.summaryLength', { length: formatDuration(effectiveDuration) })}</p>
             <p>• {t('recapSettings.summaryInterval', { interval: formatDuration(settings.intervalSeconds) })}</p>
+            <p>• {t('recapSettings.summaryCapture', { seconds: settings.captureSeconds })}</p>
             <p>• {t('recapSettings.summarySegments', { count: settings.intervalSeconds > 0 ? Math.floor(effectiveDuration / settings.intervalSeconds) : 0 })}</p>
           </div>
         </div>
