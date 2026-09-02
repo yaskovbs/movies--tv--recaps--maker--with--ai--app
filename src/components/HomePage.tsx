@@ -79,14 +79,15 @@ async function analyzeVideoSegmentsWithGemini(
   const prompt = `
     You are given a movie/TV episode video file. Watch it and select the most important, representative moments to include in a short recap.
     ${description ? `\n    Context about the content, provided by the user:\n    """\n    ${description}\n    """\n` : ''}
-    Return a JSON array, and ONLY a JSON array with no other text and no markdown code fences, of the segments to include in the recap, in chronological order, using exactly this shape:
+    Return a JSON array, and ONLY a JSON array with no other text and no markdown code fences, of the segments to include in the recap, using exactly this shape:
     [{"start": "HH:MM:SS", "end": "HH:MM:SS"}, ...]
 
     Rules:
     - Each segment must capture a genuinely important, representative moment (key plot beats, turning points, standout visuals or lines) - not arbitrary evenly-spaced clips.
-    - Segments must be listed in chronological order and must not overlap.
+    - You do NOT need to scan the video strictly forward or list segments in the order they appear - freely go back to an earlier part of the video if it turns out to matter, even after you've already picked something from later on. Pick whichever moments are the most important, wherever they fall - the app sorts them into chronological order automatically afterward.
+    - Segments must not overlap with each other.
     - Each segment must be at most ${maxClipSeconds} second${maxClipSeconds === 1 ? '' : 's'} long - brief flashes of the moment, not longer continuous clips.
-    - Consecutive segments must start at least ${minSpacingSeconds} seconds apart.
+    - Any two segments must start at least ${minSpacingSeconds} seconds apart from each other, regardless of the order you list them in.
     - The segments' combined total duration should add up to approximately ${targetDurationSeconds} seconds.
     - Use HH:MM:SS timestamps that fall within the actual video${videoDurationSeconds ? ` (it is about ${Math.round(videoDurationSeconds)} seconds long)` : ''}.
   `;
@@ -155,10 +156,16 @@ async function analyzeVideoSegmentsWithGemini(
       };
     })
     .filter(({ start, end }) => end > start)
+    // Gemini is explicitly told it's free to pick segments in any order (see
+    // the prompt above) - it can revisit an earlier part of the video after
+    // already picking something later on, instead of only scanning forward.
+    // This sort is what actually puts them back into chronological order for
+    // playback, regardless of what order Gemini returned them in.
     .sort((a, b) => a.start - b.start)
     // Enforced the same way as the length cap above - drop any segment that
-    // starts too soon after the previous kept one, regardless of what
-    // Gemini returned, instead of just asking for it in the prompt.
+    // starts too soon after the previous kept one (now guaranteed adjacent in
+    // time thanks to the sort above), regardless of what Gemini returned,
+    // instead of just asking for it in the prompt.
     .reduce<VideoSegment[]>((kept, seg) => {
       const previous = kept[kept.length - 1];
       if (!previous || seg.start - previous.start >= minSpacingSeconds) {

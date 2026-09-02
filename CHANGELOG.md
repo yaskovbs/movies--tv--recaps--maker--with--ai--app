@@ -327,6 +327,13 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - Still governed by the existing safe-floor rule (`getEffectiveCutPattern` in `HomePage.tsx`, unchanged): the chosen `captureSeconds` is only actually honored when the cut interval is 8 seconds or more; below that, it's silently overridden back to the safe 1-second default regardless of what's set here, for copyright safety. Added a visible amber warning under the new field whenever the current interval is under 8 seconds, so it's clear when the setting won't take effect.
 - Also fixed the interval hint text, which hardcoded "a 1-second segment will be cut" even after `captureSeconds` became configurable - now interpolates the real value. Added the segment length to the settings summary box too.
 
+## Let Gemini's smart selection jump back and forth in time, not just forward
+
+- Per explicit request: the segment-selection prompt (`analyzeVideoSegmentsWithGemini` in `HomePage.tsx`) previously told Gemini to list its picked segments "in chronological order," which could bias it toward only scanning forward through the video and never reconsidering an earlier moment once it had moved past it while composing its answer.
+- Replaced that instruction with the opposite: Gemini is now explicitly told it does NOT need to scan forward or list segments in order - it can freely go back to an earlier part of the video after already picking something later on, and just return whichever moments are most important regardless of where they fall.
+- This was already safe to allow: the client-side processing sorts every returned segment by start time before applying the length cap and minimum-spacing filter, so the final cut is always chronological and correctly spaced no matter what order Gemini's reply lists things in. Reworded the "consecutive segments" spacing rule to "any two segments," since segment order in Gemini's own reply is no longer meaningful.
+- Verified directly with a standalone script using deliberately out-of-order/backtracking timestamps as input - confirmed the output still comes back sorted, properly spaced (every gap ≥ the minimum), and each clip capped to the max length.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.
