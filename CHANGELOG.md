@@ -342,6 +342,11 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - Verified: `npm run build` copies the updated `_redirects` into `dist/` correctly, the dev server's SPA fallback still serves the app shell for an unmatched path, and the built JS bundle includes the new `NotFoundPage` translations.
 - This doesn't guarantee it was the exact page Google's review flagged (no specific example URL was available to confirm against) - if the policy center still shows a violation after requesting a re-review, check the specific URL(s) listed there for anything else.
 
+## Added two more paragraph-count tiers for longer movies
+
+- Per explicit request: split the previous "2 hours or more → 16 paragraphs" tier in `getFullVideoRecap()` into three - a movie under 1.5 hours (60-89min) keeps 12, a movie of 1.5 hours or more but under 2 hours (90-119min) now gets 16, and a movie of 2 hours or more (120min+) gets 22. The 5-30min (4) and 30-59min (8) tiers are unchanged.
+- Verified the new boundaries directly: 89 minutes still maps to 12, 90-119 minutes all map to 16, and 120+ minutes all map to 22.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.

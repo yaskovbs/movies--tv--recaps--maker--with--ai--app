@@ -231,19 +231,22 @@ export async function getFullVideoRecap(
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent?key=${apiKey}`;
 
   const durationMinutes = videoDurationSeconds ? Math.round(videoDurationSeconds / 60) : undefined;
-  // Per explicit request: four fixed tiers instead of a continuous formula -
-  // a short series episode (5-30 min) gets 4 paragraphs, a longer episode
-  // (30-59 min, e.g. a ~40-minute drama) gets 8, a movie under 2 hours gets
-  // 12, and a movie of 2 hours or longer gets 16.
+  // Per explicit request: fixed tiers instead of a continuous formula - a
+  // short series episode (5-30 min) gets 4 paragraphs, a longer episode
+  // (30-59 min, e.g. a ~40-minute drama) gets 8, a movie under 1.5 hours
+  // gets 12, a movie of 1.5 hours or longer gets 16, and a movie of 2 hours
+  // or longer gets 22.
   const targetParagraphs = durationMinutes === undefined
     ? undefined
     : durationMinutes <= 30
     ? 4
     : durationMinutes < 60
     ? 8
-    : durationMinutes < 120
+    : durationMinutes < 90
     ? 12
-    : 16;
+    : durationMinutes < 120
+    ? 16
+    : 22;
   const lengthGuidance = targetParagraphs
     ? `The video is about ${durationMinutes} minute${durationMinutes === 1 ? '' : 's'} long. Write a concise recap of about ${targetParagraphs} short paragraphs total - cover only the key plot events, not every detail. Do not write more than that just because the video is long; stay concise and hit the highlights.`
     : `Write a concise recap - a handful of short paragraphs covering only the key plot events, not every detail.`;
