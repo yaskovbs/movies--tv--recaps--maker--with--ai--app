@@ -321,6 +321,15 @@
     "notFoundSubtitle": "¡Nuestro equipo está aquí para ayudar! Contáctanos y te responderemos rápidamente",
     "contactUs": "Contáctanos"
   },
+  "notFoundPage": {
+    "title": "404",
+    "heading": "Esta página no existe",
+    "description": "Es posible que el enlace que seguiste esté roto, o que la página se haya movido. Aquí puedes ir en su lugar:",
+    "linkHome": "Inicio",
+    "linkHistory": "Historial",
+    "linkFaq": "Preguntas frecuentes",
+    "linkContact": "Contacto"
+  },
   "privacyPage": {
     "title": "Política de privacidad",
     "lastUpdated": "Última actualización: {{date}}",

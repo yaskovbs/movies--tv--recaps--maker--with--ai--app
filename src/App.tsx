@@ -7,6 +7,7 @@ import FAQPage from './components/FAQPage'
 import Footer from './components/Footer'
 import TermsOfServicePage from './components/TermsOfServicePage'
 import PrivacyPolicyPage from './components/PrivacyPolicyPage'
+import NotFoundPage from './components/NotFoundPage'
 import { registerVisitor } from './lib/stats'
 
 import HistoryPage from './components/HistoryPage'
@@ -45,6 +46,11 @@ function App() {
           <Route path="/faq" element={<FAQPage />} />
           <Route path="/terms" element={<TermsOfServicePage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          {/* Catch-all for any unmatched URL - see public/_redirects for the
+              matching HTTP 404 status on real requests, and NotFoundPage.tsx
+              for why this exists (a blank <main> here would otherwise be a
+              genuine "screen without content"). */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
       <Footer />
