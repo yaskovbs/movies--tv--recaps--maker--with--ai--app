@@ -352,6 +352,11 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - Per explicit request: split the previous "under 30 minutes → 4 paragraphs" tier in `getFullVideoRecap()` so 20-29 minute videos now get 6 paragraphs instead of 4. Under 20 minutes stays at 4, and exactly 30 minutes stays at 4 too (unchanged from before) - only the 20-29 range moved. All other tiers (30-59min → 8, 60-89min → 12, 90-119min → 16, 120min+ → 22) are unchanged.
 - Verified directly: 1-19 minutes all map to 4, 20-29 minutes all map to 6, and 30 minutes still maps to 4.
 
+## Extended the 6-paragraph tier to include exactly 30 minutes
+
+- Per explicit request, undoing the previous entry's "30 minutes stays at 4" quirk: `getFullVideoRecap()`'s tier boundary is now 20-30 minutes (inclusive) → 6 paragraphs, so a video of exactly 30 minutes gets 6 instead of dropping back to 4. 31-59 minutes still gets 8, unchanged.
+- Verified directly: 19 minutes still maps to 4, 20 through 30 minutes all map to 6, and 31 minutes still maps to 8.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.
