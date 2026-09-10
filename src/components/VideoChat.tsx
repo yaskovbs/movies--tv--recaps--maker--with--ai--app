@@ -16,7 +16,7 @@ interface VideoChatProps {
   fileRef: GeminiFileRef
 }
 
-const CHAT_MODEL = 'gemini-3.7-flash'
+const CHAT_MODEL = 'gemini-3.8-flash'
 const CHAT_TIMEOUT_MS = 60_000
 
 // Gemini's REST API is stateless - every turn resends the full conversation

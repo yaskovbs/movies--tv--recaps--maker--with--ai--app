@@ -228,7 +228,7 @@ export async function getFullVideoRecap(
   videoDurationSeconds: number | undefined,
   maxWaitMs = 5 * 60 * 1000
 ): Promise<string> {
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent?key=${apiKey}`;
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
 
   const durationMinutes = videoDurationSeconds ? Math.round(videoDurationSeconds / 60) : undefined;
   // Per explicit request: fixed tiers instead of a continuous formula - a
