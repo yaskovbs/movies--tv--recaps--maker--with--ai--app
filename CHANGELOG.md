@@ -357,6 +357,11 @@ Summary of the work done on this branch, in the order it happened. This is a run
 - Per explicit request, undoing the previous entry's "30 minutes stays at 4" quirk: `getFullVideoRecap()`'s tier boundary is now 20-30 minutes (inclusive) → 6 paragraphs, so a video of exactly 30 minutes gets 6 instead of dropping back to 4. 31-59 minutes still gets 8, unchanged.
 - Verified directly: 19 minutes still maps to 4, 20 through 30 minutes all map to 6, and 31 minutes still maps to 8.
 
+## Switched the model to gemini-3.8-flash
+
+- Per explicit request: updated every Gemini call (`getFullVideoRecap` and the file-upload/`generateContent` calls in `src/lib/gemini.ts`, video segment analysis in `HomePage.tsx`, and the chat model in `VideoChat.tsx`) from `gemini-3.7-flash` to `gemini-3.8-flash`. Also updated the desktop app's equivalent, isolated script-generation code for consistency.
+- Confirmed no remaining references to the old model name anywhere in `src/`.
+
 ## Known limitations / things not done
 
 - Multi-threaded FFmpeg (would meaningfully speed up long/large video processing) is implemented in git history but currently reverted — enabling it requires accepting the COOP/COEP cross-origin risk described above.
